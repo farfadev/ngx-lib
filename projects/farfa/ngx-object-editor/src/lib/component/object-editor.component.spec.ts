@@ -4,7 +4,7 @@ import { ObjectEditorComponent } from './object-editor.component';
 import { CUSTOM_ELEMENTS_SCHEMA, Component, DebugElement } from '@angular/core';
 
 import { ObjectEditorContext } from '../object-editor-context';
-import { ObjectEditorModule } from '../ngx-object-editor.module';
+import { ObjectEditorModule } from '../object-editor.module';
 import { By } from '@angular/platform-browser';
 import { random } from 'mathjs';
 const timeout = 15000;
