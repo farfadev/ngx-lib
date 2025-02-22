@@ -5,6 +5,7 @@
     "start": "npm-run-all clean --parallel lib:watch showcase:start-waiton",
     "build": "run-s lib:build showcase:build",
     "test": "run-p lib:test showcase:test",
+    "lib-oe:publish": "ng build @farfadev/ngx-object-editor --configuration production && cd ./dist/farfadev/ngx-object-editor && npm publish --access public",
     "lib:build": "ng build @farfadev/ngx-object-editor",
     "lib:watch": "ng build @farfadev/ngx-object-editor --watch --configuration development",
     "lib:test": "ng test @farfadev/ngx-object-editor",
