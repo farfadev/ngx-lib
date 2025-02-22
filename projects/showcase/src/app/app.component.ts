@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { ObjectEditorModule } from '@farfa/ngx-object-editor';
+import { ObjectEditorModule } from '@farfadev/ngx-object-editor';
 import { TestComponent } from "./test/test.component";
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ObjectEditorModule, TestComponent],
+  imports: [RouterOutlet, ObjectEditorModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

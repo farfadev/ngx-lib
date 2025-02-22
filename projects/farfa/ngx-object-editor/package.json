@@ -1,6 +1,21 @@
 {
-  "name": "ngx-object-editor",
+  "name": "@farfadev/ngx-object-editor",
   "version": "0.0.1",
+  "description": "An angular component to edit typecript/ javascript objects",
+  "author": "farfadev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/farfadev/ngx-lib.git"
+  },
+  "bugs": {
+    "url": "https://github.com/farfadev/ngx-lib/issues"
+  },
+  "homepage":  "https://github.com/farfadev/ngx-lib",
+  "keywords": [
+    "angular",
+    "editor"
+  ],
+  "licence": "ISC",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { ObjectEditorContext } from '@farfa/ngx-object-editor';
-import { ObjectEditorModule } from "@farfa/ngx-object-editor";
+import { ObjectEditorContext } from '@farfadev/ngx-object-editor';
+import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
 
 @Component({
   selector: 'app-object-editor-test',

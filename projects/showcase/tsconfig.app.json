@@ -6,10 +6,10 @@
     "outDir": "../../out-tsc/app",
     "types": [],
     "paths": {
-      "@farfa/ngx-object-editor/*": [
+      "@farfadev/ngx-object-editor/*": [
         "../../dist/farfa/ngx-object-editor/*"
       ],
-      "@farfa/ngx-object-editor": [
+      "@farfadev/ngx-object-editor": [
         "../../dist/farfa/ngx-object-editor"
       ]
     }    
