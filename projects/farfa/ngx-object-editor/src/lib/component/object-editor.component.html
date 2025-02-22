@@ -12,7 +12,7 @@
       <option>choose an option</option>
       <option *ngFor="let o of typeoptions" value="{{o}}">{{o}}</option>
     </select>
-    <i class="fa-regular fa-square-plus" (click)="addNewProperty()"></i>
+    <i class="pi pi-plus-circle" (click)="addNewProperty()"></i>
   </p>
   @if(isArray()) {
     @for(item of context.value; track item; let idx = $index) {
@@ -23,8 +23,8 @@
   @for (p of properties; track p) {
   <div>
     <p *ngIf="isediting(p); else noedit" style="display: flex; gap: 10px">
-      <i class="fa-solid fa-pen" style="color:green" (click)="edittoggle(p,$event)"></i>
-      <i class="fa-regular fa-trash-can" (click)="delete(p)"></i>
+      <i class="pi pi-pencil" style="color:green" (click)="edittoggle(p,$event)"></i>
+      <i class="pi pi-trash" (click)="delete(p)"></i>
       <label> {{ p }} </label>
       @switch(getHtmlType(p)) {
         @case('array') {
@@ -50,8 +50,8 @@
     </p>
     <ng-template #noedit>
         <p style="display: flex; gap: 10px">
-        <i *ngIf="!isReadOnly(p)" class="fa-solid fa-pen" (click)="edittoggle(p,$event)"></i>
-        <i class="fa-regular fa-trash-can" [style.visibility]="isOptional(p)?'visible':'hidden'" (click)="delete(p)"></i>
+        <i *ngIf="!isReadOnly(p)" class="pi pi-pencil" (click)="edittoggle(p,$event)"></i>
+        <i class="pi pi-trash" [style.visibility]="isOptional(p)?'visible':'hidden'" (click)="delete(p)"></i>
         <label> {{ p }} </label>
         @switch(getHtmlType(p)) {
           @case('array') {

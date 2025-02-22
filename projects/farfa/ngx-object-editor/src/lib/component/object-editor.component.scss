@@ -1,10 +1,6 @@
-// FONTAWSOME
-// importing core styling file
-@import '@fortawesome/fontawesome-free/css/fontawesome.css';
-
-// our project needs Solid + Regular
-@import '@fortawesome/fontawesome-free/css/solid.css';
-@import '@fortawesome/fontawesome-free/css/regular.css';
+// PRIMENG
+// http://geon.github.io/programming/2016/02/24/flexbox-full-page-web-app-layout
+@import "primeicons/primeicons.css";
 
 .colorBox {
     display: inline-block;
