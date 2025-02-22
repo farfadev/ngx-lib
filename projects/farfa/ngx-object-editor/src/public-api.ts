@@ -3,5 +3,7 @@
  */
 
 //export * from './lib/ngx-object-editor.service';
-//export * from './lib/ngx-object-editor.component';
+export * from './lib/component/object-editor.component';
 export * from './lib/object-editor.module';
+export * from './lib/object-editor-context';
+export * from './lib/object-editor';

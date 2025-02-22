@@ -14,15 +14,12 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "paths": {
+      "@farfa/ngx-object-editor/*": [
+        "./dist/farfa/ngx-object-editor/*"
+      ],
       "@farfa/ngx-object-editor": [
         "./dist/farfa/ngx-object-editor"
       ],
-      "ngx-object-editor": [
-        "./dist/ngx-object-editor"
-      ],
-      "object-editor": [
-        "./dist/object-editor"
-      ]
     },
     "moduleResolution": "bundler",
     "importHelpers": true,

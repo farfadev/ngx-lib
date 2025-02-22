@@ -1,3 +1,11 @@
+// FONTAWSOME
+// importing core styling file
+@import '@fortawesome/fontawesome-free/css/fontawesome.css';
+
+// our project needs Solid + Regular
+@import '@fortawesome/fontawesome-free/css/solid.css';
+@import '@fortawesome/fontawesome-free/css/regular.css';
+
 .colorBox {
     display: inline-block;
 

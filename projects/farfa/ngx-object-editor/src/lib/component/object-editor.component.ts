@@ -108,7 +108,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   isReadOnly(p: string | number): boolean {
-    return this.context.scheme?.[p]?.readonly ?? false;
+    return this.context.scheme?.properties?.[p]?.readonly ?? false;
   }
 
   isRestricted(p?: string | number): boolean {
@@ -210,10 +210,10 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   delete(p: string | number) {
-    if (this.context.scheme?.properties?.optional) {
+    if (this.context.scheme?.properties?.[p].optional) {
       delete this.context.value[p];
     }
-    if (this.context.scheme?.properties?.deletable) {
+    if (this.context.scheme?.properties?.[p].deletable) {
       delete this.context.scheme.properties[p];
     }
     this.setProperties();
@@ -253,7 +253,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     }
   }
 
-  invertColor(hex) {
+  invertColor(hex: string) {
     if (hex.indexOf('#') === 0) {
         hex = hex.slice(1);
     }
@@ -272,7 +272,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     return '#' + this.padZero(r) + this.padZero(g) + this.padZero(b);
   }
   
-  padZero(str, len?) {
+  padZero(str: string, len?: number) {
     len = len || 2;
     var zeros = new Array(len).join('0');
     return (zeros + str).slice(-len);

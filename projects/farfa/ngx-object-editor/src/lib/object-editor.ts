@@ -1,4 +1,5 @@
-import cloneDeep from "lodash.clonedeep";
+//import cloneDeep from "lodash.clonedeep";
+import { cloneDeep } from "lodash-es";
 
 interface From {
   reference: string;
@@ -180,7 +181,7 @@ export class ObjectEditor {
             if (scheme.properties?.[i]) {
               lastKey = i;
             }
-            if (i > value.length && scheme.properties?.[lastKey])
+            if (lastKey && i > value.length && scheme.properties?.[lastKey])
               value.push(ObjectEditor.initValue(value[i], scheme.properties?.[lastKey]));
           }
         }
