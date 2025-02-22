@@ -7,10 +7,10 @@
     "types": [],
     "paths": {
       "@farfadev/ngx-object-editor/*": [
-        "../../dist/farfa/ngx-object-editor/*"
+        "../../dist/farfadev/ngx-object-editor/*"
       ],
       "@farfadev/ngx-object-editor": [
-        "../../dist/farfa/ngx-object-editor"
+        "../../dist/farfadev/ngx-object-editor"
       ]
     }    
   },

@@ -3,23 +3,23 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "@farfa/ngx-object-editor": {
+    "@farfadev/ngx-object-editor": {
       "projectType": "library",
-      "root": "projects/farfa/ngx-object-editor",
-      "sourceRoot": "projects/farfa/ngx-object-editor/src",
+      "root": "projects/farfadev/ngx-object-editor",
+      "sourceRoot": "projects/farfadev/ngx-object-editor/src",
       "prefix": "lib",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
-            "project": "projects/farfa/ngx-object-editor/ng-package.json"
+            "project": "projects/farfadev/ngx-object-editor/ng-package.json"
         },
           "configurations": {
             "production": {
-              "tsConfig": "projects/farfa/ngx-object-editor/tsconfig.lib.prod.json"
+              "tsConfig": "projects/farfadev/ngx-object-editor/tsconfig.lib.prod.json"
             },
             "development": {
-              "tsConfig": "projects/farfa/ngx-object-editor/tsconfig.lib.json"
+              "tsConfig": "projects/farfadev/ngx-object-editor/tsconfig.lib.json"
             }
           },
           "defaultConfiguration": "production"
@@ -27,7 +27,7 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "tsConfig": "projects/farfa/ngx-object-editor/tsconfig.spec.json",
+            "tsConfig": "projects/farfadev/ngx-object-editor/tsconfig.spec.json",
             "polyfills": [
               "zone.js",
               "zone.js/testing"

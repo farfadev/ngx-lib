@@ -15,7 +15,7 @@
     "angular",
     "editor"
   ],
-  "licence": "ISC",
+  "licence": "MIT",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
