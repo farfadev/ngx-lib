@@ -1,72 +1,75 @@
 //import cloneDeep from "lodash.clonedeep";
 import { cloneDeep } from "lodash-es";
 
-interface From {
-  reference: string;
-}
+export namespace ObjectEditor {
 
-interface IScheme {
-  html: string;
-  js: string;
-}
-
-export type Scheme<T = any, U = any> = {
-  uibase: 'from' | 'text' | 'color' | 'number' | 'boolean' |
-  'date' | 'time' | 'datetime' | 'file' | 'email' | 'url' | 'image'
-  | 'object' | 'array';
-
-  // the ui label to identify the value, by default the property name
-  label?: string;
-  // an html <article> that helps frontend user to understand/ set the value 
-  helper?: string;
-  // a call-back to set EditorOptions dynamically depending on a runtime context
-  dynamic?: () => Scheme<T, U>;
-  // refer to another property when the value depends on another property value 
-  dependsOn?: { property: string; f: () => T }
-  // if value can be undefined
-  optional?: boolean;
-  // if scheme can be deleted (and corresponding value)
-  deletable?: boolean;
-  // if value is view/read only frontend user cannot edit the value 
-  readonly?: boolean;
-  // provides a (re)set to default feature with the provided default value
-  default?: T;
-  // front end form is a tranformation of the actual value
-  // exemple [lat,lon] transformed as {latitude: number, longitude: number}
-  transform?: {
-    // T is the type of the inner value, U is the type of the front end value
-    // forward function transforms the inner value to a frontend value
-    // backward function transforms the frontend value to an inner value
-    forward: (t: T) => U;
-    backward: (u: U) => T;
-  }
-  customFrontEnd?: {
-    view?: () => string; // an html component when viewing
-    edit?: () => string; // an html component when editing
+  interface From {
+    reference: string;
   }
 
-  min?: T;
-  max?: T;
-  length?: {
-    min?: number;
-    max?: number;
+  interface IScheme {
+    html: string;
+    js: string;
   }
-  // a custom check returning a non emtpy string if check fails
-  // example: { customCheck: (t: T) => [2,4,6].find((el)=>el==t) ? "": "value shall be either 2, 4 or 6"}
-  customCheck?: (t: T) => string,
-  decimals?: number // number of decimal digits
-  significants?: number // number of significant digits
-  regexp?: RegExp; // input text shall meet regexp
-  // provides a set of selectable options
-  selection?: { [key: number | string]: Scheme<T, U> } | (() => { [key: number | string]: Scheme<T, U> });
-  properties?: { [key: number | string]: Scheme<any, any> }
-  // if restricted is true, cannot add new properties from frontend
-  restricted?: boolean;
-  // default scheme to apply to inner element, such as array elements
-  innerScheme?: Scheme<any,any>;
-}
-export class ObjectEditor {
-  static readonly schemes = {
+  export const schemeIdProperty = '_$schemeRef';
+  export type Scheme<T = any, U = any> = {
+    uibase: 'from' | 'text' | 'color' | 'number' | 'boolean' |
+    'date' | 'time' | 'datetime' | 'file' | 'email' | 'url' | 'image'
+    | 'object' | 'array' | 'select';
+
+    // the user-friendly ui label to identify the property, by default the property name
+    label?: string;
+    // an html <article> that helps frontend user to understand/ set the value 
+    helper?: string;
+    // a call-back to set EditorOptions dynamically depending on a runtime context
+    dynamic?: () => Scheme<T, U>;
+    // refer to another property when the value depends on another property value 
+    dependsOn?: { property: string; f: () => T }
+    // if value can be undefined
+    optional?: boolean;
+    // if scheme can be deleted (and corresponding value)
+    deletable?: boolean;
+    // scheme creation time (for dynamically created properties)
+    ctime?: number;
+    // if value is view/read only frontend user cannot edit the value 
+    readonly?: boolean;
+    // provides a (re)set to default feature with the provided default value
+    default?: T;
+    // front end form is a tranformation of the actual value
+    // exemple [lat,lon] transformed as {latitude: number, longitude: number}
+    transform?: {
+      // T is the type of the inner value, U is the type of the front end value
+      // forward function transforms the inner value to a frontend value
+      // backward function transforms the frontend value to an inner value
+      forward: (t: T) => U;
+      backward: (u: U) => T;
+    }
+    customFrontEnd?: {
+      view?: () => string; // an html component when viewing
+      edit?: () => string; // an html component when editing
+    }
+
+    min?: T;
+    max?: T;
+    length?: {
+      min?: number;
+      max?: number;
+    }
+    // a custom check returning a non emtpy string if check fails
+    // example: { customCheck: (t: T) => [2,4,6].find((el)=>el==t) ? "": "value shall be either 2, 4 or 6"}
+    customCheck?: (t: T) => string,
+    decimals?: number // number of decimal digits (digits in excess wil be truncated)
+    significants?: number // number of significant digits (digits in excess will be truncated)
+    regexp?: RegExp; // input text shall meet regexp
+    // provides a set of selectable options
+    selection?: { [key: number | string]: Scheme<T, U> } | (() => { [key: number | string]: Scheme<T, U> });
+    properties?: { [key: number | string]: Scheme<any, any> }
+    // if restricted is true, cannot add new properties from frontend
+    restricted?: boolean;
+    // default scheme to apply to inner element, such as array elements
+    innerScheme?: Scheme<any, any>;
+  }
+  export const schemes = {
     'object': {
       type: 'object',
       html: 'object',
@@ -140,17 +143,27 @@ export class ObjectEditor {
       js: 'string',
     },
   };
-  public static getSchemes(): string[] {
+  export interface Context {
+    value?: any;
+    scheme?: Scheme;
+    propertyName?: string | number;
+    // called by the editor when value changes on editor side to update the service client
+    editUpdate?: (c: any, p: string | number) => void;
+    // called by the service client to change the context (value and scheme)
+    contextChange?: (context: Context) => void;
+  }
+
+  export const getSchemes = (): string[] => {
     return Object.keys(ObjectEditor.schemes);
   }
-  public static getScheme(typeName: string | undefined) {
-    if(typeName == undefined) return undefined;
+  export const getScheme = (typeName: string | undefined) => {
+    if (typeName == undefined) return undefined;
     return (ObjectEditor.schemes as any)[typeName];
   }
-  static isScheme(type: string | undefined | null): boolean {
+  export const isScheme = (type: string | undefined | null): boolean => {
     return type ? ObjectEditor.schemes.hasOwnProperty(type) : false;
   }
-  public static convert(value: any, scheme: Scheme): any {
+  export const convert = (value: any, scheme: Scheme): any => {
     const type = ObjectEditor.getScheme(scheme.uibase);
     if (!value) {
       return value;
@@ -167,7 +180,7 @@ export class ObjectEditor {
         break;
     }
   }
-  static initValue(value: any, scheme: Scheme): any {
+  export const initValue = (value: any, scheme: Scheme): any => {
     switch (scheme.uibase) {
       case 'array':
         if (!value) value = cloneDeep(scheme.default) ?? [];
@@ -328,5 +341,119 @@ export class ObjectEditor {
         break;
     }
     return value;
+  }
+
+  export const getProperties = (context: Context) => {
+    let properties: (string|number)[] = [];
+    for (const sp of Object.keys(context.scheme?.properties ?? {})) {
+      if (context.value?.[sp]) {
+        properties.push(sp);
+      }
+    }
+    for (const sp of Object.keys(context.value ?? {})) {
+      if (sp !== ObjectEditor.schemeIdProperty && !properties.includes(sp)) {
+        properties.push(sp);
+      }
+    };
+    properties = properties.sort((a,b) => {
+      const a_ct = context.scheme?.properties?.[a].ctime ??0;
+      const b_ct = context.scheme?.properties?.[b].ctime ??0;
+      if(a_ct == b_ct) {
+        return properties.indexOf(a) - properties.indexOf(b);
+      }
+      else {
+        return a_ct - b_ct;
+      }
+    })
+    return properties;
+  }
+
+  export const editUpdate = (context: Context, p: string | number) => {
+    if (context.editUpdate) {
+      if (!context.value) context.value = {};
+      if (!context.scheme) context.scheme = { uibase: 'object', properties: {} };
+      context.value[p] = ObjectEditor.convert(
+        context.value[p],
+        context.scheme.properties![p]
+      );
+      context.editUpdate(context, p);
+    }
+  }
+
+  export const getListSel = (context: Context): string[] => {
+    if (!context.scheme?.properties) {
+      return [];
+    }
+    const isel = Object.keys(context.scheme?.properties);
+    const rsel: string[] = [];
+    isel.forEach((s) => {
+      if (!context.value?.hasOwnProperty(s)) {
+        rsel.push(s);
+      }
+    });
+    return rsel;
+  }
+
+  export const addNewProperty = (context: Context, newProperty: { property: string | number, type: string }) => {
+    if (context.scheme === undefined) {
+      context.scheme = { uibase: 'object' };
+    }
+    if (context.scheme.uibase != 'object' &&
+      context.scheme.uibase != 'array') {
+      return;
+    }
+    if (
+      newProperty.property &&
+      newProperty.property !== '' &&
+      // cannot replace existing property
+      context.value[newProperty.property] === undefined &&
+      // sanity check on newproperty type
+      ObjectEditor.isScheme(newProperty.type)
+    ) {
+      if (!context.scheme.properties)
+        context.scheme.properties = {};
+      // if there is no preset scheme for the added property
+      // then create one based on the type, and mark it optional and deletable
+      if (!context.scheme.properties[newProperty.property])
+        context.scheme.properties[newProperty.property] = {
+          uibase: newProperty.type as ObjectEditor.Scheme['uibase'],
+          optional: true,
+          deletable: true,
+          ctime: new Date().getUTCDate()
+        };
+      context.value[newProperty.property] =
+        ObjectEditor.initValue(undefined,
+          context.scheme.properties?.[newProperty.property])
+      editUpdate(context, newProperty.property);
+    }
+  }
+
+  export const deleteProperty = (context: Context, p: string | number) => {
+    if (context.scheme?.properties?.[p].optional) {
+      delete context.value[p];
+    }
+    if (context.scheme?.properties?.[p].deletable) {
+      delete context.scheme.properties[p];
+    }
+    if (context.editUpdate) {
+      context.editUpdate(context, p);
+    }
+  }
+
+
+  export const selectScheme = (value: any, scheme: Scheme, schemeId: string) => {
+    if (!scheme.selection) {
+      return;
+    }
+    let rscheme;
+    if (typeof scheme.selection == 'function') {
+      rscheme = scheme.selection();
+    }
+    else {
+      rscheme = scheme.selection;
+    }
+    if (rscheme && rscheme[schemeId]) {
+      value[schemeIdProperty] = schemeId;
+    }
   }
 }

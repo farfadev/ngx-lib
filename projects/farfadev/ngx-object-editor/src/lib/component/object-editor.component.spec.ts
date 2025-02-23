@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { ObjectEditorComponent } from './object-editor.component';
 import { CUSTOM_ELEMENTS_SCHEMA, Component, DebugElement } from '@angular/core';
 
-import { ObjectEditorContext } from '../object-editor-context';
+import { ObjectEditor } from '../object-editor';
 import { ObjectEditorModule } from '../object-editor.module';
 import { By } from '@angular/platform-browser';
 import { random } from 'mathjs';
@@ -15,7 +15,7 @@ const timeout = 15000;
   template: '<app-object-editor [context]="context"></app-object-editor>'
 })
 class TestComponentWrapper {
-  context: ObjectEditorContext = {
+  context: ObjectEditor.Context = {
    value: {
     p1: 'coucou',
     p2: 12,

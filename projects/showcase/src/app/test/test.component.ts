@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { ObjectEditorContext } from '@farfadev/ngx-object-editor';
+import { ObjectEditor } from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
 
 @Component({
@@ -11,7 +11,7 @@ import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
 })
 export class TestComponent  implements OnInit {
 
-  context: ObjectEditorContext = {
+  mycontext: ObjectEditor.Context = {
     value: {
      p1: 'coucou',
      p3: '#ffffff',
@@ -35,6 +35,25 @@ export class TestComponent  implements OnInit {
        p4: {
         uibase: 'boolean',
         default: true
+      },
+      p5: {
+        uibase: 'select',
+        selection: {
+          color: {
+            uibase: 'color',
+            default: '#ff004ef0'
+          },
+          boolean: {
+            uibase: 'boolean'
+          },
+          number: {
+            uibase: 'number',
+            default: 3,
+            min: 0,
+            max: 10,
+            decimals: 0
+          }
+        }
       }
     }
     }

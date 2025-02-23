@@ -1,63 +1,59 @@
-# NgxObjectEditor
+<h1> @farfadev/ngx-object-editor </h1>
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.1.0.
+An [Angular](https://angular.dev/) component to edit typescript/ javascript object
 
-## Code scaffolding
+<h2>installation</h2>
+npm i @farfadev/ngx-object-editor
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+<h2>utilisation</h2>
+<p>&lt;ngx-object-editor [context]=mycontext/&gt;</p>
+<code color='blue'>
+import { Component, OnInit } from '@angular/core';<br>
+import { RouterModule } from '@angular/router';<br>
+import { ObjectEditorContext } from '@farfadev/ngx-object-editor';<br>
+import { ObjectEditorModule } from "@farfadev/ngx-object-editor";<br>
 
-```bash
-ng generate component component-name
-```
+@Component({<br>
+  selector: 'app-object-editor-test',<br>
+  templateUrl: './test.component.html',<br>
+  styleUrls: ['./test.component.scss'],<br>
+  imports: [RouterModule, ObjectEditorModule],<br>
+})<br>
+export class TestComponent  implements OnInit {<br>
+<br>
+  mycontext: ObjectEditorContext = {<br>
+    value: {<br>
+     p1: 'coucou',<br>
+     p3: '#ffffff',<br>
+     p4: false<br>
+    } ,<br>
+    scheme: {<br>
+      uibase: 'object',<br>
+      restricted: false,<br>
+     properties: {<br>
+       p1: {<br>
+         uibase: 'text'<br>
+       },<br>
+       p2: {<br>
+         uibase: 'number',<br>
+         optional: true,<br>
+         default: 5<br>
+       },<br>
+       p3: {<br>
+         uibase: 'color'<br>
+       },<br>
+       p4: {<br>
+        uibase: 'boolean',<br>
+        default: true<br>
+      }<br>
+    }<br>
+    }<br>
+   }<br>
+<br> 
+  constructor() { }<br>
+<br>
+  ngOnInit() {}<br>
+<br>
+}<br>
+</code>
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the library, run:
-
-```bash
-ng build ngx-object-editor
-```
-
-This command will compile your project, and the build artifacts will be placed in the `dist/` directory.
-
-### Publishing the Library
-
-Once the project is built, you can publish your library by following these steps:
-
-1. Navigate to the `dist` directory:
-   ```bash
-   cd dist/ngx-object-editor
-   ```
-
-2. Run the `npm publish` command to publish your library to the npm registry:
-   ```bash
-   npm publish
-   ```
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

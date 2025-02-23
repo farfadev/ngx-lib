@@ -8,8 +8,7 @@ import {
   OnInit,
   ViewChild
 } from '@angular/core';
-import { ObjectEditor, Scheme } from '../object-editor';
-import { ObjectEditorContext } from '../object-editor-context';
+import { ObjectEditor } from '../object-editor';
 
 @Component({
   standalone: false,
@@ -23,13 +22,13 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
 
   // eslint-disable-next-line @typescript-eslint/member-ordering
   @Input()
-  context!: ObjectEditorContext;
+  context!: ObjectEditor.Context;
 
   ui_id;
 
   private _sel?: string;
 
-  properties: string[] = [];
+  properties: (string|number)[] = [];
   typeoptions: string[] = [];
   newProperty = {
     property: '',
@@ -54,20 +53,10 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   getListSel(): string[] {
-    if (!this.context.scheme?.properties) {
-      return [];
-    }
-    const isel = Object.keys(this.context.scheme?.properties);
-    const rsel: string[] = [];
-    isel.forEach((s) => {
-      if (!this.context.value?.hasOwnProperty(s)) {
-        rsel.push(s);
-      }
-    });
-    return rsel;
+    return ObjectEditor.getListSel(this.context);
   }
 
-  set sel(s: string | undefined) {
+  set optionalPropertySel(s: string | undefined) {
     if (s && this.context.scheme?.properties?.[s]) {
       this._sel = s;
       this.newProperty.property = s;
@@ -76,11 +65,11 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     }
   }
 
-  get sel() {
+  get optionalPropertySel() {
     return this._sel;
   }
 
-  getSubContext(p: string | number): ObjectEditorContext {
+  getSubContext(p: string | number): ObjectEditor.Context {
     if (this.context.scheme?.uibase ?? '' in ['object', 'array'])
       return {
         scheme: this.context.scheme?.properties?.[p],
@@ -157,69 +146,22 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   setProperties(): void {
-    this.properties = [];
-    for (const sp of Object.keys(this.context.scheme?.properties ?? {})) {
-      if (this.context.value?.[sp]) {
-        this.properties.push(sp);
-      }
-    }
-    for (const sp of Object.keys(this.context.value ?? {})) {
-      if (sp !== '_scheme' && !this.properties.includes(sp)) {
-        this.properties.push(sp);
-      }
-    };
+    this.properties = ObjectEditor.getProperties(this.context);
   }
 
   addNewProperty() {
-    if (this.context.scheme === undefined) {
-      this.context.scheme = { uibase: 'object' };
-    }
-    if (this.context.scheme.uibase != 'object' &&
-      this.context.scheme.uibase != 'array') {
-      return;
-    }
-    if (
-      this.newProperty.property &&
-      this.newProperty.property !== '' &&
-      // cannot replace existing property
-      this.context.value[this.newProperty.property] === undefined &&
-      // sanity check on newproperty type
-      ObjectEditor.isScheme(this.newProperty.type)
-    ) {
-      if (!this.context.scheme.properties)
-        this.context.scheme.properties = {};
-      // if there is no preset scheme for the added property
-      // then create one based on the type, and mark it optional and deletable
-      if (!this.context.scheme.properties[this.newProperty.property])
-        this.context.scheme.properties[this.newProperty.property] = {
-          uibase: this.newProperty.type as Scheme['uibase'],
-          optional: true,
-          deletable: true
-        };
-      this.context.value[this.newProperty.property] =
-        ObjectEditor.initValue(undefined,
-          this.context.scheme.properties?.[this.newProperty.property])
+    ObjectEditor.addNewProperty(this.context,this.newProperty);
       this.editing = this.newProperty.property;
       this.setProperties();
       this.newProperty = {
         property: '',
         type: ''
       };
-      this.editUpdate(this.editing);
     }
-  }
 
   delete(p: string | number) {
-    if (this.context.scheme?.properties?.[p].optional) {
-      delete this.context.value[p];
-    }
-    if (this.context.scheme?.properties?.[p].deletable) {
-      delete this.context.scheme.properties[p];
-    }
+    ObjectEditor.deleteProperty(this.context, p);
     this.setProperties();
-    if (this.context.editUpdate) {
-      this.context.editUpdate(this.context, p);
-    }
   }
 
   ngOnInit() {
@@ -242,15 +184,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   private editUpdate(p: string | number) {
-    if (this.context.editUpdate) {
-      if (!this.context.value) this.context.value = {};
-      if (!this.context.scheme) this.context.scheme = { uibase: 'object', properties: {} };
-      this.context.value[p] = ObjectEditor.convert(
-        this.context.value[p],
-        this.context.scheme.properties![p]
-      );
-      this.context.editUpdate(this.context, p);
-    }
+    ObjectEditor.editUpdate(this.context,p);
   }
 
   invertColor(hex: string) {

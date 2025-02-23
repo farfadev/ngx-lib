@@ -1,7 +1,7 @@
 <p-fieldset [legend]="(getLabel()??'object-editor').toString()" [toggleable]="true">
 <div #objectcontainer>
   <p *ngIf="hasListSel()">
-    <select #listsel [(ngModel)]="sel">
+    <select #listsel [(ngModel)]="optionalPropertySel">
       <option>add an optional property</option>
       <option *ngFor="let o of getListSel()" value="{{o}}">{{o}}</option>
     </select>
