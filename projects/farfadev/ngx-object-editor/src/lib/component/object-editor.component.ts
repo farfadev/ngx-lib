@@ -9,6 +9,7 @@ import {
   ViewChild
 } from '@angular/core';
 import { ObjectEditor } from '../object-editor';
+import { ObjectEditorModule } from '../object-editor.module';
 
 @Component({
   standalone: false,
@@ -28,11 +29,23 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
 
   private _sel?: string;
 
-  properties: (string|number)[] = [];
-  typeoptions: string[] = [];
+  _selectionKey?: { key: string, label: string };
+  set selectionKey(o: { key: string, label: string }) {
+    if (this.editing) {
+      this._selectionKey = o;
+      ObjectEditor.selectScheme(this.context, this.editing, o.key);
+    }
+  }
+
+  get selectionKey(): { key: string, label: string } | undefined {
+    return this._selectionKey;
+  }
+
+  properties: (string | number)[] = [];
+  typeoptions: (string | number)[] = [];
   newProperty = {
     property: '',
-    type: ''
+    schemeKey: ''
   };
 
   editing?: string | number;
@@ -60,7 +73,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     if (s && this.context.scheme?.properties?.[s]) {
       this._sel = s;
       this.newProperty.property = s;
-      this.newProperty.type = this.context.scheme?.properties[s].uibase ?? "";
+      this.newProperty.schemeKey = this.context.scheme?.properties[s].uibase ?? "";
       this.addNewProperty();
     }
   }
@@ -70,27 +83,29 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   getSubContext(p: string | number): ObjectEditor.Context {
-    if (this.context.scheme?.uibase ?? '' in ['object', 'array'])
-      return {
-        scheme: this.context.scheme?.properties?.[p],
-        value: this.context.value[p],
-        propertyName: p,
-        editUpdate: this.context.editUpdate,
-        contextChange: this.context.contextChange
-      }
-    else {
-      return {
-
-      }
-    }
+    return ObjectEditor.getSubContext(this.context,p);
   }
 
-  getLabel() {
-    return this.context.scheme?.label ?? this.context.propertyName;
+  getLabel(p?: string | number) {
+    return ObjectEditor.getLabel(this.context,p);
+  }
+
+  getSelectionList(p: string | number) {
+    const result: { key: string, label: string }[] = [];
+    const selList = ObjectEditor.getSchemeSelectionList(this.context?.scheme,
+      p);
+    const keys = Object.keys(selList);
+    for (let key of keys) {
+      result.push({ key, label: selList[key].label ?? key });
+    }
+    return result;
   }
 
   isArray() {
     return this.context.scheme?.uibase == 'array';
+  }
+  isObject() {
+    return this.context.scheme?.uibase == 'object';
   }
   isediting(p: string | number) {
     return p === this.editing;
@@ -119,7 +134,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   getHtmlType(p: string | number) {
-    return ObjectEditor.getScheme(this.context?.scheme?.properties?.[p]?.uibase)?.html;
+    return ObjectEditor.getBaseScheme(this.context?.scheme?.properties?.[p]?.uibase)?.html;
   }
 
   onclick(p: string | number, event: MouseEvent) {
@@ -150,14 +165,14 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   addNewProperty() {
-    ObjectEditor.addNewProperty(this.context,this.newProperty);
-      this.editing = this.newProperty.property;
-      this.setProperties();
-      this.newProperty = {
-        property: '',
-        type: ''
-      };
-    }
+    ObjectEditor.addNewProperty(this.context, this.newProperty);
+    this.editing = this.newProperty.property;
+    this.setProperties();
+    this.newProperty = {
+      property: '',
+      schemeKey: ''
+    };
+  }
 
   delete(p: string | number) {
     ObjectEditor.deleteProperty(this.context, p);
@@ -167,7 +182,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   ngOnInit() {
     window.addEventListener('click', this.windowClickListener);
     this.setProperties();
-    this.typeoptions = ObjectEditor.getSchemes();
+    this.typeoptions = ObjectEditor.getInnerSchemeSelectionKeys(this.context.scheme);
     //    if(!this.context.value) this.context.value = {};
     if (!this.context.scheme) this.context.scheme = { uibase: 'object' };
     ObjectEditor.initValue(this.context.value, this.context.scheme);
@@ -184,32 +199,32 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   private editUpdate(p: string | number) {
-    ObjectEditor.editUpdate(this.context,p);
+    ObjectEditor.editUpdate(this.context, p);
   }
 
   invertColor(hex: string) {
     if (hex.indexOf('#') === 0) {
-        hex = hex.slice(1);
+      hex = hex.slice(1);
     }
     // convert 3-digit hex to 6-digits.
     if (hex.length === 3) {
-        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+      hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
     }
     if (hex.length !== 6) {
-        throw new Error('Invalid HEX color.');
+      throw new Error('Invalid HEX color.');
     }
     // invert color components
     var r = (255 - parseInt(hex.slice(0, 2), 16)).toString(16),
-        g = (255 - parseInt(hex.slice(2, 4), 16)).toString(16),
-        b = (255 - parseInt(hex.slice(4, 6), 16)).toString(16);
+      g = (255 - parseInt(hex.slice(2, 4), 16)).toString(16),
+      b = (255 - parseInt(hex.slice(4, 6), 16)).toString(16);
     // pad each with zeros and return
     return '#' + this.padZero(r) + this.padZero(g) + this.padZero(b);
   }
-  
+
   padZero(str: string, len?: number) {
     len = len || 2;
     var zeros = new Array(len).join('0');
     return (zeros + str).slice(-len);
   }
-  }
+}
 

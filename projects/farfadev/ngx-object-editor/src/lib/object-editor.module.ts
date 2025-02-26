@@ -4,7 +4,7 @@ import { ObjectEditorComponent } from './component/object-editor.component';
 import { FormsModule } from '@angular/forms';
 import { CheckboxModule } from 'primeng/checkbox';
 import { FieldsetModule } from 'primeng/fieldset';
-
+import { Select } from 'primeng/select';
 
 @NgModule({
   declarations: [
@@ -14,7 +14,8 @@ import { FieldsetModule } from 'primeng/fieldset';
     CommonModule,
     FormsModule,
     CheckboxModule,
-    FieldsetModule
+    FieldsetModule,
+    Select
   ],
   exports: [
     ObjectEditorComponent,

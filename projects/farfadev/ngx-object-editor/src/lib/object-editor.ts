@@ -12,6 +12,7 @@ export namespace ObjectEditor {
     js: string;
   }
   export const schemeIdProperty = '_$schemeRef';
+  export type SchemeList<T, U> = { [key: number | string]: Scheme<T, U> };
   export type Scheme<T = any, U = any> = {
     uibase: 'from' | 'text' | 'color' | 'number' | 'boolean' |
     'date' | 'time' | 'datetime' | 'file' | 'email' | 'url' | 'image'
@@ -61,15 +62,18 @@ export namespace ObjectEditor {
     decimals?: number // number of decimal digits (digits in excess wil be truncated)
     significants?: number // number of significant digits (digits in excess will be truncated)
     regexp?: RegExp; // input text shall meet regexp
-    // provides a set of selectable options
-    selection?: { [key: number | string]: Scheme<T, U> } | (() => { [key: number | string]: Scheme<T, U> });
+    // provides a set of selectable schemes when value can have different schemes
+    schemeSelectionList?: SchemeList<T, U> | (() => SchemeList<T, U>);
+    // holds the scheme selection key from the scheme selection list
+    schemeSelectionKey?: number | string;
+    // provides a set of selectable schemes for new object/array property
+    innerSchemeSelectionList?: SchemeList<T, U> | (() => SchemeList<T, U>);
+    // for object or array, provide the schemes for the object/ array properties
     properties?: { [key: number | string]: Scheme<any, any> }
     // if restricted is true, cannot add new properties from frontend
     restricted?: boolean;
-    // default scheme to apply to inner element, such as array elements
-    innerScheme?: Scheme<any, any>;
   }
-  export const schemes = {
+  export const baseSchemes = {
     'object': {
       type: 'object',
       html: 'object',
@@ -78,6 +82,11 @@ export namespace ObjectEditor {
     'array': {
       type: 'array',
       html: 'array',
+      js: 'object'
+    },
+    'select': {
+      type: 'select',
+      html: 'select',
       js: 'object'
     },
     from: {
@@ -146,25 +155,31 @@ export namespace ObjectEditor {
   export interface Context {
     value?: any;
     scheme?: Scheme;
-    propertyName?: string | number;
+    pcontext?: Context;
+    key?: string | number;
     // called by the editor when value changes on editor side to update the service client
-    editUpdate?: (c: any, p: string | number) => void;
+    editUpdate?: (c: any, key?: string | number) => void;
     // called by the service client to change the context (value and scheme)
     contextChange?: (context: Context) => void;
   }
 
-  export const getSchemes = (): string[] => {
-    return Object.keys(ObjectEditor.schemes);
+  export const getBaseSchemes = (): string[] => {
+    return Object.keys(ObjectEditor.baseSchemes);
   }
-  export const getScheme = (typeName: string | undefined) => {
+  export const getBaseScheme = (typeName: string | undefined) => {
     if (typeName == undefined) return undefined;
-    return (ObjectEditor.schemes as any)[typeName];
+    return (ObjectEditor.baseSchemes as any)[typeName];
   }
-  export const isScheme = (type: string | undefined | null): boolean => {
-    return type ? ObjectEditor.schemes.hasOwnProperty(type) : false;
+  export const isSchemeSelectionKey = (scheme?: Scheme, key?: string | number): boolean => {
+    const keys = ObjectEditor.getSchemeSelectionKeys(scheme);
+    return (keys && key) ? keys.includes(key) : false;
+  }
+  export const isInnerSchemeSelectionKey = (scheme?: Scheme, key?: string | number): boolean => {
+    const keys = ObjectEditor.getInnerSchemeSelectionKeys(scheme);
+    return (keys && key) ? keys.includes(key) : false;
   }
   export const convert = (value: any, scheme: Scheme): any => {
-    const type = ObjectEditor.getScheme(scheme.uibase);
+    const type = ObjectEditor.getBaseScheme(scheme.uibase);
     if (!value) {
       return value;
     }
@@ -180,8 +195,81 @@ export namespace ObjectEditor {
         break;
     }
   }
+
+  export const getSchemeSelectionList = (scheme?: Scheme, p?: string | number): SchemeList<any, any> => {
+    if (!scheme) return {};
+    const selList = p ?
+      scheme.properties?.[p].schemeSelectionList :
+      scheme.schemeSelectionList;
+
+    return (typeof selList == 'function' ?
+      selList() : selList) ?? {}
+  }
+
+  export const getInnerSchemeSelectionList = (scheme?: Scheme, p?: string | number): SchemeList<any, any> => {
+    if (!scheme) return {};
+    const selList = p ?
+      scheme.properties?.[p].innerSchemeSelectionList :
+      scheme.innerSchemeSelectionList;
+
+    return (typeof selList == 'function' ?
+      selList() : selList) ?? {}
+  }
+
+  export const getSchemeSelectionKeys = (scheme?: Scheme): (string | number)[] => {
+    const list: (string | number)[] = [];
+    if (!scheme) return [];
+    if (scheme?.restricted) {
+      list.push(...ObjectEditor.getBaseSchemes());
+    }
+    list.push(...Object.keys(ObjectEditor.getSchemeSelectionList(scheme)));
+    return list;
+  }
+
+  export const getInnerSchemeSelectionKeys = (scheme?: Scheme, p?: string | number): (string | number)[] => {
+    const list: (string | number)[] = [];
+    if (!scheme || (p && !scheme.properties?.[p])) return [];
+    if ((!p && !scheme?.restricted) || (p && !scheme?.properties?.[p].restricted)) {
+      list.push(...ObjectEditor.getBaseSchemes());
+    }
+    list.push(...Object.keys(ObjectEditor.getInnerSchemeSelectionList(scheme, p)));
+    return list;
+  }
+
+  export const selectScheme = (context: Context, propertyKey: string | number, schemeKey: string): any => {
+    if (ObjectEditor.isSchemeSelectionKey(context.scheme!.properties![propertyKey], schemeKey)) {
+      const selList = ObjectEditor.getSchemeSelectionList(context.scheme!.properties![propertyKey], schemeKey);
+      const baseList = ObjectEditor.getBaseSchemes();
+      if (selList[schemeKey]) {
+        context.scheme!.properties![propertyKey].schemeSelectionKey = schemeKey;
+      }
+      else if (baseList.includes(schemeKey)) {
+      }
+      context.value![propertyKey] =
+        initValue(undefined,
+          ObjectEditor.getSchemeSelectionList(context.scheme!.properties![propertyKey])[schemeKey]);
+    }
+  }
+
   export const initValue = (value: any, scheme: Scheme): any => {
     switch (scheme.uibase) {
+      case 'object':
+        if (value == undefined && scheme.default != undefined) {
+          value = cloneDeep(scheme.default);
+        }
+        else if (value == undefined) {
+          value = {};
+          const keys = Object.keys(scheme?.properties ?? {});
+          for (const key in keys) {
+            if (!scheme?.properties?.[key].optional && scheme.properties?.[key]) {
+              value![key] = value![key] ?? ObjectEditor.initValue(value, scheme.properties?.[key]);
+            }
+          }
+          if (scheme.transform) {
+            value = scheme.transform.backward(value);
+          }
+        }
+        break;
       case 'array':
         if (!value) value = cloneDeep(scheme.default) ?? [];
         if (!(value instanceof Array)) {
@@ -198,6 +286,19 @@ export namespace ObjectEditor {
               value.push(ObjectEditor.initValue(value[i], scheme.properties?.[lastKey]));
           }
         }
+        break;
+      case 'select': {
+
+        const selList = ObjectEditor.getSchemeSelectionList(scheme);
+
+        if (!scheme.schemeSelectionKey && !scheme.optional) {
+          scheme.schemeSelectionKey = Object.keys(selList)[0];
+        }
+
+        if (scheme.schemeSelectionKey) {
+          if (!value) value = initValue(value, selList[scheme.schemeSelectionKey]);
+        }
+      }
         break;
       case 'boolean':
         if (value == undefined && scheme.default != undefined) {
@@ -226,7 +327,7 @@ export namespace ObjectEditor {
           value = cloneDeep(scheme.default);
         }
         else if (value == undefined) {
-          value = new Date(new Date().toDateString()).toISOString();
+          value = new Date().toISOString().substring(0, 10);
           if (scheme.transform) {
             value = scheme.transform.backward(value);
           }
@@ -237,7 +338,7 @@ export namespace ObjectEditor {
           value = cloneDeep(scheme.default);
         }
         else if (value == undefined) {
-          value = (new Date()).toISOString();
+          value = new Date().toISOString().substring(0, 16);
           if (scheme.transform) {
             value = scheme.transform.backward(value);
           }
@@ -289,23 +390,6 @@ export namespace ObjectEditor {
           }
         }
         break;
-      case 'object':
-        if (value == undefined && scheme.default != undefined) {
-          value = cloneDeep(scheme.default);
-        }
-        else if (value == undefined) {
-          value = {};
-          const keys = Object.keys(scheme?.properties ?? {});
-          for (const key in keys) {
-            if (!scheme?.properties?.[key].optional && scheme.properties?.[key]) {
-              value![key] = value![key] ?? ObjectEditor.initValue(value, scheme.properties?.[key]);
-            }
-          }
-          if (scheme.transform) {
-            value = scheme.transform.backward(value);
-          }
-        }
-        break;
       case 'text':
         if (value == undefined && scheme.default != undefined) {
           value = cloneDeep(scheme.default);
@@ -322,7 +406,7 @@ export namespace ObjectEditor {
           value = cloneDeep(scheme.default);
         }
         else if (value == undefined) {
-          value = '12:00:00';
+          value = new Date().toISOString().substring(11, 16);
           if (scheme.transform) {
             value = scheme.transform.backward(value);
           }
@@ -344,9 +428,9 @@ export namespace ObjectEditor {
   }
 
   export const getProperties = (context: Context) => {
-    let properties: (string|number)[] = [];
+    let properties: (string | number)[] = [];
     for (const sp of Object.keys(context.scheme?.properties ?? {})) {
-      if (context.value?.[sp]) {
+      if (context.value?.[sp] && !context.scheme?.properties?.[sp].deletable) {
         properties.push(sp);
       }
     }
@@ -355,10 +439,10 @@ export namespace ObjectEditor {
         properties.push(sp);
       }
     };
-    properties = properties.sort((a,b) => {
-      const a_ct = context.scheme?.properties?.[a].ctime ??0;
-      const b_ct = context.scheme?.properties?.[b].ctime ??0;
-      if(a_ct == b_ct) {
+    properties = properties.sort((a, b) => {
+      const a_ct = context.scheme?.properties?.[a].ctime ?? 0;
+      const b_ct = context.scheme?.properties?.[b].ctime ?? 0;
+      if (a_ct == b_ct) {
         return properties.indexOf(a) - properties.indexOf(b);
       }
       else {
@@ -394,7 +478,7 @@ export namespace ObjectEditor {
     return rsel;
   }
 
-  export const addNewProperty = (context: Context, newProperty: { property: string | number, type: string }) => {
+  export const addNewProperty = (context: Context, newProperty: { property: string | number, schemeKey: string }) => {
     if (context.scheme === undefined) {
       context.scheme = { uibase: 'object' };
     }
@@ -402,25 +486,45 @@ export namespace ObjectEditor {
       context.scheme.uibase != 'array') {
       return;
     }
+    if (context.scheme.uibase == 'array') {
+      newProperty.property = context.value.length;
+    }
     if (
-      newProperty.property &&
+      (newProperty.property || newProperty.property == 0) &&
       newProperty.property !== '' &&
       // cannot replace existing property
       context.value[newProperty.property] === undefined &&
       // sanity check on newproperty type
-      ObjectEditor.isScheme(newProperty.type)
+      ObjectEditor.isInnerSchemeSelectionKey(context.scheme, newProperty.schemeKey)
     ) {
       if (!context.scheme.properties)
         context.scheme.properties = {};
-      // if there is no preset scheme for the added property
-      // then create one based on the type, and mark it optional and deletable
-      if (!context.scheme.properties[newProperty.property])
-        context.scheme.properties[newProperty.property] = {
-          uibase: newProperty.type as ObjectEditor.Scheme['uibase'],
-          optional: true,
-          deletable: true,
-          ctime: new Date().getUTCDate()
-        };
+      if (!context.scheme.properties[newProperty.property]) {
+        if (ObjectEditor.isInnerSchemeSelectionKey(context.scheme.properties[newProperty.property], newProperty.schemeKey)) {
+          if (ObjectEditor.getBaseSchemes().includes(newProperty.schemeKey)) {
+            // if there is no preset scheme for the added property
+            // then create one based on the type, and mark it optional and deletable
+            context.scheme.properties[newProperty.property] = {
+              uibase: newProperty.schemeKey as ObjectEditor.Scheme['uibase'],
+              optional: true,
+              deletable: true,
+              ctime: new Date().getMilliseconds()
+            };
+          }
+          else {
+            context.scheme.properties[newProperty.property] =
+              cloneDeep(ObjectEditor.getInnerSchemeSelectionList(context.scheme, newProperty.property)[newProperty.schemeKey]);
+            context.scheme.properties[newProperty.property].optional = true;
+            context.scheme.properties[newProperty.property].deletable = true;
+            context.scheme.properties[newProperty.property].ctime = new Date().getMilliseconds();
+          }
+        }
+      }
+      if (newProperty.schemeKey == 'select') {
+        const pScheme = context.scheme.properties[newProperty.property];
+        const selList = ObjectEditor.getSchemeSelectionList(context.scheme, newProperty.property);
+        pScheme.schemeSelectionKey = Object.keys(selList)[0];
+      }
       context.value[newProperty.property] =
         ObjectEditor.initValue(undefined,
           context.scheme.properties?.[newProperty.property])
@@ -440,20 +544,34 @@ export namespace ObjectEditor {
     }
   }
 
-
-  export const selectScheme = (value: any, scheme: Scheme, schemeId: string) => {
-    if (!scheme.selection) {
-      return;
-    }
-    let rscheme;
-    if (typeof scheme.selection == 'function') {
-      rscheme = scheme.selection();
+  export const getSubContext = (context: Context, p: string | number): ObjectEditor.Context => {
+    if (context.scheme?.uibase ?? '' in ['object', 'array']) {
+      const subContext = {
+        scheme: context.scheme?.properties?.[p],
+        value: context.value[p],
+        pcontext: context,
+        key: p,
+        editUpdate: (c: any, key?: string | number) => {
+          context.value[p] = subContext.value;
+          context.editUpdate?.(c, key);
+        },
+        contextChange: context.contextChange
+      }
+      return subContext;
     }
     else {
-      rscheme = scheme.selection;
-    }
-    if (rscheme && rscheme[schemeId]) {
-      value[schemeIdProperty] = schemeId;
+      return {
+
+      }
     }
   }
+
+  export const getLabel = (context: Context, p?: string | number) => {
+    if (!p)
+      return context.scheme?.label ?? context.key;
+    else
+      return context.scheme?.properties?.[p].label ?? p;
+  }
+
+
 }

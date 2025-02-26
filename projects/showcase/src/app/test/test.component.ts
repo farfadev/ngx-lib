@@ -11,7 +11,7 @@ import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
 })
 export class TestComponent  implements OnInit {
 
-  mycontext: ObjectEditor.Context = {
+  mycontext1: ObjectEditor.Context = {
     value: {
      p1: 'coucou',
      p3: '#ffffff',
@@ -19,7 +19,26 @@ export class TestComponent  implements OnInit {
     } ,
     scheme: {
       uibase: 'object',
+      label: 'test-object-editor',
       restricted: false,
+      innerSelectionList: {
+        'test-object': {
+          uibase: 'object',
+        },
+        'test-object-2': {
+          uibase: 'object',
+          label: 'rantanplan',
+          restricted: true,
+          innerSelectionList: {
+            'sub-test-boolean': {
+              uibase: 'boolean'
+            }
+          }
+        },
+        'test-array': {
+          uibase: 'array'
+        }
+      },
      properties: {
        p1: {
          uibase: 'text'
@@ -34,11 +53,13 @@ export class TestComponent  implements OnInit {
        },
        p4: {
         uibase: 'boolean',
+        label: 'test-ui-label p4',
         default: true
       },
       p5: {
         uibase: 'select',
-        selection: {
+        optional: true,
+        selectionList: {
           color: {
             uibase: 'color',
             default: '#ff004ef0'
@@ -58,7 +79,16 @@ export class TestComponent  implements OnInit {
     }
     }
    }
- 
+
+   mycontext2: ObjectEditor.Context = {
+    value: false,
+    scheme: {
+      uibase: 'boolean',
+      label: 'test-object-editor2',
+      restricted: true,
+      }
+   }
+
   constructor() { }
 
   ngOnInit() {}

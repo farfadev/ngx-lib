@@ -4,5 +4,6 @@
 
 .colorBox {
     display: inline-block;
-
+    border: solid var(--borderColor);
+    border-radius: var(--radius);
 }
