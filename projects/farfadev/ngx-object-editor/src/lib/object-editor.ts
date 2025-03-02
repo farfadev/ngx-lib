@@ -12,7 +12,7 @@ export namespace ObjectEditor {
     js: string;
   }
   export const schemeIdProperty = '_$schemeRef';
-  export type SchemeList<T, U> = { [key: number | string]: Scheme<T, U> };
+  export type SchemeList<T = any, U = any> = { [key: number | string]: Scheme<T, U> };
   export type Scheme<T = any, U = any> = {
     uibase: 'from' | 'text' | 'color' | 'number' | 'boolean' |
     'date' | 'time' | 'datetime' | 'file' | 'email' | 'url' | 'image'
@@ -20,14 +20,16 @@ export namespace ObjectEditor {
 
     // the user-friendly ui label to identify the property, by default the property name
     label?: string;
+    style?: string | ((context: Context) => string)
+    styleClass?: string | ((context: Context) => string)
     // an html <article> that helps frontend user to understand/ set the value 
-    helper?: string;
+    description?: string | ((context: Context) => string);
     // a call-back to set EditorOptions dynamically depending on a runtime context
-    dynamic?: () => Scheme<T, U>;
+    dynamic?: (context?: Context) => Scheme<T, U>;
     // refer to another property when the value depends on another property value 
-    dependsOn?: { property: string; f: () => T }
-    // if value can be undefined
-    optional?: boolean;
+    dependsOn?: { property: string; f: (value?: any) => T }
+    // if value can be undefined (optional) - may depend on the outer value (value of the encompassing object)
+    optional?: boolean | ((context?: Context) => boolean);
     // if scheme can be deleted (and corresponding value)
     deletable?: boolean;
     // scheme creation time (for dynamically created properties)
@@ -69,7 +71,7 @@ export namespace ObjectEditor {
     // provides a set of selectable schemes for new object/array property
     innerSchemeSelectionList?: SchemeList<T, U> | (() => SchemeList<T, U>);
     // for object or array, provide the schemes for the object/ array properties
-    properties?: { [key: number | string]: Scheme<any, any> }
+    properties?: { [key: number | string]: Scheme }
     // if restricted is true, cannot add new properties from frontend
     restricted?: boolean;
   }
@@ -153,22 +155,29 @@ export namespace ObjectEditor {
     },
   };
   export interface Context {
-    value?: any;
-    scheme?: Scheme;
+    value?: any; // the value
+    scheme?: Scheme; // the scheme associated with the value
+    // the parent context (encompassing object, array, select, undefined on the root Context)
     pcontext?: Context;
-    key?: string | number;
-    // called by the editor when value changes on editor side to update the service client
+    key?: string | number; // the key in the parent context
+    // called by the editor when value changes on editor side to update the client application
     editUpdate?: (c: any, key?: string | number) => void;
-    // called by the service client to change the context (value and scheme)
+    // called by the client application to change the context (value and scheme)
+    // eg in case of an update from the server, to avoid page reload
     contextChange?: (context: Context) => void;
   }
 
   export const getBaseSchemes = (): string[] => {
     return Object.keys(ObjectEditor.baseSchemes);
   }
-  export const getBaseScheme = (typeName: string | undefined) => {
-    if (typeName == undefined) return undefined;
-    return (ObjectEditor.baseSchemes as any)[typeName];
+  export const getBaseScheme = (context: Context | string) => {
+    if(typeof context == 'object') {
+    if (context.scheme?.uibase == undefined) return undefined;
+      return (ObjectEditor.baseSchemes as any)[context.scheme?.uibase];
+    }
+    else if(typeof context == 'string') {
+      return (ObjectEditor.baseSchemes as any)[context];
+    }
   }
   export const isSchemeSelectionKey = (scheme?: Scheme, key?: string | number): boolean => {
     const keys = ObjectEditor.getSchemeSelectionKeys(scheme);
@@ -196,11 +205,9 @@ export namespace ObjectEditor {
     }
   }
 
-  export const getSchemeSelectionList = (scheme?: Scheme, p?: string | number): SchemeList<any, any> => {
+  export const getSchemeSelectionList = (scheme?: Scheme): SchemeList<any, any> => {
     if (!scheme) return {};
-    const selList = p ?
-      scheme.properties?.[p].schemeSelectionList :
-      scheme.schemeSelectionList;
+    const selList = scheme.schemeSelectionList;
 
     return (typeof selList == 'function' ?
       selList() : selList) ?? {}
@@ -238,7 +245,7 @@ export namespace ObjectEditor {
 
   export const selectScheme = (context: Context, propertyKey: string | number, schemeKey: string): any => {
     if (ObjectEditor.isSchemeSelectionKey(context.scheme!.properties![propertyKey], schemeKey)) {
-      const selList = ObjectEditor.getSchemeSelectionList(context.scheme!.properties![propertyKey], schemeKey);
+      const selList = ObjectEditor.getSchemeSelectionList(context.scheme!.properties![propertyKey]);
       const baseList = ObjectEditor.getBaseSchemes();
       if (selList[schemeKey]) {
         context.scheme!.properties![propertyKey].schemeSelectionKey = schemeKey;
@@ -247,7 +254,7 @@ export namespace ObjectEditor {
       }
       context.value![propertyKey] =
         initValue(undefined,
-          ObjectEditor.getSchemeSelectionList(context.scheme!.properties![propertyKey])[schemeKey]);
+          ObjectEditor.getSchemeSelectionList(context.scheme?.properties?.[propertyKey])[schemeKey]);
     }
   }
 
@@ -265,7 +272,7 @@ export namespace ObjectEditor {
               value![key] = value![key] ?? ObjectEditor.initValue(value, scheme.properties?.[key]);
             }
           }
-          if (scheme.transform) {
+          if (scheme.transform?.backward) {
             value = scheme.transform.backward(value);
           }
         }
@@ -429,12 +436,15 @@ export namespace ObjectEditor {
 
   export const getProperties = (context: Context) => {
     let properties: (string | number)[] = [];
+    const value = context.scheme?.transform?.forward ? 
+    context.scheme?.transform?.forward(context.value) :
+    context.value;
     for (const sp of Object.keys(context.scheme?.properties ?? {})) {
-      if (context.value?.[sp] && !context.scheme?.properties?.[sp].deletable) {
+      if (value?.[sp] && !context.scheme?.properties?.[sp].deletable) {
         properties.push(sp);
       }
     }
-    for (const sp of Object.keys(context.value ?? {})) {
+    for (const sp of Object.keys(value ?? {})) {
       if (sp !== ObjectEditor.schemeIdProperty && !properties.includes(sp)) {
         properties.push(sp);
       }
@@ -452,19 +462,47 @@ export namespace ObjectEditor {
     return properties;
   }
 
-  export const editUpdate = (context: Context, p: string | number) => {
-    if (context.editUpdate) {
-      if (!context.value) context.value = {};
-      if (!context.scheme) context.scheme = { uibase: 'object', properties: {} };
-      context.value[p] = ObjectEditor.convert(
-        context.value[p],
-        context.scheme.properties![p]
+  export const editUpdate = (context: Context) => {
+    if (context.editUpdate && context.pcontext && context.key) {
+      if (!context.pcontext.value) context.pcontext.value = {};
+      if (!context.pcontext.scheme) context.pcontext.scheme = { uibase: 'object', properties: {} };
+      context.pcontext.value[context.key] = ObjectEditor.convert(
+        context.pcontext.value[context.key],
+        context.pcontext.scheme.properties![context.key]
       );
-      context.editUpdate(context, p);
+      context.editUpdate(context);
     }
   }
 
-  export const getListSel = (context: Context): string[] => {
+  export const isOptional = (context: Context) => {
+    const opt = context.scheme?.optional;
+    if (typeof opt == 'function') {
+      return opt(context);
+    }
+    else {
+      return opt ?? false;
+    }
+  }
+
+  export const isArray = (context: Context) => {
+    return context.scheme?.uibase == 'array'
+  }
+
+  export const isObject = (context: Context) => {
+    return context.scheme?.uibase == 'object'
+  }
+
+  export const isReadOnly = (context: Context) => {
+    const opt = context.scheme?.readonly;
+    return opt ?? false;
+  }
+
+  export const isRestricted = (context: Context) => {
+    const opt = context.scheme?.restricted;
+    return opt ?? false;
+  }
+
+  export const getOptionalPropertyList = (context: Context): string[] => {
     if (!context.scheme?.properties) {
       return [];
     }
@@ -500,7 +538,7 @@ export namespace ObjectEditor {
       if (!context.scheme.properties)
         context.scheme.properties = {};
       if (!context.scheme.properties[newProperty.property]) {
-        if (ObjectEditor.isInnerSchemeSelectionKey(context.scheme.properties[newProperty.property], newProperty.schemeKey)) {
+        if (ObjectEditor.isInnerSchemeSelectionKey(context.scheme, newProperty.schemeKey)) {
           if (ObjectEditor.getBaseSchemes().includes(newProperty.schemeKey)) {
             // if there is no preset scheme for the added property
             // then create one based on the type, and mark it optional and deletable
@@ -508,51 +546,74 @@ export namespace ObjectEditor {
               uibase: newProperty.schemeKey as ObjectEditor.Scheme['uibase'],
               optional: true,
               deletable: true,
-              ctime: new Date().getMilliseconds()
+              ctime: Date.now()
             };
           }
           else {
             context.scheme.properties[newProperty.property] =
-              cloneDeep(ObjectEditor.getInnerSchemeSelectionList(context.scheme, newProperty.property)[newProperty.schemeKey]);
+              cloneDeep(ObjectEditor.getInnerSchemeSelectionList(context.scheme)[newProperty.schemeKey]);
             context.scheme.properties[newProperty.property].optional = true;
             context.scheme.properties[newProperty.property].deletable = true;
-            context.scheme.properties[newProperty.property].ctime = new Date().getMilliseconds();
+            context.scheme.properties[newProperty.property].ctime = Date.now();
           }
         }
       }
       if (newProperty.schemeKey == 'select') {
         const pScheme = context.scheme.properties[newProperty.property];
-        const selList = ObjectEditor.getSchemeSelectionList(context.scheme, newProperty.property);
+        const selList = ObjectEditor.getSchemeSelectionList(pScheme);
         pScheme.schemeSelectionKey = Object.keys(selList)[0];
       }
       context.value[newProperty.property] =
         ObjectEditor.initValue(undefined,
           context.scheme.properties?.[newProperty.property])
-      editUpdate(context, newProperty.property);
+          const subContext = ObjectEditor.getSubContext(context,newProperty.property);
+      editUpdate(subContext);
     }
   }
 
-  export const deleteProperty = (context: Context, p: string | number) => {
-    if (context.scheme?.properties?.[p].optional) {
-      delete context.value[p];
+  export const deleteProperty = (context: Context) => {
+    if (context.scheme?.optional && context.key) {
+      delete context?.pcontext?.value[context.key];
     }
-    if (context.scheme?.properties?.[p].deletable) {
-      delete context.scheme.properties[p];
+    if (context.scheme?.deletable && context.key) {
+      delete context.pcontext?.scheme?.properties?.[context.key];
     }
     if (context.editUpdate) {
-      context.editUpdate(context, p);
+      context.editUpdate(context);
     }
   }
 
-  export const getSubContext = (context: Context, p: string | number): ObjectEditor.Context => {
+  export const getStyle = (context: Context) => {
+    if (typeof context.scheme?.style == 'function') {
+      return context.scheme.style(context);
+    }
+    else {
+      return context.scheme?.style;
+    }
+  }
+
+  export const getStyleClass = (context: Context) => {
+    if (typeof context.scheme?.styleClass == 'function') {
+      return context.scheme.styleClass(context);
+    }
+    else {
+      return context.scheme?.styleClass;
+    }
+  }
+
+  export const getSubContext = (context: Context, p?: string | number): ObjectEditor.Context => {
+    if (!p) {
+      return context;
+    }
     if (context.scheme?.uibase ?? '' in ['object', 'array']) {
+      const transform = context.scheme?.properties?.[p]?.transform;
       const subContext = {
         scheme: context.scheme?.properties?.[p],
-        value: context.value[p],
+        value: transform?.forward ? transform.forward(context.value[p]):context.value[p],
         pcontext: context,
         key: p,
         editUpdate: (c: any, key?: string | number) => {
-          context.value[p] = subContext.value;
+          context.value[p] = transform?.backward ? transform.backward(subContext.value):subContext.value;
           context.editUpdate?.(c, key);
         },
         contextChange: context.contextChange
@@ -566,12 +627,16 @@ export namespace ObjectEditor {
     }
   }
 
-  export const getLabel = (context: Context, p?: string | number) => {
-    if (!p)
-      return context.scheme?.label ?? context.key;
-    else
-      return context.scheme?.properties?.[p].label ?? p;
+  export const getLabel = (context: Context) => {
+    return context.scheme?.label ?? context.key;
   }
 
-
+  export const getDescription = (context: Context): string | undefined => {
+    if (typeof context.scheme?.description == 'function') {
+      return context.scheme.description(context);
+    }
+    else {
+      return context.scheme?.description;
+    }
+  }
 }

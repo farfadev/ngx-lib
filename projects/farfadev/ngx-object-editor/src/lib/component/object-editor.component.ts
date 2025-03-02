@@ -6,7 +6,8 @@ import {
   Input,
   OnDestroy,
   OnInit,
-  ViewChild
+  ViewChild,
+  ViewEncapsulation
 } from '@angular/core';
 import { ObjectEditor } from '../object-editor';
 import { ObjectEditorModule } from '../object-editor.module';
@@ -16,6 +17,7 @@ import { ObjectEditorModule } from '../object-editor.module';
   selector: 'object-editor',
   templateUrl: './object-editor.component.html',
   styleUrls: ['./object-editor.component.scss'],
+  encapsulation: ViewEncapsulation.Emulated
 })
 export class ObjectEditorComponent implements OnInit, OnDestroy {
   @ViewChild('objectcontainer')
@@ -42,7 +44,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   properties: (string | number)[] = [];
-  typeoptions: (string | number)[] = [];
+  innerSchemeOptions: (string | number)[] = [];
   newProperty = {
     property: '',
     schemeKey: ''
@@ -66,7 +68,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   getListSel(): string[] {
-    return ObjectEditor.getListSel(this.context);
+    return ObjectEditor.getOptionalPropertyList(this.context);
   }
 
   set optionalPropertySel(s: string | undefined) {
@@ -86,14 +88,13 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     return ObjectEditor.getSubContext(this.context,p);
   }
 
-  getLabel(p?: string | number) {
-    return ObjectEditor.getLabel(this.context,p);
+  getLabel(subContext: ObjectEditor.Context) {
+    return ObjectEditor.getLabel(subContext);
   }
 
-  getSelectionList(p: string | number) {
+  getSelectionList(context: ObjectEditor.Context) {
     const result: { key: string, label: string }[] = [];
-    const selList = ObjectEditor.getSchemeSelectionList(this.context?.scheme,
-      p);
+    const selList = ObjectEditor.getSchemeSelectionList(context.scheme);
     const keys = Object.keys(selList);
     for (let key of keys) {
       result.push({ key, label: selList[key].label ?? key });
@@ -102,60 +103,62 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   isArray() {
-    return this.context.scheme?.uibase == 'array';
+    return ObjectEditor.isArray(this.context);
   }
   isObject() {
-    return this.context.scheme?.uibase == 'object';
+    return ObjectEditor.isObject(this.context);
   }
   isediting(p: string | number) {
     return p === this.editing;
   }
 
-  isReadOnly(p: string | number): boolean {
-    return this.context.scheme?.properties?.[p]?.readonly ?? false;
+  isReadOnly(context: ObjectEditor.Context): boolean {
+    return ObjectEditor.isReadOnly(context);
   }
 
-  isRestricted(p?: string | number): boolean {
-    if (p) {
-      return this.context.scheme?.properties?.[p]?.optional ?? false;
-    }
-    else {
-      return this.context.scheme?.restricted ?? false;
-    }
+  isRestricted(context: ObjectEditor.Context): boolean {
+    return ObjectEditor.isRestricted(context);
   }
 
-  isOptional(p?: string | number): boolean {
-    if (p) {
-      return this.context.scheme?.properties?.[p]?.optional ?? false;
-    }
-    else {
-      return this.context.scheme?.optional ?? false;
-    }
+  isOptional(context: ObjectEditor.Context): boolean {
+    return ObjectEditor.isOptional(context);
   }
 
-  getHtmlType(p: string | number) {
-    return ObjectEditor.getBaseScheme(this.context?.scheme?.properties?.[p]?.uibase)?.html;
+  getHtmlType(context: ObjectEditor.Context) {
+    return ObjectEditor.getBaseScheme(context)?.html;
   }
 
-  onclick(p: string | number, event: MouseEvent) {
+  getDescriptionArticle(context: ObjectEditor.Context) {
+    return ObjectEditor.getDescription(context);
+  }
+
+  getStyle(context: ObjectEditor.Context) {
+    return ObjectEditor.getStyle(context);
+  }
+
+  getStyleClass(context: ObjectEditor.Context) {
+    return ObjectEditor.getStyleClass(context);
+  }
+
+  onclick(context: ObjectEditor.Context, event: MouseEvent) {
     this.propertyClickEvent = true;
-    if (this.editing != p) {
-      this.edittoggle(p, event);
+    if (this.editing != context.key) {
+      this.edittoggle(context, event);
     }
-    else {
-      if (this.getHtmlType(p) == 'checkbox') {
+/*    else {
+      if (this.getHtmlType(context) == 'checkbox') {
         if (typeof this.context.value[p] != 'boolean') this.context.value[p] = ObjectEditor.convert(
           this.context.value[p],
           this.context.scheme!.properties![p]);
       }
-    }
+    } */
   }
-  edittoggle(p: string | number, event: MouseEvent) {
-    if (this.editing === p) {
+  edittoggle(context: ObjectEditor.Context, event: MouseEvent) {
+    if (this.editing === context.key) {
       this.editing = undefined;
-      this.editUpdate(p);
+      ObjectEditor.editUpdate(context);
     } else {
-      this.editing = p;
+      this.editing = context.key;
       this.propertyClickEvent = true;
     }
   }
@@ -174,15 +177,15 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     };
   }
 
-  delete(p: string | number) {
-    ObjectEditor.deleteProperty(this.context, p);
+  delete(context: ObjectEditor.Context) {
+    ObjectEditor.deleteProperty(context);
     this.setProperties();
   }
 
   ngOnInit() {
     window.addEventListener('click', this.windowClickListener);
     this.setProperties();
-    this.typeoptions = ObjectEditor.getInnerSchemeSelectionKeys(this.context.scheme);
+    this.innerSchemeOptions = ObjectEditor.getInnerSchemeSelectionKeys(this.context.scheme);
     //    if(!this.context.value) this.context.value = {};
     if (!this.context.scheme) this.context.scheme = { uibase: 'object' };
     ObjectEditor.initValue(this.context.value, this.context.scheme);
@@ -196,10 +199,6 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     window.removeEventListener('click', this.windowClickListener);
-  }
-
-  private editUpdate(p: string | number) {
-    ObjectEditor.editUpdate(this.context, p);
   }
 
   invertColor(hex: string) {
@@ -226,5 +225,6 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     var zeros = new Array(len).join('0');
     return (zeros + str).slice(-len);
   }
+
 }
 

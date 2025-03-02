@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { CheckboxModule } from 'primeng/checkbox';
 import { FieldsetModule } from 'primeng/fieldset';
 import { Select } from 'primeng/select';
+import { PopoverModule } from 'primeng/popover'
 
 @NgModule({
   declarations: [
@@ -15,7 +16,8 @@ import { Select } from 'primeng/select';
     FormsModule,
     CheckboxModule,
     FieldsetModule,
-    Select
+    Select,
+    PopoverModule
   ],
   exports: [
     ObjectEditorComponent,
