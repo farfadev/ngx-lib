@@ -2,6 +2,9 @@
 
 An [Angular](https://angular.dev/) component to edit typescript/ javascript object
 
+WARNING: this component is at a VERY DRAFT stage and we expect to have a stable release by June 2025
+<br/>Wait for release 0.1.0
+
 <h2>installation</h2>
 npm i @farfadev/ngx-object-editor
 

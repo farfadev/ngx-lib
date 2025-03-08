@@ -12,13 +12,15 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
     trigger('tooltip', [
       transition(':enter', [
         style({ opacity: 0 }),
-        animate(300, style({ opacity: 1 })),
+        animate(1000, style({ opacity: 1 })),
       ]),
-      transition(':leave', [animate(300, style({ opacity: 0 }))]),
+      transition(':leave', [animate(1000, style({ opacity: 0 }))]),
     ]),
   ],
 })
 export class ATooltipComponent {
-  @Input() text = '';
+  @Input() text?: string;
+  @Input() html?: string;
+  @Input() style?: string = 'background-color: white; border: 1px solid black; padding: 1rem';
 
 }

@@ -177,8 +177,8 @@
 <ng-template #subItem let-subContext="lcontext">
     @if(subContext) {
     <div>
-      @if(isediting(subContext)) {
       <p style="display: flex; gap: 10px">
+        @if(isediting(subContext)) {
         <i
           class="pi pi-pencil"
           style="color: green"
@@ -215,16 +215,8 @@
         <ng-container
           *ngTemplateOutlet="default; context: { lcontext: subContext }"
         ></ng-container>
-        } } @if(debug) {
-        <span [style]="getStyle(subContext)"
-          >{{typeof subContext.value}} {{ subContext.value }}
-          {{ editing?.value }} {{ editing == subContext }}
-          {{subContext.key?subContext.pcontext?.value?.[subContext.key]:''}}</span
-        >
-        }
-      </p>
+        } }
       } @else {
-      <p style="display: flex; gap: 10px">
         <i
           *ngIf="!isReadOnly(subContext)"
           class="pi pi-pencil"
@@ -269,11 +261,9 @@
           readonly
           (click)="onclick(subContext, $event)"
         />
-        } } @if(getDescriptionArticle(subContext)) {
-        <button [id]="subContext.key" class="pi pi-info-circle" style="background:inherit;border:none" popovertarget="op1"></button>
-        <div popover id="op1" class="popover"
-          ><article [innerHTML]="getDescriptionArticle(subContext)"></article
-        ></div>
+        } } 
+        @if(getDescriptionArticle(subContext)) {
+          <i [id]="subContext.key" [aTooltip]="{mode: 'hover',html: getDescriptionArticle(subContext)??''}" class="pi pi-info-circle" style="background:inherit;border:none"></i>
         } @if(debug) {
         <span [style]="getStyle(subContext)"
           >{{typeof subContext.value}} {{ subContext.value }}
@@ -281,9 +271,9 @@
           {{subContext.key?subContext.pcontext?.value?.[subContext.key]:''}}</span
         >
         }
-      </p>
       }
-    </div>
+    </p>
+  </div>
     }
   </ng-template>
 

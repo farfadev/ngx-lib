@@ -10,7 +10,7 @@
   "bugs": {
     "url": "https://github.com/farfadev/ngx-lib/issues"
   },
-  "homepage":  "https://github.com/farfadev/ngx-lib",
+  "homepage": "https://github.com/farfadev/ngx-lib",
   "keywords": [
     "angular",
     "editor"
@@ -29,10 +29,11 @@
   "peerDependencies": {
     "@angular/common": "^19.1.0",
     "@angular/core": "^19.1.0",
+    "@farfadev/ngx-a-tooltip": "^0.0.1",
     "lodash-es": "^4.17.21",
-    "primeng": "^19.0.6",
+    "mathjs": "^14.2.1",
     "primeicons": "^7.0.0",
-    "mathjs": "^14.2.1"
+    "primeng": "^19.0.6"
   },
   "dependencies": {
     "tslib": "^2.3.0"

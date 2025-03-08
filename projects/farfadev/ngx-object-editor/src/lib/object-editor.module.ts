@@ -8,6 +8,7 @@ import { Select } from 'primeng/select';
 import { PopoverModule } from 'primeng/popover'
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { IftaLabelModule } from 'primeng/iftalabel';
+import { ATooltipModule } from '@farfadev/ngx-a-tooltip';
 
 @NgModule({
   declarations: [
@@ -21,7 +22,8 @@ import { IftaLabelModule } from 'primeng/iftalabel';
     Select,
     PopoverModule,
     FloatLabelModule,
-    IftaLabelModule
+    IftaLabelModule,
+    ATooltipModule
   ],
   exports: [
     ObjectEditorComponent,

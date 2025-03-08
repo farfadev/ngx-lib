@@ -11,6 +11,12 @@
       ],
       "@farfadev/ngx-object-editor": [
         "../../dist/farfadev/ngx-object-editor"
+      ],
+      "@farfadev/ngx-a-tooltip/*": [
+        "../../dist/farfadev/ngx-a-tooltip/*"
+      ],
+      "@farfadev/ngx-a-tooltip": [
+        "../../dist/farfadev/ngx-a-tooltip"
       ]
     }    
   },
