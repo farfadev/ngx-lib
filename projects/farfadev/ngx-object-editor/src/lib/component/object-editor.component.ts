@@ -23,26 +23,40 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   @ViewChild('objectcontainer')
   private objectContainer!: ElementRef<HTMLElement>;
 
-  // eslint-disable-next-line @typescript-eslint/member-ordering
+  _context?: ObjectEditor.Context;
+
+  get context(): ObjectEditor.Context | undefined {
+    return this._context;
+  }
+
   @Input()
-  context!: ObjectEditor.Context;
+  set context(value: ObjectEditor.Context) {
+    this._context = value;
+    this.initContext();
+  }
+
+  @Input()
+  primeNg: boolean = false;
 
   ui_id;
 
+  root_fieldset_expanded = true;
+
   private _sel?: string;
 
-  _selectionKey?: { key: string, label: string };
-  set selectionKey(o: { key: string, label: string }) {
+  selectionKey?: { key: string, label: string };
+  selectedSubContext?: ObjectEditor.Context;
+/*  set selectionKey(o: { key: string, label: string }) {
     if (this.editing) {
       this._selectionKey = o;
-      ObjectEditor.selectScheme(this.context, this.editing, o.key);
+      ObjectEditor.selectScheme(this.editing, o.key);
     }
   }
 
   get selectionKey(): { key: string, label: string } | undefined {
     return this._selectionKey;
   }
-
+*/
   properties: (string | number)[] = [];
   innerSchemeOptions: (string | number)[] = [];
   newProperty = {
@@ -50,11 +64,12 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     schemeKey: ''
   };
 
-  editing?: string | number;
+  editing?: ObjectEditor.Context;
   propertyClickEvent = false;
   windowClickListener = (ev: MouseEvent) => {
-    if (!this.propertyClickEvent) {
-      this.editing = '';
+    if (!this.propertyClickEvent && this.editing) {
+//      ObjectEditor.editUpdate(this.editing);
+      this.editing = undefined;
     }
     this.propertyClickEvent = false;
   };
@@ -68,11 +83,12 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   getListSel(): string[] {
+    if (!this.context) return [];
     return ObjectEditor.getOptionalPropertyList(this.context);
   }
 
   set optionalPropertySel(s: string | undefined) {
-    if (s && this.context.scheme?.properties?.[s]) {
+    if (s && this.context?.scheme?.properties?.[s]) {
       this._sel = s;
       this.newProperty.property = s;
       this.newProperty.schemeKey = this.context.scheme?.properties[s].uibase ?? "";
@@ -84,8 +100,17 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     return this._sel;
   }
 
-  getSubContext(p: string | number): ObjectEditor.Context {
-    return ObjectEditor.getSubContext(this.context,p);
+  subContextList: {[key: number | string]: ObjectEditor.Context | undefined} = {};
+
+  getSubContext(p: string | number): ObjectEditor.Context | undefined {
+    if(!this.subContextList[p] && this.context) {
+      this.subContextList[p] = ObjectEditor.getSubContext(this.context,p);
+    }
+    return this.subContextList[p];
+  }
+
+  selectScheme(context: ObjectEditor.Context,schemeKey?: string) {
+    this.selectedSubContext = ObjectEditor.selectScheme(context,schemeKey);
   }
 
   getLabel(subContext: ObjectEditor.Context) {
@@ -103,13 +128,13 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   isArray() {
-    return ObjectEditor.isArray(this.context);
+    return this.context ? ObjectEditor.isArray(this.context) : false;
   }
   isObject() {
-    return ObjectEditor.isObject(this.context);
+    return this.context ? ObjectEditor.isObject(this.context) : false;
   }
-  isediting(p: string | number) {
-    return p === this.editing;
+  isediting(context: ObjectEditor.Context) {
+    return context == this.editing;
   }
 
   isReadOnly(context: ObjectEditor.Context): boolean {
@@ -140,9 +165,13 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     return ObjectEditor.getStyleClass(context);
   }
 
+  getDesignToken(context: ObjectEditor.Context) {
+    return ObjectEditor.getDesignToken(context);
+  }
+
   onclick(context: ObjectEditor.Context, event: MouseEvent) {
     this.propertyClickEvent = true;
-    if (this.editing != context.key) {
+    if (this.editing != context) {
       this.edittoggle(context, event);
     }
 /*    else {
@@ -154,22 +183,24 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     } */
   }
   edittoggle(context: ObjectEditor.Context, event: MouseEvent) {
-    if (this.editing === context.key) {
+    if (this.editing === context) {
       this.editing = undefined;
-      ObjectEditor.editUpdate(context);
+//      ObjectEditor.editUpdate(context);
     } else {
-      this.editing = context.key;
+      this.editing = context;
       this.propertyClickEvent = true;
     }
   }
 
   setProperties(): void {
+    if(!this.context) return;
     this.properties = ObjectEditor.getProperties(this.context);
+    this.subContextList = {};
   }
 
   addNewProperty() {
-    ObjectEditor.addNewProperty(this.context, this.newProperty);
-    this.editing = this.newProperty.property;
+    if(!this.context) return;
+    this.editing = ObjectEditor.addNewProperty(this.context, this.newProperty);
     this.setProperties();
     this.newProperty = {
       property: '',
@@ -184,6 +215,10 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     window.addEventListener('click', this.windowClickListener);
+  }
+
+ initContext() {
+    if(!this.context) return;
     this.setProperties();
     this.innerSchemeOptions = ObjectEditor.getInnerSchemeSelectionKeys(this.context.scheme);
     //    if(!this.context.value) this.context.value = {};
@@ -195,6 +230,10 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
       this.context = context;
       this.setProperties();
     };
+    const editUpdate = this.context.editUpdate;
+    this.context.editUpdate = () => {
+      if(editUpdate) editUpdate();
+    }
   }
 
   ngOnDestroy(): void {

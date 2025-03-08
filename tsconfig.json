@@ -14,6 +14,9 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "paths": {
+      "@farfadev/ngx-a-tooltip": [
+        "./dist/farfadev/ngx-a-tooltip"
+      ],
       "@farfadev/ngx-object-editor/*": [
         "./dist/farfadev/ngx-object-editor/*"
       ],

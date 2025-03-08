@@ -1,0 +1,28 @@
+{
+  "name": "@farfadev/ngx-a-tooltip",
+  "version": "0.0.1",
+  "description": "An angular component to popup a tooltip on mouse hover/ click",
+  "author": "farfadev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/farfadev/ngx-lib.git"
+  },
+  "bugs": {
+    "url": "https://github.com/farfadev/ngx-lib/issues"
+  },
+  "homepage":  "https://github.com/farfadev/ngx-lib",
+  "keywords": [
+    "angular",
+    "editor"
+  ],
+  "licence": "MIT",
+  "private": false,
+  "peerDependencies": {
+    "@angular/common": "^19.1.0",
+    "@angular/core": "^19.1.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}

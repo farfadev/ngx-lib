@@ -50,6 +50,7 @@ export class TestComponent implements OnInit {
       properties: {
         p1: {
           uibase: 'text',
+          default: 'test',
           style: (context: ObjectEditor.Context) => context.value == "red" ?  "color: red;font-weight: bold":"color: green;font-weight: bold",
           description: (context: ObjectEditor.Context) => "<p><b>property p1</b></br></p<p>this is to test a text property</br></p>" +
             "<p>value=" + (typeof context.value) + " " + context.value + "</p>"
@@ -65,20 +66,24 @@ export class TestComponent implements OnInit {
         p4: {
           uibase: 'boolean',
           label: 'test-ui-label p4',
-          styleClass: "container",
+          styleClass: ".mycheckbox",
+          designToken: {background: 'lightgrey',icon: {color: 'red',checked: {color: 'red',hover:{color: 'red'}}},checked: {hover: {background: 'yellow'},background: 'yellow',color: 'blue',border: {color: 'yellow'}},width: '150px'},
           style: "color: red",
           default: true
         },
         p5: {
           uibase: 'select',
           optional: true,
+          restricted: true,
           schemeSelectionList: {
             color: {
               uibase: 'color',
-              default: '#ff004ef0'
+              label: 'mycolor',
+              default: '#ff004e'
             },
             boolean: {
-              uibase: 'boolean'
+              uibase: 'boolean',
+              label: 'myboolean'
             },
             number: {
               uibase: 'number',

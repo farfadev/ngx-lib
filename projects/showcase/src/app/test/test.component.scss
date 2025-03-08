@@ -65,3 +65,7 @@
     -ms-transform: rotate(45deg);
     transform: rotate(45deg);
   } 
+
+  :host::ng-deep .mycheckbox.p-checkbox-box {
+    color: red
+  }

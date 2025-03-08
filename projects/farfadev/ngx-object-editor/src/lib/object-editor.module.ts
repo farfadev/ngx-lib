@@ -6,6 +6,8 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { FieldsetModule } from 'primeng/fieldset';
 import { Select } from 'primeng/select';
 import { PopoverModule } from 'primeng/popover'
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { IftaLabelModule } from 'primeng/iftalabel';
 
 @NgModule({
   declarations: [
@@ -17,7 +19,9 @@ import { PopoverModule } from 'primeng/popover'
     CheckboxModule,
     FieldsetModule,
     Select,
-    PopoverModule
+    PopoverModule,
+    FloatLabelModule,
+    IftaLabelModule
   ],
   exports: [
     ObjectEditorComponent,

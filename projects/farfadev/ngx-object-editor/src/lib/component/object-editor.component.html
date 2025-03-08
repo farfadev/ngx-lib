@@ -1,119 +1,421 @@
+@let debug = true; 
+@if(context) {
+<ng-template #checkBox_png let-lcontext="lcontext">
+  <p-iftalabel>
+    <p-checkbox
+      [id]="ui_id + lcontext.key + 'e'"
+      type="checkbox"
+      [(ngModel)]="lcontext.value"
+      (ngModelChange)="lcontext.editUpdate?.()"
+      [styleClass]="getStyleClass(lcontext)"
+      [dt]="getDesignToken(lcontext)"
+      [binary]="true"
+      (click)="onclick(lcontext, $event)"
+    />
+    <label [for]="ui_id + lcontext.key + 'e'">{{ getLabel(lcontext) }}</label>
+  </p-iftalabel>
+</ng-template>
+<ng-template #checkBox let-lcontext="lcontext">
+  <label> {{ getLabel(lcontext) }}</label>
+  <input
+    [id]="ui_id + lcontext.key + 'e'"
+    type="checkbox"
+    [(ngModel)]="lcontext.value"
+    (ngModelChange)="lcontext.editUpdate?.()"
+    [class]="getStyleClass(lcontext)"
+    [class]="getStyle(lcontext)"
+    (click)="onclick(lcontext, $event)"
+  />
+</ng-template>
+<ng-template #number let-lcontext="lcontext">
+  <input
+    [id]="ui_id + lcontext.key + 'e'"
+    type="number"
+    [(ngModel)]="lcontext.value"
+    (ngModelChange)="lcontext.editUpdate()"
+    [class]="getStyleClass(lcontext)"
+    [style]="getStyle(lcontext)"
+    (click)="onclick(lcontext, $event)"
+  />
+  <label [for]="ui_id + lcontext.key + 'e'">{{ getLabel(lcontext) }}</label>
+</ng-template>
+<ng-template #color let-lcontext="lcontext">
+  <input
+    [id]="ui_id + lcontext.key + 'e'"
+    type="color"
+    [(ngModel)]="lcontext.value"
+    (ngModelChange)="lcontext.editUpdate()"
+    [class]="getStyleClass(lcontext)"
+    [style]="getStyle(lcontext)"
+    (click)="onclick(lcontext, $event)"
+  />
+</ng-template>
+<ng-template #default let-lcontext="lcontext">
+  <input
+    [id]="ui_id + lcontext.key + 'e'"
+    [type]="getHtmlType(lcontext.key)"
+    [(ngModel)]="lcontext.value"
+    (ngModelChange)="lcontext.editUpdate()"
+    [class]="getStyleClass(lcontext)"
+    [style]="getStyle(lcontext)"
+    (click)="onclick(lcontext, $event)"
+  />
+</ng-template>
 
-@let debug = true;
-
-<ng-template #checkBox let-context="context">
-  <input [id]="ui_id + context.key + 'e'" type="checkbox" [(ngModel)]="context.pcontext.value[context.key]" [class]="getStyleClass(context)" [style]="getStyle(context)" (click)="onclick(context,$event)"/>
-</ng-template>
-<ng-template #number let-context="context">
-  <input [id]="ui_id + context.key + 'e'" type="number" [(ngModel)]="context.pcontext.value[context.key]" [class]="getStyleClass(context)" [style]="getStyle(context)" (click)="onclick(context,$event)"/>
-</ng-template>
-<ng-template #color let-context="context">
-  <input [id]="ui_id + context.key + 'e'" type="color" [(ngModel)]="context.pcontext.value[context.key]" [class]="getStyleClass(context)" [style]="getStyle(context)" (click)="onclick(context,$event)"/>
-</ng-template>
-<ng-template #default let-context="context">
-  <input [id]="ui_id + context.key + 'e'" [type]="getHtmlType(context.key)" [(ngModel)]="context.pcontext.value[context.key]" [class]="getStyleClass(context)" [style]="getStyle(context)"  (click)="onclick(context,$event)"/>
-</ng-template>
-
-<p-fieldset [legend]="(getLabel(context)??'object-editor').toString()" [toggleable]="true">
-<div #objectcontainer>
-  @if(hasListSel()) {
-  <p>
-    <select #listsel [(ngModel)]="optionalPropertySel">
-      <option>add an optional property</option>
-      <option *ngFor="let o of getListSel()" value="{{o}}">{{o}}</option>
-    </select>
-  </p>
-  }
-  @if(innerSchemeOptions.length > 0) {
-    <p style="display: flex; gap: 10px">
-    @if(isObject()) {
-       <input [id]="ui_id + 0" type="text" pattern="[a-zA-Z]{1}[a-zA-Z0-9_]*" [(ngModel)]="newProperty.property" />
-    }
-    <select #typesel [(ngModel)]="newProperty.schemeKey">
-      <option>choose an option</option>
-      <option *ngFor="let o of innerSchemeOptions" value="{{o}}">{{o}}</option>
-    </select>
-    <i class="pi pi-plus-circle" (click)="addNewProperty()"></i>
-  </p>
-  }
-  @if(isObject() || isArray()) {
-  @for (p of properties; track p) {
-    @let subContext = getSubContext(p);
+<ng-template #subItem_png let-subContext="lcontext">
+  @if(subContext) {
   <div>
-    @if(isediting(p)) {
+    @if(isediting(subContext)) {
     <p style="display: flex; gap: 10px">
-      <i class="pi pi-pencil" style="color:green" (click)="edittoggle(subContext,$event)"></i>
+      <i
+        class="pi pi-pencil"
+        style="color: green"
+        (click)="edittoggle(subContext, $event)"
+      ></i>
       <i class="pi pi-trash" (click)="delete(subContext)"></i>
+      @switch(getHtmlType(subContext)) { @case('array') {
+      <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
+      } @case('object') {
+      <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
+      } @case('select') {
+      <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
+      } @case('checkbox') {
+      <!--<input [id]="ui_id + p + 'e'" type="checkbox" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
       <label> {{ getLabel(subContext) }} </label>
-      @switch(getHtmlType(subContext)) {
-        @case('array') {
-          <object-editor [context]="subContext"></object-editor>
-        }
-        @case('object') {
-          <object-editor [context]="subContext"></object-editor>
-        }
-        @case('select') {
-          <p-select [options]="getSelectionList(subContext)" [(ngModel)]="selectionKey" optionLabel="label" placeholder="Select a Scheme" class="w-full md:w-56"  (click)="onclick(subContext,$event)"/>
-          <object-editor [context]="subContext"></object-editor>
-        }
-        @case('checkbox') {
-          <!--<input [id]="ui_id + p + 'e'" type="checkbox" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
-          <ng-container *ngTemplateOutlet="checkBox; context: {context: subContext}"></ng-container>
-        }
-        @case('number') {
-          <!--<input [id]="ui_id + p + 'e'" type="number" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
-          <ng-container *ngTemplateOutlet="number; context: {context: subContext}"></ng-container>
-        }
-        @case('color') {
-          <!--<input [id]="ui_id + p + 'e'" type="color" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
-          <ng-container *ngTemplateOutlet="color; context: {context: subContext}"></ng-container>
-        }
-       @default {
-        <!--<input [id]="ui_id + p + 'e'" [type]="getHtmlType(p)" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
-        <ng-container *ngTemplateOutlet="default; context: {context: subContext}"></ng-container>
+      <ng-container
+        *ngTemplateOutlet="checkBox; context: { lcontext: subContext }"
+      ></ng-container>
+      } @case('number') {
+      <!--<input [id]="ui_id + p + 'e'" type="number" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
+      <label> {{ getLabel(subContext) }} </label>
+      <ng-container
+        *ngTemplateOutlet="number; context: { lcontext: subContext }"
+      ></ng-container>
+      } @case('color') {
+      <!--<input [id]="ui_id + p + 'e'" type="color" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
+      <label> {{ getLabel(subContext) }} </label>
+      <ng-container
+        *ngTemplateOutlet="color; context: { lcontext: subContext }"
+      ></ng-container>
+      } @default {
+      <!--<input [id]="ui_id + p + 'e'" [type]="getHtmlType(p)" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
+      <label> {{ getLabel(subContext) }} </label>
+      <ng-container
+        *ngTemplateOutlet="default; context: { lcontext: subContext }"
+      ></ng-container>
+      } } @if(debug) {
+      <span [style]="getStyle(subContext)"
+        >{{typeof subContext.value}} {{ subContext.value }}
+        {{ editing?.value }} {{ editing == subContext }}
+        {{subContext.key?subContext.pcontext?.value?.[subContext.key]:''}}</span
+      >
       }
+    </p>
+    } @else {
+    <p style="display: flex; gap: 10px">
+      <i
+        *ngIf="!isReadOnly(subContext)"
+        class="pi pi-pencil"
+        (click)="edittoggle(subContext, $event)"
+      ></i>
+      <i
+        class="pi pi-trash"
+        [style.visibility]="isOptional(subContext) ? 'visible' : 'hidden'"
+        (click)="delete(subContext)"
+      ></i>
+      @switch(getHtmlType(subContext)) { @case('array') {
+      <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
+      } @case('object') {
+      <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
+      } @case('select') {
+      <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
+      } @case('color') {
+      <label> {{ getLabel(subContext) }} </label>
+      <span
+        class="colorBox"
+        [style]="{
+          color: subContext.value,
+          background: subContext.value,
+          '--borderColor': invertColor(subContext.value)
+        }"
+        (click)="onclick(subContext, $event)"
+        >■■■</span
+      >
+      } @case('checkbox') {
+      <label> {{ getLabel(subContext) }} </label>
+      <ng-container
+        *ngTemplateOutlet="checkBox; context: { lcontext: subContext }"
+      ></ng-container>
+      } @default() {
+      <label> {{ getLabel(subContext) }} </label>
+      <input
+        [id]="ui_id + subContext.key + 'ne'"
+        [type]="getHtmlType(subContext)"
+        [(ngModel)]="subContext.value"
+        [class]="getStyleClass(subContext)"
+        [style]="getStyle(subContext)"
+        readonly
+        (click)="onclick(subContext, $event)"
+      />
+      } } @if(getDescriptionArticle(subContext)) {
+      <i class="pi pi-info-circle" (click)="op.toggle($event)"></i>
+      <p-popover #op
+        ><article [innerHTML]="getDescriptionArticle(subContext)"></article
+      ></p-popover>
+      } @if(debug) {
+      <span [style]="getStyle(subContext)"
+        >{{typeof subContext.value}} {{ subContext.value }}
+        {{ editing == subContext }}
+        {{subContext.key?subContext.pcontext?.value?.[subContext.key]:''}}</span
+      >
       }
-      @if(debug) {
-        <span [style]="getStyle(subContext)">{{typeof subContext.value}} {{subContext.value}}</span>
-      }
-  </p>
-    }
-    @else {
-      <p style="display: flex; gap: 10px">
-        <i *ngIf="!isReadOnly(subContext)" class="pi pi-pencil" (click)="edittoggle(subContext,$event)"></i>
-        <i class="pi pi-trash" [style.visibility]="isOptional(subContext)?'visible':'hidden'" (click)="delete(subContext)"></i>
-        <label> {{ getLabel(subContext) }} </label>
-        @switch(getHtmlType(subContext)) {
-          @case('array') {
-            <object-editor [context]="subContext"></object-editor>
-          }
-          @case('object') {
-            <object-editor [context]="subContext"></object-editor>
-          }
-          @case('select') {
-            <div  [class]="getStyleClass(subContext)" [style]="getStyle(subContext)" (click)="onclick(subContext,$event)">SELECT {{selectionKey?.label ?? 'undefined'}}</div>
-            <object-editor [context]="subContext"></object-editor>
-          }
-          @case('color') {
-            <span class="colorBox" [style]="{color: subContext.value, background:  subContext.value, '--borderColor': invertColor(context.value[p])}" (click)="onclick(subContext,$event)">■■■</span>
-          }
-          @case('checkbox') {
-            <input [id]="ui_id + p + 'e'" type="checkbox" [(ngModel)]="context.value![p]" [class]="getStyleClass(subContext)" [style]="getStyle(subContext)"  (click)="onclick(subContext,$event)"/>
-          }
-          @default() {
-            <input [id]="ui_id + p + 'ne'" [type]="getHtmlType(subContext)" [(ngModel)]="context.value![p]" [class]="getStyleClass(subContext)" [style]="getStyle(subContext)" readonly  (click)="onclick(subContext,$event)"/>
-          }
-        }
-        @if(getDescriptionArticle(subContext)) {
-          <i class="pi pi-info-circle" (click)="op.toggle($event)"></i>
-          <p-popover #op><article [innerHTML]="getDescriptionArticle(subContext)"></article></p-popover>
-        }
-        @if(debug) {
-          <span [style]="getStyle(subContext)">{{typeof subContext.value}} {{subContext.value}}</span>
-        }
-      </p>
+    </p>
     }
   </div>
-  }}
-</div>
+  }
+</ng-template>
+<ng-template #subItem let-subContext="lcontext">
+    @if(subContext) {
+    <div>
+      @if(isediting(subContext)) {
+      <p style="display: flex; gap: 10px">
+        <i
+          class="pi pi-pencil"
+          style="color: green"
+          (click)="edittoggle(subContext, $event)"
+        ></i>
+        <i class="pi pi-trash" (click)="delete(subContext)"></i>
+        @switch(getHtmlType(subContext)) { @case('array') {
+        <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
+        } @case('object') {
+        <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
+        } @case('select') {
+        <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
+        } @case('checkbox') {
+        <!--<input [id]="ui_id + p + 'e'" type="checkbox" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
+        <label> {{ getLabel(subContext) }} </label>
+        <ng-container
+          *ngTemplateOutlet="checkBox; context: { lcontext: subContext }"
+        ></ng-container>
+        } @case('number') {
+        <!--<input [id]="ui_id + p + 'e'" type="number" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
+        <label> {{ getLabel(subContext) }} </label>
+        <ng-container
+          *ngTemplateOutlet="number; context: { lcontext: subContext }"
+        ></ng-container>
+        } @case('color') {
+        <!--<input [id]="ui_id + p + 'e'" type="color" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
+        <label> {{ getLabel(subContext) }} </label>
+        <ng-container
+          *ngTemplateOutlet="color; context: { lcontext: subContext }"
+        ></ng-container>
+        } @default {
+        <!--<input [id]="ui_id + p + 'e'" [type]="getHtmlType(p)" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
+        <label> {{ getLabel(subContext) }} </label>
+        <ng-container
+          *ngTemplateOutlet="default; context: { lcontext: subContext }"
+        ></ng-container>
+        } } @if(debug) {
+        <span [style]="getStyle(subContext)"
+          >{{typeof subContext.value}} {{ subContext.value }}
+          {{ editing?.value }} {{ editing == subContext }}
+          {{subContext.key?subContext.pcontext?.value?.[subContext.key]:''}}</span
+        >
+        }
+      </p>
+      } @else {
+      <p style="display: flex; gap: 10px">
+        <i
+          *ngIf="!isReadOnly(subContext)"
+          class="pi pi-pencil"
+          (click)="edittoggle(subContext, $event)"
+        ></i>
+        <i
+          class="pi pi-trash"
+          [style.visibility]="isOptional(subContext) ? 'visible' : 'hidden'"
+          (click)="delete(subContext)"
+        ></i>
+        @switch(getHtmlType(subContext)) { @case('array') {
+        <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
+        } @case('object') {
+        <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
+        } @case('select') {
+        <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
+        } @case('color') {
+        <label> {{ getLabel(subContext) }} </label>
+        <span
+          class="colorBox"
+          [style]="{
+            color: subContext.value,
+            background: subContext.value,
+            '--borderColor': invertColor(subContext.value)
+          }"
+          (click)="onclick(subContext, $event)"
+          >■■■</span
+        >
+        } @case('checkbox') {
+        <label> {{ getLabel(subContext) }} </label>
+        <ng-container
+          *ngTemplateOutlet="checkBox; context: { lcontext: subContext }"
+        ></ng-container>
+        } @default() {
+        <label> {{ getLabel(subContext) }} </label>
+        <input
+          [id]="ui_id + subContext.key + 'ne'"
+          [type]="getHtmlType(subContext)"
+          [(ngModel)]="subContext.value"
+          [class]="getStyleClass(subContext)"
+          [style]="getStyle(subContext)"
+          readonly
+          (click)="onclick(subContext, $event)"
+        />
+        } } @if(getDescriptionArticle(subContext)) {
+        <button [id]="subContext.key" class="pi pi-info-circle" style="background:inherit;border:none" popovertarget="op1"></button>
+        <div popover id="op1" class="popover"
+          ><article [innerHTML]="getDescriptionArticle(subContext)"></article
+        ></div>
+        } @if(debug) {
+        <span [style]="getStyle(subContext)"
+          >{{typeof subContext.value}} {{ subContext.value }}
+          {{ editing == subContext }}
+          {{subContext.key?subContext.pcontext?.value?.[subContext.key]:''}}</span
+        >
+        }
+      </p>
+      }
+    </div>
+    }
+  </ng-template>
+
+@if(primeNg) {
+<p-fieldset
+  [legend]="(getLabel(context) ?? 'object-editor').toString()"
+  [toggleable]="true"
+>
+  <div #objectcontainer>
+    @if(hasListSel()||(innerSchemeOptions.length > 0)) {
+    <p-fieldset
+      legend="add properties"
+      [toggleable]="true"
+      [dt]="{ legend: { font: { weight: 'normal' } } }"
+    >
+      @if(hasListSel()) { @if(primeNg) {
+      <p-select
+        [options]="getListSel()"
+        [(ngModel)]="optionalPropertySel"
+        placeholder="Select an Optional Property"
+      />
+      } @else {
+      <p>
+        <select #listsel [(ngModel)]="optionalPropertySel">
+          <option>add an optional property</option>
+          <option *ngFor="let o of getListSel()" value="{{ o }}">
+            {{ o }}
+          </option>
+        </select>
+      </p>
+      } } @if(innerSchemeOptions.length > 0) {
+      <p style="display: flex; gap: 10px">
+        @if(isObject()) {
+        <input
+          [id]="ui_id + 0"
+          type="text"
+          pattern="[a-zA-Z]{1}[a-zA-Z0-9_]*"
+          [(ngModel)]="newProperty.property"
+        />
+        }
+        <select #typesel [(ngModel)]="newProperty.schemeKey">
+          <option>choose an option</option>
+          <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
+            {{ o }}
+          </option>
+        </select>
+        <i class="pi pi-plus-circle" (click)="addNewProperty()"></i>
+      </p>
+      }
+    </p-fieldset>
+    } @if(getHtmlType(context)=='select') {
+    <p-select
+      [options]="getSelectionList(context)"
+      [(ngModel)]="selectionKey"
+      (ngModelChange)="selectScheme(context, selectionKey?.key)"
+      optionLabel="label"
+      placeholder="Select a Scheme"
+      class="w-full md:w-56"
+      (click)="onclick(context, $event)"
+    />
+    @if(selectedSubContext) {
+    <ng-container
+      *ngTemplateOutlet="subItem; context: { lcontext: selectedSubContext }"
+    ></ng-container>
+    } } @if(isObject() || isArray()) { @for (p of properties; track p) { @let
+    subContext = getSubContext(p);
+    <ng-container
+      *ngTemplateOutlet="subItem_png; context: { lcontext: subContext }"
+    ></ng-container>
+    }}
+  </div>
 </p-fieldset>
+} @else {
+<fieldset>
+  <legend>
+    <i [class]="root_fieldset_expanded ? 'pi pi-minus-circle' : 'pi pi-plus-circle'" (click)="root_fieldset_expanded = !root_fieldset_expanded"></i>
+    {{ (getLabel(context) ?? "object-editor").toString() }}
+  </legend>
+  <div #objectcontainer [hidden]="!root_fieldset_expanded">
+    @if(hasListSel()||(innerSchemeOptions.length > 0)) {
+    <fieldset>
+      <legend><i class="pi pi-plus-circle"></i> add properties</legend>
+      @if(hasListSel()) {
+      <p>
+        <select #listsel [(ngModel)]="optionalPropertySel">
+          <option>add an optional property</option>
+          <option *ngFor="let o of getListSel()" value="{{ o }}">
+            {{ o }}
+          </option>
+        </select>
+      </p>
+      } 
+      @if(innerSchemeOptions.length > 0) {
+      <p style="display: flex; gap: 10px">
+        @if(isObject()) {
+        <input
+          [id]="ui_id + 0"
+          type="text"
+          pattern="[a-zA-Z]{1}[a-zA-Z0-9_]*"
+          [(ngModel)]="newProperty.property"
+        />
+        }
+        <select #typesel [(ngModel)]="newProperty.schemeKey">
+          <option>choose an option</option>
+          <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
+            {{ o }}
+          </option>
+        </select>
+        <i class="pi pi-plus-circle" (click)="addNewProperty()"></i>
+      </p>
+    }
+    </fieldset>
+    } @if(getHtmlType(context)=='select') {
+    <p-select
+      [options]="getSelectionList(context)"
+      [(ngModel)]="selectionKey"
+      (ngModelChange)="selectScheme(context, selectionKey?.key)"
+      optionLabel="label"
+      placeholder="Select a Scheme"
+      class="w-full md:w-56"
+      (click)="onclick(context, $event)"
+    />
+    @if(selectedSubContext) {
+    <ng-container
+      *ngTemplateOutlet="subItem; context: { lcontext: selectedSubContext }"
+    ></ng-container>
+    } } @if(isObject() || isArray()) { @for (p of properties; track p) { 
+      @let subContext = getSubContext(p);
+    <ng-container
+      *ngTemplateOutlet="subItem; context: { lcontext: subContext }"
+    ></ng-container>
+    }}
+  </div>
+</fieldset>
+} }

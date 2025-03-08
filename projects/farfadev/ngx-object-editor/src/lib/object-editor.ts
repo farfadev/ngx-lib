@@ -22,6 +22,7 @@ export namespace ObjectEditor {
     label?: string;
     style?: string | ((context: Context) => string)
     styleClass?: string | ((context: Context) => string)
+    designToken?: object | ((context: Context) => object)
     // an html <article> that helps frontend user to understand/ set the value 
     description?: string | ((context: Context) => string);
     // a call-back to set EditorOptions dynamically depending on a runtime context
@@ -67,7 +68,11 @@ export namespace ObjectEditor {
     // provides a set of selectable schemes when value can have different schemes
     schemeSelectionList?: SchemeList<T, U> | (() => SchemeList<T, U>);
     // holds the scheme selection key from the scheme selection list
+    defaultSchemeSelectionKey?: number | string;
+    // holds the scheme selection key from the scheme selection list
     schemeSelectionKey?: number | string;
+    // holds the scheme selection key from the scheme selection list
+    schemeSelected?: Scheme;
     // provides a set of selectable schemes for new object/array property
     innerSchemeSelectionList?: SchemeList<T, U> | (() => SchemeList<T, U>);
     // for object or array, provide the schemes for the object/ array properties
@@ -161,7 +166,7 @@ export namespace ObjectEditor {
     pcontext?: Context;
     key?: string | number; // the key in the parent context
     // called by the editor when value changes on editor side to update the client application
-    editUpdate?: (c: any, key?: string | number) => void;
+    editUpdate?: () => void;
     // called by the client application to change the context (value and scheme)
     // eg in case of an update from the server, to avoid page reload
     contextChange?: (context: Context) => void;
@@ -171,11 +176,11 @@ export namespace ObjectEditor {
     return Object.keys(ObjectEditor.baseSchemes);
   }
   export const getBaseScheme = (context: Context | string) => {
-    if(typeof context == 'object') {
-    if (context.scheme?.uibase == undefined) return undefined;
+    if (typeof context == 'object') {
+      if (context.scheme?.uibase == undefined) return undefined;
       return (ObjectEditor.baseSchemes as any)[context.scheme?.uibase];
     }
-    else if(typeof context == 'string') {
+    else if (typeof context == 'string') {
       return (ObjectEditor.baseSchemes as any)[context];
     }
   }
@@ -243,18 +248,62 @@ export namespace ObjectEditor {
     return list;
   }
 
-  export const selectScheme = (context: Context, propertyKey: string | number, schemeKey: string): any => {
-    if (ObjectEditor.isSchemeSelectionKey(context.scheme!.properties![propertyKey], schemeKey)) {
-      const selList = ObjectEditor.getSchemeSelectionList(context.scheme!.properties![propertyKey]);
+  const setSelectedScheme = (scheme: Scheme, schemeKey?: string | number): void => {
+    if (!schemeKey) {
+      schemeKey = scheme?.defaultSchemeSelectionKey;
+    }
+    if(!schemeKey && !scheme?.optional) {
+      schemeKey = ObjectEditor.getSchemeSelectionKeys(scheme)?.[0];
+    }
+    if (!schemeKey) {
+      scheme.schemeSelectionKey = undefined;
+      scheme.schemeSelected = undefined;
+    }
+    if (schemeKey == scheme.schemeSelectionKey && scheme.schemeSelected) {
+      // same key is selected, just do nothing
+      //TODO find a way to reset the scheme
+      return;
+    }
+    if (schemeKey && ObjectEditor.isSchemeSelectionKey(scheme, schemeKey)) {
+      const selList = ObjectEditor.getSchemeSelectionList(scheme);
       const baseList = ObjectEditor.getBaseSchemes();
       if (selList[schemeKey]) {
-        context.scheme!.properties![propertyKey].schemeSelectionKey = schemeKey;
+        scheme.schemeSelectionKey = schemeKey;
+        scheme.schemeSelected = cloneDeep(selList[schemeKey]);
       }
-      else if (baseList.includes(schemeKey)) {
+      else if (typeof schemeKey == 'string' && baseList.includes(schemeKey)) {
+        scheme.schemeSelectionKey = schemeKey;
+        scheme.schemeSelected = {
+          uibase: schemeKey as ObjectEditor.Scheme['uibase'],
+          optional: true,
+          deletable: true,
+          ctime: Date.now()
+        };
       }
-      context.value![propertyKey] =
-        initValue(undefined,
-          ObjectEditor.getSchemeSelectionList(context.scheme?.properties?.[propertyKey])[schemeKey]);
+    }
+  }
+
+  export const selectScheme = (context: Context, schemeKey?: string | number): ObjectEditor.Context | undefined => {
+    if(context.scheme) setSelectedScheme(context.scheme,schemeKey);
+    if (!schemeKey) {
+      schemeKey = context.scheme?.defaultSchemeSelectionKey;
+    }
+    if(!schemeKey && !context.scheme?.optional) {
+      schemeKey = ObjectEditor.getSchemeSelectionKeys(context.scheme)?.[0];
+    }
+    if (!context.scheme?.schemeSelected) {
+      context.value = undefined;
+      context.editUpdate?.();
+      return ObjectEditor.getSubContext(context);
+    }
+    if (context.scheme!.schemeSelected) {
+      context.value = context.pcontext!.value![context.key!] =
+        initValue(undefined, context.scheme!.schemeSelected);
+        return ObjectEditor.getSubContext(context);
+    }
+    else {
+      context.value = context.pcontext!.value![context.key!] = undefined;
+      return undefined;
     }
   }
 
@@ -295,15 +344,12 @@ export namespace ObjectEditor {
         }
         break;
       case 'select': {
-
-        const selList = ObjectEditor.getSchemeSelectionList(scheme);
-
-        if (!scheme.schemeSelectionKey && !scheme.optional) {
-          scheme.schemeSelectionKey = Object.keys(selList)[0];
+        setSelectedScheme(scheme,scheme.schemeSelectionKey);
+        if (scheme.schemeSelectionKey && scheme.schemeSelected) {
+          if (!value) value = initValue(undefined, scheme.schemeSelected);
         }
-
-        if (scheme.schemeSelectionKey) {
-          if (!value) value = initValue(value, selList[scheme.schemeSelectionKey]);
+        else {
+          value = undefined;
         }
       }
         break;
@@ -436,9 +482,9 @@ export namespace ObjectEditor {
 
   export const getProperties = (context: Context) => {
     let properties: (string | number)[] = [];
-    const value = context.scheme?.transform?.forward ? 
-    context.scheme?.transform?.forward(context.value) :
-    context.value;
+    const value = context.scheme?.transform?.forward ?
+      context.scheme?.transform?.forward(context.value) :
+      context.value;
     for (const sp of Object.keys(context.scheme?.properties ?? {})) {
       if (value?.[sp] && !context.scheme?.properties?.[sp].deletable) {
         properties.push(sp);
@@ -470,7 +516,7 @@ export namespace ObjectEditor {
         context.pcontext.value[context.key],
         context.pcontext.scheme.properties![context.key]
       );
-      context.editUpdate(context);
+      context.editUpdate();
     }
   }
 
@@ -516,13 +562,13 @@ export namespace ObjectEditor {
     return rsel;
   }
 
-  export const addNewProperty = (context: Context, newProperty: { property: string | number, schemeKey: string }) => {
+  export const addNewProperty = (context: Context, newProperty: { property: string | number, schemeKey: string }): ObjectEditor.Context | undefined => {
     if (context.scheme === undefined) {
       context.scheme = { uibase: 'object' };
     }
     if (context.scheme.uibase != 'object' &&
       context.scheme.uibase != 'array') {
-      return;
+      return undefined;
     }
     if (context.scheme.uibase == 'array') {
       newProperty.property = context.value.length;
@@ -566,20 +612,25 @@ export namespace ObjectEditor {
       context.value[newProperty.property] =
         ObjectEditor.initValue(undefined,
           context.scheme.properties?.[newProperty.property])
-          const subContext = ObjectEditor.getSubContext(context,newProperty.property);
-      editUpdate(subContext);
+      const subContext = ObjectEditor.getSubContext(context, newProperty.property);
+      if (subContext) editUpdate(subContext);
+      return subContext;
     }
+    return undefined;
   }
 
   export const deleteProperty = (context: Context) => {
-    if (context.scheme?.optional && context.key) {
+    if ((context.scheme?.optional || context.scheme?.deletable) && context.key) {
       delete context?.pcontext?.value[context.key];
     }
     if (context.scheme?.deletable && context.key) {
       delete context.pcontext?.scheme?.properties?.[context.key];
     }
+    if (context.scheme && (!context.scheme.optional && !context.scheme.deletable) && context.key) {
+      context.value = ObjectEditor.initValue(undefined, context.scheme);
+    }
     if (context.editUpdate) {
-      context.editUpdate(context);
+      context.editUpdate();
     }
   }
 
@@ -601,30 +652,54 @@ export namespace ObjectEditor {
     }
   }
 
-  export const getSubContext = (context: Context, p?: string | number): ObjectEditor.Context => {
-    if (!p) {
-      return context;
+  export const getDesignToken = (context: Context) => {
+    if (typeof context.scheme?.designToken == 'function') {
+      return context.scheme.designToken(context);
     }
-    if (context.scheme?.uibase ?? '' in ['object', 'array']) {
+    else {
+      return context.scheme?.designToken;
+    }
+  }
+
+  export const getSubContext = (context: Context, p?: string | number): ObjectEditor.Context | undefined => {
+    if (['object', 'array'].includes(context.scheme?.uibase ?? '')) {
+      if (!p) {
+        return undefined;
+      }
       const transform = context.scheme?.properties?.[p]?.transform;
       const subContext = {
         scheme: context.scheme?.properties?.[p],
-        value: transform?.forward ? transform.forward(context.value[p]):context.value[p],
+        value: transform?.forward ? transform.forward(context.value[p]) : context.value[p],
         pcontext: context,
         key: p,
-        editUpdate: (c: any, key?: string | number) => {
-          context.value[p] = transform?.backward ? transform.backward(subContext.value):subContext.value;
-          context.editUpdate?.(c, key);
+        editUpdate: () => {
+          context.value[p] = transform?.backward ? transform.backward(subContext.value) : subContext.value;
+          context.editUpdate?.();
         },
         contextChange: context.contextChange
       }
       return subContext;
     }
-    else {
-      return {
-
+    else if (context.scheme?.uibase == 'select') {
+      if (context.scheme?.schemeSelected) {
+        const transform = context.scheme?.schemeSelected.transform;
+        const subContext = {
+          scheme: context.scheme.schemeSelected,
+          pcontext: context,
+          value: context.value,
+          editUpdate: () => {
+            context.value = transform?.backward ? transform.backward(subContext.value) : subContext.value;
+            context.editUpdate?.();
+          },
+          contextChange: context.contextChange
+        }
+        return subContext;
+      }
+      else {
+        return undefined;
       }
     }
+    return undefined;
   }
 
   export const getLabel = (context: Context) => {

@@ -15,9 +15,22 @@ https://medium.com/@yamini.hrishikesh/building-a-library-in-angular-11-with-depe
 
 https://dev.to/leopold/build-and-publish-your-npm-package-48mb
 
+## add a new library to project
+ng generate library @farfadev/<library name>
+
 ## Local instructions to publish
 to publish @farfadev/ngx-object-editor on npm:
 
 &ensp;&ensp;increment version on ./projects/farfadev/ngx-object-editor/package.json
 
+&ensp;&ensp;npm login (if not yet done)
+
 &ensp;&ensp;npm run lib-oe:publish
+
+to publish @farfadev/ngx-a-tooltip on npm:
+
+&ensp;&ensp;increment version on ./projects/farfadev/ngx-a-tooltip/package.json
+
+&ensp;&ensp;npm login (if not yet done)
+
+&ensp;&ensp;npm run lib-at:publish
