@@ -283,28 +283,19 @@
   [toggleable]="true"
 >
   <div #objectcontainer>
-    @if(hasListSel()||(innerSchemeOptions.length > 0)) {
+    @if(hasOptionalProperties()||(innerSchemeOptions.length > 0)) {
     <p-fieldset
       legend="add properties"
       [toggleable]="true"
       [dt]="{ legend: { font: { weight: 'normal' } } }"
     >
-      @if(hasListSel()) { @if(primeNg) {
+      @if(hasOptionalProperties()) {
       <p-select
-        [options]="getListSel()"
+        [options]="getOptionalPropertyKeyLabelList()"
         [(ngModel)]="optionalPropertySel"
         placeholder="Select an Optional Property"
       />
-      } @else {
-      <p>
-        <select #listsel [(ngModel)]="optionalPropertySel">
-          <option>add an optional property</option>
-          <option *ngFor="let o of getListSel()" value="{{ o }}">
-            {{ o }}
-          </option>
-        </select>
-      </p>
-      } } @if(innerSchemeOptions.length > 0) {
+      } @if(innerSchemeOptions.length > 0) {
       <p style="display: flex; gap: 10px">
         @if(isObject()) {
         <input
@@ -314,7 +305,7 @@
           [(ngModel)]="newProperty.property"
         />
         }
-        <select #typesel [(ngModel)]="newProperty.schemeKey">
+        <select [(ngModel)]="newProperty.schemeKey">
           <option>choose an option</option>
           <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
             {{ o }}
@@ -326,9 +317,9 @@
     </p-fieldset>
     } @if(getHtmlType(context)=='select') {
     <p-select
-      [options]="getSelectionList(context)"
-      [(ngModel)]="selectionKey"
-      (ngModelChange)="selectScheme(context, selectionKey?.key)"
+      [options]="getSchemeSelectionList(context)"
+      [(ngModel)]="selectionObj"
+      (ngModelChange)="selectScheme(context, selectionObj?.key)"
       optionLabel="label"
       placeholder="Select a Scheme"
       class="w-full md:w-56"
@@ -353,49 +344,47 @@
     {{ (getLabel(context) ?? "object-editor").toString() }}
   </legend>
   <div #objectcontainer [hidden]="!root_fieldset_expanded">
-    @if(hasListSel()||(innerSchemeOptions.length > 0)) {
-    <fieldset>
-      <legend><i class="pi pi-plus-circle"></i> add properties</legend>
-      @if(hasListSel()) {
-      <p>
-        <select #listsel [(ngModel)]="optionalPropertySel">
-          <option>add an optional property</option>
-          <option *ngFor="let o of getListSel()" value="{{ o }}">
-            {{ o }}
+      @if(hasOptionalProperties()) {
+        <i class="pi pi-plus-circle" (click)="optionalPropertySel=''"></i>
+        <fieldset style="display:inline">
+          <legend>add an optional property</legend>
+          <select [(ngModel)]="optionalPropertySel" (ngModelChange)="optionalPropertySet()" style="border:solid lightgrey 1px;min-width:10rem">
+              <option selected value=''>optional property</option>
+            <option *ngFor="let o of getOptionalPropertyKeyLabelList()" value="{{ o.key }}">
+            {{ o.label }}
           </option>
         </select>
-      </p>
+      </fieldset>
       } 
       @if(innerSchemeOptions.length > 0) {
-      <p style="display: flex; gap: 10px">
-        @if(isObject()) {
+        <fieldset style="display:inline">
+          <legend>add a new property</legend>
+         @if(isObject()) {
         <input
           [id]="ui_id + 0"
           type="text"
           pattern="[a-zA-Z]{1}[a-zA-Z0-9_]*"
+          placeholder="enter property name"
           [(ngModel)]="newProperty.property"
+          style="margin-right:1rem;border:solid 1px lightgrey"
         />
         }
-        <select #typesel [(ngModel)]="newProperty.schemeKey">
-          <option>choose an option</option>
+        <select [(ngModel)]="newProperty.schemeKey" style="margin-right:1rem;border:solid 1px lightgrey">
+          <option disabled value="">select type</option>
           <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
             {{ o }}
           </option>
         </select>
-        <i class="pi pi-plus-circle" (click)="addNewProperty()"></i>
-      </p>
-    }
-    </fieldset>
+        <i class="pi pi-plus-circle" [aTooltip]="{html: 'click to add property'}" (click)="addNewProperty()" [style]="!canAddProperty()?'display:none':''"></i>
+      </fieldset>
     } @if(getHtmlType(context)=='select') {
-    <p-select
-      [options]="getSelectionList(context)"
-      [(ngModel)]="selectionKey"
-      (ngModelChange)="selectScheme(context, selectionKey?.key)"
-      optionLabel="label"
-      placeholder="Select a Scheme"
-      class="w-full md:w-56"
-      (click)="onclick(context, $event)"
-    />
+    @if(debug) {<p>selected: {{schemeSelectionKey}}</p>}
+    <select [(ngModel)]="schemeSelectionKey" >
+      <option disabled selected>select type</option>
+      <option *ngFor="let o of getSchemeSelectionList(context)" value="{{o.key}}">
+        {{ o.label }}({{o.key}})
+      </option>
+    </select>
     @if(selectedSubContext) {
     <ng-container
       *ngTemplateOutlet="subItem; context: { lcontext: selectedSubContext }"

@@ -57,6 +57,7 @@ export class TestComponent implements OnInit {
         },
         p2: {
           uibase: 'number',
+          label: 'super p2',
           optional: true,
           default: 5
         },

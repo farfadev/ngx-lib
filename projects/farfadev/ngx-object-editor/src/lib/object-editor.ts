@@ -491,7 +491,8 @@ export namespace ObjectEditor {
       }
     }
     for (const sp of Object.keys(value ?? {})) {
-      if (sp !== ObjectEditor.schemeIdProperty && !properties.includes(sp)) {
+      if (sp !== ObjectEditor.schemeIdProperty && !properties.includes(sp)
+      &&(value[sp]==undefined ? !context.scheme?.properties?.[sp].optional:true)) {
         properties.push(sp);
       }
     };
@@ -622,12 +623,16 @@ export namespace ObjectEditor {
   export const deleteProperty = (context: Context) => {
     if ((context.scheme?.optional || context.scheme?.deletable) && context.key) {
       delete context?.pcontext?.value[context.key];
+      context.value = undefined;
     }
     if (context.scheme?.deletable && context.key) {
       delete context.pcontext?.scheme?.properties?.[context.key];
     }
     if (context.scheme && (!context.scheme.optional && !context.scheme.deletable) && context.key) {
       context.value = ObjectEditor.initValue(undefined, context.scheme);
+      if(context.pcontext?.value) {
+        context.pcontext.value[context.key] = context.value;
+      }
     }
     if (context.editUpdate) {
       context.editUpdate();
@@ -673,7 +678,10 @@ export namespace ObjectEditor {
         pcontext: context,
         key: p,
         editUpdate: () => {
-          context.value[p] = transform?.backward ? transform.backward(subContext.value) : subContext.value;
+          if(subContext.value)
+            context.value[p] = transform?.backward ? transform.backward(subContext.value) : subContext.value;
+          else if(subContext.scheme?.optional)
+            delete context.value[p];
           context.editUpdate?.();
         },
         contextChange: context.contextChange

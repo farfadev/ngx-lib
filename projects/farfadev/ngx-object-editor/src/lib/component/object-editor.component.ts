@@ -12,6 +12,10 @@ import {
 import { ObjectEditor } from '../object-editor';
 import { ObjectEditorModule } from '../object-editor.module';
 
+type KeyLabel = {
+  key: string | number;
+  label: string | number;
+}
 @Component({
   standalone: false,
   selector: 'object-editor',
@@ -24,11 +28,9 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   private objectContainer!: ElementRef<HTMLElement>;
 
   _context?: ObjectEditor.Context;
-
   get context(): ObjectEditor.Context | undefined {
     return this._context;
   }
-
   @Input()
   set context(value: ObjectEditor.Context) {
     this._context = value;
@@ -36,39 +38,54 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   @Input()
-  primeNg: boolean = false;
+  primeNg: boolean = false; // if true, will use the primeng components
 
   ui_id;
 
+  // binding to toggle the root fieldset
   root_fieldset_expanded = true;
 
-  private _sel?: string;
+  // bindings to select the scheme on 'select' schemes
+  _schemeSelectionKey?:  string
+  set schemeSelectionKey(v: string | undefined) {
+    this._schemeSelectionKey = v;
+    if(this.context) this.selectScheme(this.context, v);
+  };
+  get schemeSelectionKey(): string | undefined {
+    return this._schemeSelectionKey ?? '';
+  }
+  selectionObj?: KeyLabel;
 
-  selectionKey?: { key: string, label: string };
+  // holds the selected scheme when a 'select' scheme has been selected
   selectedSubContext?: ObjectEditor.Context;
-/*  set selectionKey(o: { key: string, label: string }) {
-    if (this.editing) {
-      this._selectionKey = o;
-      ObjectEditor.selectScheme(this.editing, o.key);
-    }
-  }
 
-  get selectionKey(): { key: string, label: string } | undefined {
-    return this._selectionKey;
-  }
-*/
+  /*  set selectionKey(o: { key: string, label: string }) {
+      if (this.editing) {
+        this._selectionKey = o;
+        ObjectEditor.selectScheme(this.editing, o.key);
+      }
+    }
+  
+    get selectionKey(): { key: string, label: string } | undefined {
+      return this._selectionKey;
+    }
+  */
   properties: (string | number)[] = [];
   innerSchemeOptions: (string | number)[] = [];
   newProperty = {
     property: '',
     schemeKey: ''
   };
-
+  canAddProperty(): boolean {
+    return ((this.newProperty.property != '')
+      && (this.newProperty.schemeKey != '')
+      && this.context?.value[this.newProperty.property] == undefined);
+  }
   editing?: ObjectEditor.Context;
   propertyClickEvent = false;
   windowClickListener = (ev: MouseEvent) => {
     if (!this.propertyClickEvent && this.editing) {
-//      ObjectEditor.editUpdate(this.editing);
+      //      ObjectEditor.editUpdate(this.editing);
       this.editing = undefined;
     }
     this.propertyClickEvent = false;
@@ -78,47 +95,54 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     this.ui_id = window.crypto.randomUUID();
   }
 
-  hasListSel(): boolean {
-    return this.getListSel().length > 0;
+  hasOptionalProperties(): boolean {
+    return this.getOptionalPropertyKeyLabelList().length > 0;
   }
 
-  getListSel(): string[] {
+  getOptionalPropertyKeyLabelList(): KeyLabel[] {
     if (!this.context) return [];
-    return ObjectEditor.getOptionalPropertyList(this.context);
+    const keyLabelList: KeyLabel[] = [];
+    const keyList = ObjectEditor.getOptionalPropertyList(this.context);
+    for(const key of keyList) {
+      keyLabelList.push({key, label: this.context.scheme?.properties?.[key]?.label ?? key});
+    }
+    return keyLabelList;
   }
 
-  set optionalPropertySel(s: string | undefined) {
+  optionalPropertySel: string = '';
+  
+  optionalPropertySet() {
+    const s = this.optionalPropertySel;
     if (s && this.context?.scheme?.properties?.[s]) {
-      this._sel = s;
       this.newProperty.property = s;
       this.newProperty.schemeKey = this.context.scheme?.properties[s].uibase ?? "";
       this.addNewProperty();
+      this.newProperty.property = '';
+      this.newProperty.schemeKey = '';
     }
+    (async () => this.optionalPropertySel = '')();
   }
 
-  get optionalPropertySel() {
-    return this._sel;
-  }
-
-  subContextList: {[key: number | string]: ObjectEditor.Context | undefined} = {};
+  subContextList: { [key: number | string]: ObjectEditor.Context | undefined } = {};
 
   getSubContext(p: string | number): ObjectEditor.Context | undefined {
-    if(!this.subContextList[p] && this.context) {
-      this.subContextList[p] = ObjectEditor.getSubContext(this.context,p);
+    if (!this.subContextList[p] && this.context) {
+      this.subContextList[p] = ObjectEditor.getSubContext(this.context, p);
     }
     return this.subContextList[p];
   }
 
-  selectScheme(context: ObjectEditor.Context,schemeKey?: string) {
-    this.selectedSubContext = ObjectEditor.selectScheme(context,schemeKey);
+  selectScheme(context: ObjectEditor.Context, schemeKey?: string | number) {
+    this.selectedSubContext = ObjectEditor.selectScheme(context, schemeKey);
+    this.selectionObj = undefined;
   }
 
   getLabel(subContext: ObjectEditor.Context) {
     return ObjectEditor.getLabel(subContext);
   }
 
-  getSelectionList(context: ObjectEditor.Context) {
-    const result: { key: string, label: string }[] = [];
+  getSchemeSelectionList(context: ObjectEditor.Context) {
+    const result: KeyLabel[] = [];
     const selList = ObjectEditor.getSchemeSelectionList(context.scheme);
     const keys = Object.keys(selList);
     for (let key of keys) {
@@ -174,18 +198,18 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     if (this.editing != context) {
       this.edittoggle(context, event);
     }
-/*    else {
-      if (this.getHtmlType(context) == 'checkbox') {
-        if (typeof this.context.value[p] != 'boolean') this.context.value[p] = ObjectEditor.convert(
-          this.context.value[p],
-          this.context.scheme!.properties![p]);
-      }
-    } */
+    /*    else {
+          if (this.getHtmlType(context) == 'checkbox') {
+            if (typeof this.context.value[p] != 'boolean') this.context.value[p] = ObjectEditor.convert(
+              this.context.value[p],
+              this.context.scheme!.properties![p]);
+          }
+        } */
   }
   edittoggle(context: ObjectEditor.Context, event: MouseEvent) {
     if (this.editing === context) {
       this.editing = undefined;
-//      ObjectEditor.editUpdate(context);
+      //      ObjectEditor.editUpdate(context);
     } else {
       this.editing = context;
       this.propertyClickEvent = true;
@@ -193,13 +217,14 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   setProperties(): void {
-    if(!this.context) return;
+    if (!this.context) return;
     this.properties = ObjectEditor.getProperties(this.context);
     this.subContextList = {};
+    (async () => this.optionalPropertySel = '')();
   }
 
   addNewProperty() {
-    if(!this.context) return;
+    if (!this.context) return;
     this.editing = ObjectEditor.addNewProperty(this.context, this.newProperty);
     this.setProperties();
     this.newProperty = {
@@ -217,13 +242,16 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     window.addEventListener('click', this.windowClickListener);
   }
 
- initContext() {
-    if(!this.context) return;
+  initContext() {
+    if (!this.context) return;
     this.setProperties();
     this.innerSchemeOptions = ObjectEditor.getInnerSchemeSelectionKeys(this.context.scheme);
     //    if(!this.context.value) this.context.value = {};
     if (!this.context.scheme) this.context.scheme = { uibase: 'object' };
     ObjectEditor.initValue(this.context.value, this.context.scheme);
+    if(this.context?.scheme?.uibase == 'select' && typeof this.context?.key == 'string') {
+      this.selectScheme(this.context,this.context.key)
+    }
     this.context.contextChange = (context) => {
       //this.ref.detectChanges();
       //this.reloadComponent();
@@ -232,7 +260,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     };
     const editUpdate = this.context.editUpdate;
     this.context.editUpdate = () => {
-      if(editUpdate) editUpdate();
+      if (editUpdate) editUpdate();
     }
   }
 
