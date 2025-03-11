@@ -1,6 +1,6 @@
 {
   "name": "@farfadev/ngx-object-editor",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "An angular component to edit typecript/ javascript objects",
   "author": "farfadev",
   "repository": {
@@ -29,7 +29,7 @@
   "peerDependencies": {
     "@angular/common": "^19.1.0",
     "@angular/core": "^19.1.0",
-    "@farfadev/ngx-a-tooltip": "^0.0.1",
+    "@farfadev/ngx-a-tooltip": "^0.1.0",
     "lodash-es": "^4.17.21",
     "mathjs": "^14.2.1",
     "primeicons": "^7.0.0",

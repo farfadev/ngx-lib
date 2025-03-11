@@ -110,7 +110,15 @@ export class TestComponent implements OnInit {
             forward: (value: number[]) => ({ lat: value[0], lon: value[1] }),
             backward: (value: Coordinates) => [value.lat, value.lon]
           } 
-        } as ObjectEditor.Scheme<number[],Coordinates>
+        } as ObjectEditor.Scheme<number[],Coordinates>,
+        p7: {
+          uibase: 'radio',
+          enum: {
+            sel1: 'coucou',
+            sel2: 0,
+            sel3: {a: 1, b: 'zebu'}
+          }
+        }
       }
     }
   }

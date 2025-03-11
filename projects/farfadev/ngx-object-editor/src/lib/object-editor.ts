@@ -11,21 +11,40 @@ export namespace ObjectEditor {
     html: string;
     js: string;
   }
+  // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input
+  export type UIBase = 'text' | 'password' | 'color' | 'number' | 'boolean' | 'radio' | 'range' |
+  'date' | 'time' | 'datetime' | 'file' | 'tel' | 'email' | 'url' | 'image'
+  | 'object' | 'array' | 'select' | 'from';
+
   export const schemeIdProperty = '_$schemeRef';
+
   export type SchemeList<T = any, U = any> = { [key: number | string]: Scheme<T, U> };
+
+  export type UIEffects = {
+    toggleable?: boolean;
+    scroll?: {
+
+    };
+  }
+
   export type Scheme<T = any, U = any> = {
-    uibase: 'from' | 'text' | 'color' | 'number' | 'boolean' |
-    'date' | 'time' | 'datetime' | 'file' | 'email' | 'url' | 'image'
-    | 'object' | 'array' | 'select';
+
+    uibase: UIBase;
 
     // the user-friendly ui label to identify the property, by default the property name
     label?: string;
+    // for html style attribute
     style?: string | ((context: Context) => string)
+    // for html class (or primeng styleClass) attribute (need css injection :host::ngdeep)
+    // TODO doesn't work yet
     styleClass?: string | ((context: Context) => string)
+    // for primeng design token styling
     designToken?: object | ((context: Context) => object)
+    // rules for UI , such as scrolling, toggling
+    uiEffects?: UIEffects;
     // an html <article> that helps frontend user to understand/ set the value 
     description?: string | ((context: Context) => string);
-    // a call-back to set EditorOptions dynamically depending on a runtime context
+    // a call-back to set Scheme dynamically depending on a runtime context
     dynamic?: (context?: Context) => Scheme<T, U>;
     // refer to another property when the value depends on another property value 
     dependsOn?: { property: string; f: (value?: any) => T }
@@ -77,6 +96,8 @@ export namespace ObjectEditor {
     innerSchemeSelectionList?: SchemeList<T, U> | (() => SchemeList<T, U>);
     // for object or array, provide the schemes for the object/ array properties
     properties?: { [key: number | string]: Scheme }
+    // for value enumation, 
+    enum?: { [key: number | string]: any }
     // if restricted is true, cannot add new properties from frontend
     restricted?: boolean;
   }
@@ -96,6 +117,11 @@ export namespace ObjectEditor {
       html: 'select',
       js: 'object'
     },
+    'radio': {
+      type: 'radio',
+      html: 'radio',
+      js: 'object',
+    },
     from: {
       type: 'from',
       html: 'text',
@@ -105,6 +131,11 @@ export namespace ObjectEditor {
     text: {
       type: 'text',
       html: 'text',
+      js: 'string',
+    },
+    password: {
+      type: 'password',
+      html: 'password',
       js: 'string',
     },
     color: {
@@ -170,6 +201,7 @@ export namespace ObjectEditor {
     // called by the client application to change the context (value and scheme)
     // eg in case of an update from the server, to avoid page reload
     contextChange?: (context: Context) => void;
+    onClick?: () => void;
   }
 
   export const getBaseSchemes = (): string[] => {
@@ -313,12 +345,14 @@ export namespace ObjectEditor {
         if (value == undefined && scheme.default != undefined) {
           value = cloneDeep(scheme.default);
         }
-        else if (value == undefined) {
-          value = {};
+        else {
+          if (value == undefined) {
+            value = {};
+          }
           const keys = Object.keys(scheme?.properties ?? {});
-          for (const key in keys) {
+          for (const key of keys) {
             if (!scheme?.properties?.[key].optional && scheme.properties?.[key]) {
-              value![key] = value![key] ?? ObjectEditor.initValue(value, scheme.properties?.[key]);
+              value![key] = value![key] ?? ObjectEditor.initValue(value[key], scheme.properties?.[key]);
             }
           }
           if (scheme.transform?.backward) {
@@ -364,6 +398,18 @@ export namespace ObjectEditor {
           }
         }
         break;
+        case 'radio':
+          if(value == undefined && scheme.default != undefined) {
+            value = cloneDeep(scheme.default);
+          }
+          else if (value == undefined) {
+            const keys = Object.keys(scheme.enum??{});
+            value = keys.length > 0 ? scheme.enum?.[keys[0]] : undefined;
+            if (scheme.transform) {
+              value = scheme.transform.backward(value);
+            }
+          }
+          break;
       case 'color':
         if (value == undefined && scheme.default != undefined) {
           value = cloneDeep(scheme.default);
@@ -485,7 +531,8 @@ export namespace ObjectEditor {
     const value = context.scheme?.transform?.forward ?
       context.scheme?.transform?.forward(context.value) :
       context.value;
-    for (const sp of Object.keys(context.scheme?.properties ?? {})) {
+    const schemeKeys = Object.keys(context.scheme?.properties ?? {});
+    for (const sp of schemeKeys) {
       if (value?.[sp] && !context.scheme?.properties?.[sp].deletable) {
         properties.push(sp);
       }
@@ -500,7 +547,10 @@ export namespace ObjectEditor {
       const a_ct = context.scheme?.properties?.[a].ctime ?? 0;
       const b_ct = context.scheme?.properties?.[b].ctime ?? 0;
       if (a_ct == b_ct) {
-        return properties.indexOf(a) - properties.indexOf(b);
+        if((typeof a == 'string') && (typeof b == 'string'))
+          return schemeKeys.indexOf(a) - schemeKeys.indexOf(b);
+        else
+          return properties.indexOf(a) - properties.indexOf(b);
       }
       else {
         return a_ct - b_ct;

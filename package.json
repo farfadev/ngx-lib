@@ -14,7 +14,7 @@
     "lib:watch-at": "ng build @farfadev/ngx-a-tooltip --watch --configuration development",
     "lib:watch-oe": "wait-on dist/farfadev/ngx-a-tooltip/public-api.d.ts && ng build @farfadev/ngx-object-editor --watch --configuration development",
     "lib:test": "ng test @farfadev/ngx-object-editor",
-    "showcase:start-waiton": "wait-on dist/farfadev/ngx-object-editor/package.json && npm run showcase:start",
+    "showcase:start-waiton": "wait-on dist/farfadev/ngx-object-editor/package.json && wait 2000 && npm run showcase:start",
     "showcase:start": "ng serve showcase",
     "showcase:build": "ng build showcase",
     "showcase:watch": "ng build showcase --watch --configuration development",
@@ -34,6 +34,8 @@
     "@farfadev/ngx-a-tooltip": "^0.0.1",
     "@primeng/themes": "^19.0.7",
     "lodash-es": "^4.17.21",
+    "mathjs": "^14.3.1",
+    "primeicons": "^7.0.0",
     "primeng": "^19.0.7",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
@@ -44,6 +46,7 @@
     "@angular/cli": "^19.1.8",
     "@angular/compiler-cli": "^19.1.0",
     "@types/jest": "^29.5.14",
+    "@types/lodash-es": "^4.17.12",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jest-preset-angular": "^14.5.2",
@@ -51,6 +54,7 @@
     "npm-run-all": "^4.1.5",
     "rimraf": "^6.0.1",
     "typescript": "~5.7.2",
+    "wait": "^0.4.2",
     "wait-on": "^8.0.2"
   }
 }

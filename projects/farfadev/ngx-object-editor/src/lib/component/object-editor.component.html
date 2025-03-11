@@ -16,7 +16,6 @@
   </p-iftalabel>
 </ng-template>
 <ng-template #checkBox let-lcontext="lcontext">
-  <label> {{ getLabel(lcontext) }}</label>
   <input
     [id]="ui_id + lcontext.key + 'e'"
     type="checkbox"
@@ -49,6 +48,18 @@
     [style]="getStyle(lcontext)"
     (click)="onclick(lcontext, $event)"
   />
+</ng-template>
+<ng-template #radio let-lcontext="lcontext" let-radio="radio">
+  <fieldset>
+    <legend>Select Value</legend>
+    @for(p of getEnumList(lcontext);track p) {
+      <div>
+        <input type="radio" [id]="p" [name]="lcontext.key+'radio'" [value]="p"
+        [(ngModel)]="selectedEnumKey" (ngModelChange)="selectEnum(lcontext,p)"/>
+        <label [for]="p">{{p}}</label>
+      </div>
+    }
+  </fieldset>
 </ng-template>
 <ng-template #default let-lcontext="lcontext">
   <input
@@ -209,7 +220,13 @@
         <ng-container
           *ngTemplateOutlet="color; context: { lcontext: subContext }"
         ></ng-container>
-        } @default {
+        } @case('radio') {
+          <label> {{ getLabel(subContext) }} </label>
+          <oe-radio [context]="subContext"></oe-radio>
+<!--          <ng-container
+            *ngTemplateOutlet="radio; context: { lcontext: subContext }"
+          ></ng-container>
+-->          } @default {
         <!--<input [id]="ui_id + p + 'e'" [type]="getHtmlType(p)" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
         <label> {{ getLabel(subContext) }} </label>
         <ng-container
@@ -250,7 +267,13 @@
         <ng-container
           *ngTemplateOutlet="checkBox; context: { lcontext: subContext }"
         ></ng-container>
-        } @default() {
+      } @case('radio') {
+        <label> {{ getLabel(subContext) }} </label>
+        <oe-radio [context]="subContext"></oe-radio>
+<!--        <ng-container
+          *ngTemplateOutlet="radio; context: { lcontext: subContext }"
+        ></ng-container>
+-->      } @default() {
         <label> {{ getLabel(subContext) }} </label>
         <input
           [id]="ui_id + subContext.key + 'ne'"
@@ -345,7 +368,6 @@
   </legend>
   <div #objectcontainer [hidden]="!root_fieldset_expanded">
       @if(hasOptionalProperties()) {
-        <i class="pi pi-plus-circle" (click)="optionalPropertySel=''"></i>
         <fieldset style="display:inline">
           <legend>add an optional property</legend>
           <select [(ngModel)]="optionalPropertySel" (ngModelChange)="optionalPropertySet()" style="border:solid lightgrey 1px;min-width:10rem">
@@ -379,8 +401,8 @@
       </fieldset>
     } @if(getHtmlType(context)=='select') {
     @if(debug) {<p>selected: {{schemeSelectionKey}}</p>}
-    <select [(ngModel)]="schemeSelectionKey" >
-      <option disabled selected>select type</option>
+    <select [(ngModel)]="schemeSelectionKey" (ngModelChange)="selectScheme(context,schemeSelectionKey)" >
+      <option disabled value="">select type</option>
       <option *ngFor="let o of getSchemeSelectionList(context)" value="{{o.key}}">
         {{ o.label }}({{o.key}})
       </option>

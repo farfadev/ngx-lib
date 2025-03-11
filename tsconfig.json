@@ -4,7 +4,6 @@
   "compileOnSave": false,
   "compilerOptions": {
     "outDir": "./dist/out-tsc",
-    "sourceMap": true,
     "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
@@ -17,9 +16,6 @@
     "paths": {
       "@farfadev/ngx-a-tooltip": [
         "./dist/farfadev/ngx-a-tooltip"
-      ],
-      "@farfadev/ngx-object-editor/*": [
-        "./dist/farfadev/ngx-object-editor/*"
       ],
       "@farfadev/ngx-object-editor": [
         "./dist/farfadev/ngx-object-editor"

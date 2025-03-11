@@ -1,0 +1,12 @@
+@if(context) {
+  <fieldset>
+    <legend>Select Value</legend>
+    @for(p of getEnumList(context);track p) {
+      <div>
+        <input type="radio" [id]="p" [name]="context.key+'radio'" [value]="p"
+          [(ngModel)]="selectedEnumKey" (ngModelChange)="selectEnum(context,p)"/>
+        <label [for]="p">{{p}}</label>
+      </div>
+    }
+  </fieldset>
+}

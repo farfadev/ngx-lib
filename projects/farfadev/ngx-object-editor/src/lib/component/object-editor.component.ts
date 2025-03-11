@@ -46,14 +46,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   root_fieldset_expanded = true;
 
   // bindings to select the scheme on 'select' schemes
-  _schemeSelectionKey?:  string
-  set schemeSelectionKey(v: string | undefined) {
-    this._schemeSelectionKey = v;
-    if(this.context) this.selectScheme(this.context, v);
-  };
-  get schemeSelectionKey(): string | undefined {
-    return this._schemeSelectionKey ?? '';
-  }
+  schemeSelectionKey: string | number = '';
   selectionObj?: KeyLabel;
 
   // holds the selected scheme when a 'select' scheme has been selected
@@ -76,6 +69,9 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     property: '',
     schemeKey: ''
   };
+
+  selectedEnumKey?: string;
+
   canAddProperty(): boolean {
     return ((this.newProperty.property != '')
       && (this.newProperty.schemeKey != '')
@@ -103,14 +99,14 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     if (!this.context) return [];
     const keyLabelList: KeyLabel[] = [];
     const keyList = ObjectEditor.getOptionalPropertyList(this.context);
-    for(const key of keyList) {
-      keyLabelList.push({key, label: this.context.scheme?.properties?.[key]?.label ?? key});
+    for (const key of keyList) {
+      keyLabelList.push({ key, label: this.context.scheme?.properties?.[key]?.label ?? key });
     }
     return keyLabelList;
   }
 
   optionalPropertySel: string = '';
-  
+
   optionalPropertySet() {
     const s = this.optionalPropertySel;
     if (s && this.context?.scheme?.properties?.[s]) {
@@ -120,7 +116,12 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
       this.newProperty.property = '';
       this.newProperty.schemeKey = '';
     }
-    (async () => this.optionalPropertySel = '')();
+/*  //TODO async replaced by setTimeout to workaround source map problem  
+    (async () => {
+      this.optionalPropertySel = '';
+    })();
+*/
+    setTimeout(() => this.optionalPropertySel = '', 10);
   }
 
   subContextList: { [key: number | string]: ObjectEditor.Context | undefined } = {};
@@ -128,13 +129,38 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   getSubContext(p: string | number): ObjectEditor.Context | undefined {
     if (!this.subContextList[p] && this.context) {
       this.subContextList[p] = ObjectEditor.getSubContext(this.context, p);
+      if (this.subContextList[p] != undefined) {
+        this.subContextList[p]!.onClick = () => {
+          this.editing = this.subContextList[p];
+        }
+      }
     }
     return this.subContextList[p];
   }
 
   selectScheme(context: ObjectEditor.Context, schemeKey?: string | number) {
     this.selectedSubContext = ObjectEditor.selectScheme(context, schemeKey);
-    this.selectionObj = undefined;
+  //TODO async replaced by setTimeout to workaround source map problem  
+/*    (async () => {
+      this.schemeSelectionKey = '';
+    })();
+*/
+    setTimeout(()=> this.schemeSelectionKey = '',10);
+  }
+
+  selectEnum(context: ObjectEditor.Context, enumKey?: string|number) {
+
+  }
+
+  getSelectedEnumKey(context: ObjectEditor.Context|undefined = this.context): string | undefined {
+    if((!context)||(context.value == undefined)) return undefined;
+    const _enum = context.scheme?.enum??{};
+    for(const key of Object.keys(_enum)) {
+      if(JSON.stringify(context.value) == JSON.stringify(_enum[key])) {
+        return key;
+      }
+    }
+    return undefined;
   }
 
   getLabel(subContext: ObjectEditor.Context) {
@@ -149,6 +175,16 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
       result.push({ key, label: selList[key].label ?? key });
     }
     return result;
+  }
+
+  getEnumList(context: ObjectEditor.Context): string[] {
+    if(context.scheme?.uibase != 'radio') {
+      return [];
+    }
+    if(context?.scheme?.enum) {
+      return Object.keys(context?.scheme?.enum);
+    }
+    return [];
   }
 
   isArray() {
@@ -220,7 +256,6 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     if (!this.context) return;
     this.properties = ObjectEditor.getProperties(this.context);
     this.subContextList = {};
-    (async () => this.optionalPropertySel = '')();
   }
 
   addNewProperty() {
@@ -249,8 +284,8 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     //    if(!this.context.value) this.context.value = {};
     if (!this.context.scheme) this.context.scheme = { uibase: 'object' };
     ObjectEditor.initValue(this.context.value, this.context.scheme);
-    if(this.context?.scheme?.uibase == 'select' && typeof this.context?.key == 'string') {
-      this.selectScheme(this.context,this.context.key)
+    if (this.context?.scheme?.uibase == 'select' && typeof this.context?.key == 'string') {
+      this.selectScheme(this.context, this.context.key)
     }
     this.context.contextChange = (context) => {
       //this.ref.detectChanges();
