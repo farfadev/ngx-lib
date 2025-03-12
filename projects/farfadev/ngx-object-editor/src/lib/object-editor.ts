@@ -13,15 +13,15 @@ export namespace ObjectEditor {
   }
   // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input
   export type UIBase = 'text' | 'password' | 'color' | 'number' | 'boolean' | 'radio' | 'range' |
-  'date' | 'time' | 'datetime' | 'file' | 'tel' | 'email' | 'url' | 'image'
-  | 'object' | 'array' | 'select' | 'from';
+    'date' | 'time' | 'datetime' | 'file' | 'tel' | 'email' | 'url' | 'image'
+    | 'object' | 'array' | 'select' | 'from';
 
   export const schemeIdProperty = '_$schemeRef';
 
   export type SchemeList<T = any, U = any> = { [key: number | string]: Scheme<T, U> };
 
   export type UIEffects = {
-    toggleable?: boolean;
+    toggle?: boolean;
     scroll?: {
 
     };
@@ -97,6 +97,7 @@ export namespace ObjectEditor {
     // for object or array, provide the schemes for the object/ array properties
     properties?: { [key: number | string]: Scheme }
     // for value enumation, 
+    defaultEnumKey?: number | string;
     enum?: { [key: number | string]: any }
     // if restricted is true, cannot add new properties from frontend
     restricted?: boolean;
@@ -284,7 +285,7 @@ export namespace ObjectEditor {
     if (!schemeKey) {
       schemeKey = scheme?.defaultSchemeSelectionKey;
     }
-    if(!schemeKey && !scheme?.optional) {
+    if (!schemeKey && !scheme?.optional) {
       schemeKey = ObjectEditor.getSchemeSelectionKeys(scheme)?.[0];
     }
     if (!schemeKey) {
@@ -316,11 +317,11 @@ export namespace ObjectEditor {
   }
 
   export const selectScheme = (context: Context, schemeKey?: string | number): ObjectEditor.Context | undefined => {
-    if(context.scheme) setSelectedScheme(context.scheme,schemeKey);
+    if (context.scheme) setSelectedScheme(context.scheme, schemeKey);
     if (!schemeKey) {
       schemeKey = context.scheme?.defaultSchemeSelectionKey;
     }
-    if(!schemeKey && !context.scheme?.optional) {
+    if (!schemeKey && !context.scheme?.optional) {
       schemeKey = ObjectEditor.getSchemeSelectionKeys(context.scheme)?.[0];
     }
     if (!context.scheme?.schemeSelected) {
@@ -331,12 +332,54 @@ export namespace ObjectEditor {
     if (context.scheme!.schemeSelected) {
       context.value = context.pcontext!.value![context.key!] =
         initValue(undefined, context.scheme!.schemeSelected);
-        return ObjectEditor.getSubContext(context);
+      return ObjectEditor.getSubContext(context);
     }
     else {
       context.value = context.pcontext!.value![context.key!] = undefined;
       return undefined;
     }
+  }
+
+  export const getSelectedEnumKey = (context: ObjectEditor.Context): string | undefined => {
+    if ((!context) || (context.value == undefined)) return undefined;
+    const _enum = context.scheme?.enum ?? {};
+    for (const key of Object.keys(_enum)) {
+      if (JSON.stringify(context.value) == JSON.stringify(_enum[key])) {
+        return key;
+      }
+    }
+    return undefined;
+  }
+
+  export const getEnumKeys = (scheme: Scheme | undefined): string[] => {
+    if (scheme?.uibase != 'radio') {
+      return [];
+    }
+    if (scheme?.enum) {
+      return Object.keys(scheme?.enum);
+    }
+    return [];
+  }
+
+  export const selectEnum = (context: Context, enumKey?: string | number): void => {
+
+    if (!enumKey && context.value) {
+      enumKey = getSelectedEnumKey(context);
+    }
+
+    if (!enumKey) {
+      enumKey = context.scheme?.defaultEnumKey;
+    }
+    if (!enumKey && context.scheme && !context.scheme?.optional) {
+      enumKey = ObjectEditor.getEnumKeys(context.scheme)?.[0];
+    }
+    if (!enumKey || (context.scheme?.enum?.[enumKey]==undefined)) {
+      context.value = undefined;
+    }
+    else {
+      context.value = cloneDeep(context.scheme.enum?.[enumKey]);
+    }
+    context.editUpdate?.();
   }
 
   export const initValue = (value: any, scheme: Scheme): any => {
@@ -378,7 +421,7 @@ export namespace ObjectEditor {
         }
         break;
       case 'select': {
-        setSelectedScheme(scheme,scheme.schemeSelectionKey);
+        setSelectedScheme(scheme, scheme.schemeSelectionKey);
         if (scheme.schemeSelectionKey && scheme.schemeSelected) {
           if (!value) value = initValue(undefined, scheme.schemeSelected);
         }
@@ -398,18 +441,16 @@ export namespace ObjectEditor {
           }
         }
         break;
-        case 'radio':
-          if(value == undefined && scheme.default != undefined) {
-            value = cloneDeep(scheme.default);
+      case 'radio':
+        if (value == undefined) {
+          const keys = Object.keys(scheme.enum ?? {});
+          const key = scheme.defaultEnumKey ?? keys.length > 0 ? keys[0] : undefined;
+          value = key ? cloneDeep(scheme.enum?.[key]) : undefined;
+          if (scheme.transform) {
+            value = scheme.transform.backward(value);
           }
-          else if (value == undefined) {
-            const keys = Object.keys(scheme.enum??{});
-            value = keys.length > 0 ? scheme.enum?.[keys[0]] : undefined;
-            if (scheme.transform) {
-              value = scheme.transform.backward(value);
-            }
-          }
-          break;
+        }
+        break;
       case 'color':
         if (value == undefined && scheme.default != undefined) {
           value = cloneDeep(scheme.default);
@@ -539,7 +580,7 @@ export namespace ObjectEditor {
     }
     for (const sp of Object.keys(value ?? {})) {
       if (sp !== ObjectEditor.schemeIdProperty && !properties.includes(sp)
-      &&(value[sp]==undefined ? !context.scheme?.properties?.[sp].optional:true)) {
+        && (value[sp] == undefined ? !context.scheme?.properties?.[sp].optional : true)) {
         properties.push(sp);
       }
     };
@@ -547,7 +588,7 @@ export namespace ObjectEditor {
       const a_ct = context.scheme?.properties?.[a].ctime ?? 0;
       const b_ct = context.scheme?.properties?.[b].ctime ?? 0;
       if (a_ct == b_ct) {
-        if((typeof a == 'string') && (typeof b == 'string'))
+        if ((typeof a == 'string') && (typeof b == 'string'))
           return schemeKeys.indexOf(a) - schemeKeys.indexOf(b);
         else
           return properties.indexOf(a) - properties.indexOf(b);
@@ -680,7 +721,7 @@ export namespace ObjectEditor {
     }
     if (context.scheme && (!context.scheme.optional && !context.scheme.deletable) && context.key) {
       context.value = ObjectEditor.initValue(undefined, context.scheme);
-      if(context.pcontext?.value) {
+      if (context.pcontext?.value) {
         context.pcontext.value[context.key] = context.value;
       }
     }
@@ -728,9 +769,9 @@ export namespace ObjectEditor {
         pcontext: context,
         key: p,
         editUpdate: () => {
-          if(subContext.value)
+          if (subContext.value)
             context.value[p] = transform?.backward ? transform.backward(subContext.value) : subContext.value;
-          else if(subContext.scheme?.optional)
+          else if (subContext.scheme?.optional)
             delete context.value[p];
           context.editUpdate?.();
         },

@@ -54,18 +54,11 @@ export class OERadioComponent implements OnInit, OnDestroy {
   }
 
   selectEnum(context: ObjectEditor.Context, enumKey?: string|number) {
-
+    ObjectEditor.selectEnum(context,enumKey);
   }
 
   getSelectedEnumKey(context: ObjectEditor.Context|undefined = this.context): string | undefined {
-    if((!context)||(context.value == undefined)) return undefined;
-    const _enum = context.scheme?.enum??{};
-    for(const key of Object.keys(_enum)) {
-      if(JSON.stringify(context.value) == JSON.stringify(_enum[key])) {
-        return key;
-      }
-    }
-    return undefined;
+    return context ? ObjectEditor.getSelectedEnumKey(context) : undefined;
   }
 
   getLabel(subContext: ObjectEditor.Context) {
@@ -73,17 +66,11 @@ export class OERadioComponent implements OnInit, OnDestroy {
   }
 
   getEnumList(context: ObjectEditor.Context): string[] {
-    if(context.scheme?.uibase != 'radio') {
-      return [];
-    }
-    if(context?.scheme?.enum) {
-      return Object.keys(context?.scheme?.enum);
-    }
-    return [];
+    return ObjectEditor.getEnumKeys(context.scheme);
   }
 
-  onclick(context: ObjectEditor.Context, event: MouseEvent) {
-    context.onClick?.();
+  onclick() {
+    this._context?.onClick?.();
   }
 
   initContext() {

@@ -49,18 +49,6 @@
     (click)="onclick(lcontext, $event)"
   />
 </ng-template>
-<ng-template #radio let-lcontext="lcontext" let-radio="radio">
-  <fieldset>
-    <legend>Select Value</legend>
-    @for(p of getEnumList(lcontext);track p) {
-      <div>
-        <input type="radio" [id]="p" [name]="lcontext.key+'radio'" [value]="p"
-        [(ngModel)]="selectedEnumKey" (ngModelChange)="selectEnum(lcontext,p)"/>
-        <label [for]="p">{{p}}</label>
-      </div>
-    }
-  </fieldset>
-</ng-template>
 <ng-template #default let-lcontext="lcontext">
   <input
     [id]="ui_id + lcontext.key + 'e'"
@@ -81,7 +69,7 @@
       <i
         class="pi pi-pencil"
         style="color: green"
-        (click)="edittoggle(subContext, $event)"
+        (click)="edittoggle(subContext)"
       ></i>
       <i class="pi pi-trash" (click)="delete(subContext)"></i>
       @switch(getHtmlType(subContext)) { @case('array') {
@@ -127,7 +115,7 @@
       <i
         *ngIf="!isReadOnly(subContext)"
         class="pi pi-pencil"
-        (click)="edittoggle(subContext, $event)"
+        (click)="edittoggle(subContext)"
       ></i>
       <i
         class="pi pi-trash"
@@ -193,7 +181,7 @@
         <i
           class="pi pi-pencil"
           style="color: green"
-          (click)="edittoggle(subContext, $event)"
+          (click)="edittoggle(subContext)"
         ></i>
         <i class="pi pi-trash" (click)="delete(subContext)"></i>
         @switch(getHtmlType(subContext)) { @case('array') {
@@ -237,7 +225,7 @@
         <i
           *ngIf="!isReadOnly(subContext)"
           class="pi pi-pencil"
-          (click)="edittoggle(subContext, $event)"
+          (click)="edittoggle(subContext)"
         ></i>
         <i
           class="pi pi-trash"
@@ -285,15 +273,15 @@
           (click)="onclick(subContext, $event)"
         />
         } } 
+        }
         @if(getDescriptionArticle(subContext)) {
-          <i [id]="subContext.key" [aTooltip]="{mode: 'hover',html: getDescriptionArticle(subContext)??''}" class="pi pi-info-circle" style="background:inherit;border:none"></i>
+          <i [id]="subContext.key" [aTooltip]="{mode: 'click',html: getDescriptionArticle(subContext)??''}" class="pi pi-info-circle" style="background:inherit;border:none"></i>
         } @if(debug) {
         <span [style]="getStyle(subContext)"
-          >{{typeof subContext.value}} {{ subContext.value }}
-          {{ editing == subContext }}
-          {{subContext.key?subContext.pcontext?.value?.[subContext.key]:''}}</span
+          >type={{typeof subContext.value}} value={{ getTextValue(subContext.value) }}
+          editing={{ editing == subContext }}
+          pValue={{getTextValue(subContext.key?subContext.pcontext?.value?.[subContext.key]:'')}}</span
         >
-        }
       }
     </p>
   </div>
@@ -363,7 +351,9 @@
 } @else {
 <fieldset>
   <legend>
-    <i [class]="root_fieldset_expanded ? 'pi pi-minus-circle' : 'pi pi-plus-circle'" (click)="root_fieldset_expanded = !root_fieldset_expanded"></i>
+    @if(context.scheme?.uiEffects?.toggle) {
+      <i [class]="root_fieldset_expanded ? 'pi pi-minus-circle' : 'pi pi-plus-circle'" (click)="root_fieldset_expanded = !root_fieldset_expanded"></i>
+    }
     {{ (getLabel(context) ?? "object-editor").toString() }}
   </legend>
   <div #objectcontainer [hidden]="!root_fieldset_expanded">
@@ -400,7 +390,6 @@
         <i class="pi pi-plus-circle" [aTooltip]="{html: 'click to add property'}" (click)="addNewProperty()" [style]="!canAddProperty()?'display:none':''"></i>
       </fieldset>
     } @if(getHtmlType(context)=='select') {
-    @if(debug) {<p>selected: {{schemeSelectionKey}}</p>}
     <select [(ngModel)]="schemeSelectionKey" (ngModelChange)="selectScheme(context,schemeSelectionKey)" >
       <option disabled value="">select type</option>
       <option *ngFor="let o of getSchemeSelectionList(context)" value="{{o.key}}">

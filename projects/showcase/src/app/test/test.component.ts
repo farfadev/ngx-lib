@@ -26,6 +26,9 @@ export class TestComponent implements OnInit {
     scheme: {
       uibase: 'object',
       label: 'test-object-editor',
+      uiEffects: {
+        toggle: true,
+      },
       restricted: false,
       innerSchemeSelectionList: {
         'test-object': {

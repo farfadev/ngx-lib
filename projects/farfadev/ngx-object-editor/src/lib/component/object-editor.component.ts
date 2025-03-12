@@ -131,7 +131,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
       this.subContextList[p] = ObjectEditor.getSubContext(this.context, p);
       if (this.subContextList[p] != undefined) {
         this.subContextList[p]!.onClick = () => {
-          this.editing = this.subContextList[p];
+          this.onclick(this.subContextList[p]!);
         }
       }
     }
@@ -148,21 +148,6 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     setTimeout(()=> this.schemeSelectionKey = '',10);
   }
 
-  selectEnum(context: ObjectEditor.Context, enumKey?: string|number) {
-
-  }
-
-  getSelectedEnumKey(context: ObjectEditor.Context|undefined = this.context): string | undefined {
-    if((!context)||(context.value == undefined)) return undefined;
-    const _enum = context.scheme?.enum??{};
-    for(const key of Object.keys(_enum)) {
-      if(JSON.stringify(context.value) == JSON.stringify(_enum[key])) {
-        return key;
-      }
-    }
-    return undefined;
-  }
-
   getLabel(subContext: ObjectEditor.Context) {
     return ObjectEditor.getLabel(subContext);
   }
@@ -175,16 +160,6 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
       result.push({ key, label: selList[key].label ?? key });
     }
     return result;
-  }
-
-  getEnumList(context: ObjectEditor.Context): string[] {
-    if(context.scheme?.uibase != 'radio') {
-      return [];
-    }
-    if(context?.scheme?.enum) {
-      return Object.keys(context?.scheme?.enum);
-    }
-    return [];
   }
 
   isArray() {
@@ -229,10 +204,10 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     return ObjectEditor.getDesignToken(context);
   }
 
-  onclick(context: ObjectEditor.Context, event: MouseEvent) {
+  onclick(context: ObjectEditor.Context, event?: MouseEvent) {
     this.propertyClickEvent = true;
     if (this.editing != context) {
-      this.edittoggle(context, event);
+      this.edittoggle(context);
     }
     /*    else {
           if (this.getHtmlType(context) == 'checkbox') {
@@ -242,7 +217,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
           }
         } */
   }
-  edittoggle(context: ObjectEditor.Context, event: MouseEvent) {
+  edittoggle(context: ObjectEditor.Context) {
     if (this.editing === context) {
       this.editing = undefined;
       //      ObjectEditor.editUpdate(context);
@@ -271,6 +246,10 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   delete(context: ObjectEditor.Context) {
     ObjectEditor.deleteProperty(context);
     this.setProperties();
+  }
+
+  getTextValue(o: any) {
+    return JSON.stringify(o);
   }
 
   ngOnInit() {
