@@ -26,18 +26,6 @@
     (click)="onclick(lcontext, $event)"
   />
 </ng-template>
-<ng-template #number let-lcontext="lcontext">
-  <input
-    [id]="ui_id + lcontext.key + 'e'"
-    type="number"
-    [(ngModel)]="lcontext.value"
-    (ngModelChange)="lcontext.editUpdate()"
-    [class]="getStyleClass(lcontext)"
-    [style]="getStyle(lcontext)"
-    (click)="onclick(lcontext, $event)"
-  />
-  <label [for]="ui_id + lcontext.key + 'e'">{{ getLabel(lcontext) }}</label>
-</ng-template>
 <ng-template #color let-lcontext="lcontext">
   <input
     [id]="ui_id + lcontext.key + 'e'"
@@ -52,7 +40,7 @@
 <ng-template #default let-lcontext="lcontext">
   <input
     [id]="ui_id + lcontext.key + 'e'"
-    [type]="getHtmlType(lcontext.key)"
+    [type]="getHtmlType(lcontext)"
     [(ngModel)]="lcontext.value"
     (ngModelChange)="lcontext.editUpdate()"
     [class]="getStyleClass(lcontext)"
@@ -87,9 +75,8 @@
       } @case('number') {
       <!--<input [id]="ui_id + p + 'e'" type="number" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
       <label> {{ getLabel(subContext) }} </label>
-      <ng-container
-        *ngTemplateOutlet="number; context: { lcontext: subContext }"
-      ></ng-container>
+      <oe-number [context]="subContext">
+      </oe-number>
       } @case('color') {
       <!--<input [id]="ui_id + p + 'e'" type="color" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
       <label> {{ getLabel(subContext) }} </label>
@@ -199,10 +186,9 @@
         } @case('number') {
         <!--<input [id]="ui_id + p + 'e'" type="number" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
         <label> {{ getLabel(subContext) }} </label>
-        <ng-container
-          *ngTemplateOutlet="number; context: { lcontext: subContext }"
-        ></ng-container>
-        } @case('color') {
+        <oe-number [context]="subContext">
+        </oe-number>
+          } @case('color') {
         <!--<input [id]="ui_id + p + 'e'" type="color" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
         <label> {{ getLabel(subContext) }} </label>
         <ng-container
@@ -238,6 +224,11 @@
         <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
         } @case('select') {
         <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
+      } @case('number') {
+        <!--<input [id]="ui_id + p + 'e'" type="number" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
+        <label> {{ getLabel(subContext) }} </label>
+        <oe-number [context]="subContext">
+        </oe-number>
         } @case('color') {
         <label> {{ getLabel(subContext) }} </label>
         <span
@@ -277,7 +268,7 @@
         @if(getDescriptionArticle(subContext)) {
           <i [id]="subContext.key" [aTooltip]="{mode: 'click',html: getDescriptionArticle(subContext)??''}" class="pi pi-info-circle" style="background:inherit;border:none"></i>
         } @if(debug) {
-        <span [style]="getStyle(subContext)"
+        <span [style]="getStyle(subContext,'font-size: 0.5rem')"
           >type={{typeof subContext.value}} value={{ getTextValue(subContext.value) }}
           editing={{ editing == subContext }}
           pValue={{getTextValue(subContext.key?subContext.pcontext?.value?.[subContext.key]:'')}}</span
@@ -315,7 +306,6 @@
           pattern="[a-zA-Z]{1}[a-zA-Z0-9_]*"
           [(ngModel)]="newProperty.property"
         />
-        }
         <select [(ngModel)]="newProperty.schemeKey">
           <option>choose an option</option>
           <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
@@ -323,6 +313,16 @@
           </option>
         </select>
         <i class="pi pi-plus-circle" (click)="addNewProperty()"></i>
+      }
+      @if(isArray()) {
+        <select [(ngModel)]="newProperty.schemeKey">
+          <option>choose an option</option>
+          <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
+            {{ o }}
+          </option>
+        </select>
+        <i class="pi pi-plus-circle" (click)="addNewProperty()"></i>
+      }
       </p>
       }
     </p-fieldset>
@@ -370,7 +370,7 @@
       } 
       @if(innerSchemeOptions.length > 0) {
         <fieldset style="display:inline">
-          <legend>add a new property</legend>
+          <legend>{{isObject() ? "add a new property" : "add a new item"}}</legend>
          @if(isObject()) {
         <input
           [id]="ui_id + 0"
@@ -380,14 +380,23 @@
           [(ngModel)]="newProperty.property"
           style="margin-right:1rem;border:solid 1px lightgrey"
         />
-        }
         <select [(ngModel)]="newProperty.schemeKey" style="margin-right:1rem;border:solid 1px lightgrey">
           <option disabled value="">select type</option>
           <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
             {{ o }}
           </option>
         </select>
-        <i class="pi pi-plus-circle" [aTooltip]="{html: 'click to add property'}" (click)="addNewProperty()" [style]="!canAddProperty()?'display:none':''"></i>
+        <i class="pi pi-plus-circle" [aTooltip]="{html: 'click to add property'}" (click)="addNewProperty()" [style]="!canAddObjectProperty()?'display:none':''"></i>
+      }
+      @if(isArray()) {
+        <select [(ngModel)]="newProperty.schemeKey" style="margin-right:1rem;border:solid 1px lightgrey">
+          <option disabled value="">select type</option>
+          <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
+            {{ o }}
+          </option>
+        </select>
+        <i class="pi pi-plus-circle" [aTooltip]="{html: 'click to add item'}" (click)="addNewProperty()" [style]="!canAddArrayElement()?'display:none':''"></i>
+      }
       </fieldset>
     } @if(getHtmlType(context)=='select') {
     <select [(ngModel)]="schemeSelectionKey" (ngModelChange)="selectScheme(context,schemeSelectionKey)" >

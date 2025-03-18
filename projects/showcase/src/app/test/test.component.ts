@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { ObjectEditor } from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
+import { round } from 'lodash-es';
+import { MathNumericType, MathScalarType, MathType, abs, divide, exp, fix, log10, multiply, pow } from 'mathjs';
 
 type Coordinates = {
   lat: number;
@@ -28,8 +30,11 @@ export class TestComponent implements OnInit {
       label: 'test-object-editor',
       uiEffects: {
         toggle: true,
+        scroll: {
+
+        }
       },
-      restricted: false,
+      unrestricted: true,
       innerSchemeSelectionList: {
         'test-object': {
           uibase: 'object',
@@ -37,7 +42,6 @@ export class TestComponent implements OnInit {
         'test-object-2': {
           uibase: 'object',
           label: 'rantanplan',
-          restricted: true,
           innerSchemeSelectionList: () => {
             return {
               'sub-test-boolean': {
@@ -51,34 +55,41 @@ export class TestComponent implements OnInit {
         }
       },
       properties: {
-        p1: {
+        '1-text': {
           uibase: 'text',
           default: 'test',
           style: (context: ObjectEditor.Context) => context.value == "red" ?  "color: red;font-weight: bold":"color: green;font-weight: bold",
           description: (context: ObjectEditor.Context) => "<p><b>property p1</b></br></p<p>this is to test a text property</br></p>" +
             "<p>value=" + (typeof context.value) + " " + context.value + "</p>"
         },
-        p2: {
+        '2-number': {
           uibase: 'number',
-          label: 'super p2',
-          optional: true,
-          default: 5
+          default: 5,
+          min: -1,
+          max: 17,
+          significants: 4
         },
-        p3: {
+        '2-opt number': {
+          uibase: 'number',
+          optional: true,
+          default: 5,
+          min: -1,
+          max: 17,
+          significants: 4
+        },
+        '3-color': {
           uibase: 'color'
         },
-        p4: {
+        '4-boolean': {
           uibase: 'boolean',
-          label: 'test-ui-label p4',
+          label: '4-boolean test-ui-label',
           styleClass: ".mycheckbox",
           designToken: {background: 'lightgrey',icon: {color: 'red',checked: {color: 'red',hover:{color: 'red'}}},checked: {hover: {background: 'yellow'},background: 'yellow',color: 'blue',border: {color: 'yellow'}},width: '150px'},
           style: "color: red",
           default: true
         },
-        p5: {
+        '5-select': {
           uibase: 'select',
-          optional: true,
-          restricted: true,
           schemeSelectionList: {
             color: {
               uibase: 'color',
@@ -98,7 +109,40 @@ export class TestComponent implements OnInit {
             }
           }
         },
-        p6: {
+        '5a-array': {
+          uibase: 'array',
+          innerSchemeSelectionList: {
+            'boolean': {
+              uibase: 'boolean'
+            },
+            'number': {
+              uibase: 'number'
+            }
+          }
+        },
+        '5-opt-select': {
+          uibase: 'select',
+          optional: true,
+          schemeSelectionList: {
+            color: {
+              uibase: 'color',
+              label: 'mycolor',
+              default: '#ff004e'
+            },
+            boolean: {
+              uibase: 'boolean',
+              label: 'myboolean'
+            },
+            number: {
+              uibase: 'number',
+              default: 3,
+              min: 0,
+              max: 10,
+              decimals: 0
+            }
+          }
+        },
+        '6-object': {
           uibase: 'object',
           restricted: true,
           properties: {
@@ -114,14 +158,33 @@ export class TestComponent implements OnInit {
             backward: (value: Coordinates) => [value.lat, value.lon]
           } 
         } as ObjectEditor.Scheme<number[],Coordinates>,
-        p7: {
+        '7-radio': {
           uibase: 'radio',
           enum: {
             sel1: 'coucou',
             sel2: 0,
             sel3: {a: 1, b: 'zebu'}
           }
-        }
+        },
+        '8-date': {
+          uibase: 'date'
+        },
+        '9-datetime': {
+          uibase: 'datetime'
+        },
+        '10-file': {
+          uibase: 'file'
+        },
+        '11-image': {
+          uibase: 'image'
+        },
+        '12-password': {
+          uibase: 'password'
+        },
+        '13-range': {
+          uibase: 'range'
+        },
+
       }
     }
   }
@@ -131,11 +194,12 @@ export class TestComponent implements OnInit {
     scheme: {
       uibase: 'boolean',
       label: 'test-object-editor2',
-      restricted: true,
     }
   }
 
-  constructor() { }
+
+  constructor() { 
+  }
 
   ngOnInit() { }
 

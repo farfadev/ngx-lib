@@ -9,10 +9,12 @@ import { PopoverModule } from 'primeng/popover'
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { ATooltipModule } from '@farfadev/ngx-a-tooltip';
+import { OENumberComponent } from './component/number/number.component';
 import { OERadioComponent } from './component/radio/radio.component';
 
 @NgModule({
   declarations: [
+    OENumberComponent,
     OERadioComponent,
     ObjectEditorComponent,
   ],

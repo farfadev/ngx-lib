@@ -100,7 +100,7 @@ export namespace ObjectEditor {
     defaultEnumKey?: number | string;
     enum?: { [key: number | string]: any }
     // if restricted is true, cannot add new properties from frontend
-    restricted?: boolean;
+    unrestricted?: boolean;
   }
   export const baseSchemes = {
     'object': {
@@ -264,7 +264,7 @@ export namespace ObjectEditor {
   export const getSchemeSelectionKeys = (scheme?: Scheme): (string | number)[] => {
     const list: (string | number)[] = [];
     if (!scheme) return [];
-    if (scheme?.restricted) {
+    if (scheme?.unrestricted) {
       list.push(...ObjectEditor.getBaseSchemes());
     }
     list.push(...Object.keys(ObjectEditor.getSchemeSelectionList(scheme)));
@@ -274,7 +274,7 @@ export namespace ObjectEditor {
   export const getInnerSchemeSelectionKeys = (scheme?: Scheme, p?: string | number): (string | number)[] => {
     const list: (string | number)[] = [];
     if (!scheme || (p && !scheme.properties?.[p])) return [];
-    if ((!p && !scheme?.restricted) || (p && !scheme?.properties?.[p].restricted)) {
+    if ((!p && scheme?.unrestricted) || (p && scheme?.properties?.[p].unrestricted)) {
       list.push(...ObjectEditor.getBaseSchemes());
     }
     list.push(...Object.keys(ObjectEditor.getInnerSchemeSelectionList(scheme, p)));
@@ -341,7 +341,7 @@ export namespace ObjectEditor {
   }
 
   export const getSelectedEnumKey = (context: ObjectEditor.Context): string | undefined => {
-    if ((!context) || (context.value == undefined)) return undefined;
+    if ((!context) || (context.value === undefined)) return undefined;
     const _enum = context.scheme?.enum ?? {};
     for (const key of Object.keys(_enum)) {
       if (JSON.stringify(context.value) == JSON.stringify(_enum[key])) {
@@ -363,7 +363,7 @@ export namespace ObjectEditor {
 
   export const selectEnum = (context: Context, enumKey?: string | number): void => {
 
-    if (!enumKey && context.value) {
+    if (!enumKey && context.value!==undefined) {
       enumKey = getSelectedEnumKey(context);
     }
 
@@ -580,6 +580,7 @@ export namespace ObjectEditor {
     }
     for (const sp of Object.keys(value ?? {})) {
       if (sp !== ObjectEditor.schemeIdProperty && !properties.includes(sp)
+        && (context.scheme?.properties?.[sp] != undefined)
         && (value[sp] == undefined ? !context.scheme?.properties?.[sp].optional : true)) {
         properties.push(sp);
       }
@@ -601,7 +602,7 @@ export namespace ObjectEditor {
   }
 
   export const editUpdate = (context: Context) => {
-    if (context.editUpdate && context.pcontext && context.key) {
+    if (context.editUpdate && context.pcontext && context.key!==undefined) {
       if (!context.pcontext.value) context.pcontext.value = {};
       if (!context.pcontext.scheme) context.pcontext.scheme = { uibase: 'object', properties: {} };
       context.pcontext.value[context.key] = ObjectEditor.convert(
@@ -636,8 +637,8 @@ export namespace ObjectEditor {
   }
 
   export const isRestricted = (context: Context) => {
-    const opt = context.scheme?.restricted;
-    return opt ?? false;
+    const opt = context.scheme?.unrestricted;
+    return opt ?? true;
   }
 
   export const getOptionalPropertyList = (context: Context): string[] => {
@@ -666,7 +667,7 @@ export namespace ObjectEditor {
       newProperty.property = context.value.length;
     }
     if (
-      (newProperty.property || newProperty.property == 0) &&
+      (newProperty.property !== undefined) &&
       newProperty.property !== '' &&
       // cannot replace existing property
       context.value[newProperty.property] === undefined &&
@@ -675,7 +676,7 @@ export namespace ObjectEditor {
     ) {
       if (!context.scheme.properties)
         context.scheme.properties = {};
-      if (!context.scheme.properties[newProperty.property]) {
+      if (context.scheme.properties[newProperty.property]===undefined) {
         if (ObjectEditor.isInnerSchemeSelectionKey(context.scheme, newProperty.schemeKey)) {
           if (ObjectEditor.getBaseSchemes().includes(newProperty.schemeKey)) {
             // if there is no preset scheme for the added property
@@ -712,16 +713,16 @@ export namespace ObjectEditor {
   }
 
   export const deleteProperty = (context: Context) => {
-    if ((context.scheme?.optional || context.scheme?.deletable) && context.key) {
+    if ((context.scheme?.optional || context.scheme?.deletable) && context.key!==undefined) {
       delete context?.pcontext?.value[context.key];
       context.value = undefined;
     }
-    if (context.scheme?.deletable && context.key) {
+    if (context.scheme?.deletable && context.key!==undefined) {
       delete context.pcontext?.scheme?.properties?.[context.key];
     }
-    if (context.scheme && (!context.scheme.optional && !context.scheme.deletable) && context.key) {
+    if (context.scheme && (!context.scheme.optional && !context.scheme.deletable) && context.key!==undefined) {
       context.value = ObjectEditor.initValue(undefined, context.scheme);
-      if (context.pcontext?.value) {
+      if (context.pcontext?.value!==undefined) {
         context.pcontext.value[context.key] = context.value;
       }
     }
@@ -769,7 +770,7 @@ export namespace ObjectEditor {
         pcontext: context,
         key: p,
         editUpdate: () => {
-          if (subContext.value)
+          if (subContext.value!==undefined)
             context.value[p] = transform?.backward ? transform.backward(subContext.value) : subContext.value;
           else if (subContext.scheme?.optional)
             delete context.value[p];

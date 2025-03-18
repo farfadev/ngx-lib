@@ -72,10 +72,16 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
 
   selectedEnumKey?: string;
 
-  canAddProperty(): boolean {
-    return ((this.newProperty.property != '')
+  canAddObjectProperty(): boolean {
+    return (this.context?.scheme?.uibase == 'object'
+      && (this.newProperty.property != '')
       && (this.newProperty.schemeKey != '')
       && this.context?.value[this.newProperty.property] == undefined);
+  }
+  canAddArrayElement(): boolean {
+    return (this.context?.scheme?.uibase == 'array'
+    &&(this.newProperty.schemeKey != '')
+    &&(this.context.scheme.max?this.context.value.length < this.context.scheme.max:true));
   }
   editing?: ObjectEditor.Context;
   propertyClickEvent = false;
@@ -192,8 +198,10 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     return ObjectEditor.getDescription(context);
   }
 
-  getStyle(context: ObjectEditor.Context) {
-    return ObjectEditor.getStyle(context);
+  getStyle(context: ObjectEditor.Context,stylePlus?: string) {
+    const style = ObjectEditor.getStyle(context);
+    const rStyle = style ? (style + (stylePlus ? ';'+stylePlus:'')) : stylePlus ?? '';
+    return rStyle;
   }
 
   getStyleClass(context: ObjectEditor.Context) {
@@ -258,11 +266,11 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
 
   initContext() {
     if (!this.context) return;
-    this.setProperties();
     this.innerSchemeOptions = ObjectEditor.getInnerSchemeSelectionKeys(this.context.scheme);
     //    if(!this.context.value) this.context.value = {};
     if (!this.context.scheme) this.context.scheme = { uibase: 'object' };
     ObjectEditor.initValue(this.context.value, this.context.scheme);
+    this.setProperties();
     if (this.context?.scheme?.uibase == 'select' && typeof this.context?.key == 'string') {
       this.selectScheme(this.context, this.context.key)
     }
