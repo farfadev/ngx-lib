@@ -19,7 +19,7 @@
     "showcase:build": "ng build showcase",
     "showcase:watch": "ng build showcase --watch --configuration development",
     "showcase:test": "ng test showcase",
-    "clean": "rimraf dist"
+    "clean": "ng cache clean && rimraf dist"
   },
   "private": true,
   "dependencies": {

@@ -213,6 +213,7 @@ export namespace ObjectEditor {
     // eg in case of an update from the server, to avoid page reload
     contextChange?: (context: Context,env?: {[key: string|number]: any}) => void;
     onClick?: () => void;
+    debug?: boolean; // display debugging information
   }
 
   export const getBaseSchemes = (): string[] => {
@@ -844,7 +845,8 @@ export namespace ObjectEditor {
           }
           context.editUpdate?.();
         },
-        contextChange: context.contextChange
+        contextChange: context.contextChange,
+        debug: context.debug
       }
       return subContext;
     }

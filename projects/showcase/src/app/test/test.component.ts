@@ -17,6 +17,7 @@ type Coordinates = {
 export class TestComponent implements OnInit {
 
   mycontext1: ObjectEditor.Context = {
+//    debug: true,
     value: {
       p1: 'coucou',
       p3: '#ffffff',

@@ -1,4 +1,3 @@
-@let debug = true; 
 @if(context) {
 <ng-template #checkBox_png let-lcontext="lcontext">
   <p-iftalabel>
@@ -101,7 +100,7 @@
       <ng-container
         *ngTemplateOutlet="default; context: { lcontext: subContext }"
       ></ng-container>
-      } } @if(debug) {
+      } } @if(subContext.debug) {
       <span [style]="getStyle(subContext)"
         >{{typeof subContext.value}} {{ subContext.value }}
         {{ editing?.value }} {{ editing == subContext }}
@@ -160,7 +159,7 @@
       <p-popover #op
         ><article [innerHTML]="getDescriptionArticle(subContext)"></article
       ></p-popover>
-      } @if(debug) {
+      } @if(subContext.debug) {
       <span [style]="getStyle(subContext)"
         >{{typeof subContext.value}} {{ subContext.value }}
         {{ editing == subContext }}
@@ -305,7 +304,7 @@
         }
         @if(getDescriptionArticle(subContext)) {
           <i [id]="subContext.key" [aTooltip]="{mode: 'click',html: getDescriptionArticle(subContext)??''}" class="pi pi-info-circle" style="background:inherit;border:none"></i>
-        } @if(debug) {
+        } @if(subContext.debug) {
         <span [style]="getStyle(subContext,'font-size: 0.5rem')"
           >type={{typeof subContext.value}} value={{ getTextValue(subContext.value) }}
           editing={{ editing == subContext }}

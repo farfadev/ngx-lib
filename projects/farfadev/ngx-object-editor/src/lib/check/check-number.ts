@@ -111,6 +111,7 @@ const adjustCursor = (v:string,count: number): number => {
     let index1 = 0, index2 = 0;
     for (const c of x.toString()) {
       if (c == '.') continue;
+      if (c == 'e') break;
       if ((c >= '0') && (c <= '9')) {
         if (index2 != 0 || c != '0') index2++;
         if (c != '0') index1 = index2;

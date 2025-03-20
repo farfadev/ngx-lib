@@ -17,3 +17,11 @@
     box-shadow: 0 0.5em 1em -0.125em #0a0a0a1a, 0 0 0 1px #0a0a0a05; /* Light shadow for depth */
     z-index: 1001; /* Ensure it's above other elements */
   }
+
+  .grid {
+    display: grid;
+    grid-template-areas: "a a";
+    gap: 10px;
+    grid-auto-columns: 200px;
+  }
+  
