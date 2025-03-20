@@ -75,15 +75,27 @@
       } @case('number') {
       <!--<input [id]="ui_id + p + 'e'" type="number" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
       <label> {{ getLabel(subContext) }} </label>
-      <oe-number [context]="subContext">
-      </oe-number>
-      } @case('color') {
+      @if(hasMask(subContext)) {
+        <oe-masked [context]="subContext"/>
+      }
+      @else {
+        <oe-number [context]="subContext"/>
+      }} @case('color') {
       <!--<input [id]="ui_id + p + 'e'" type="color" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
       <label> {{ getLabel(subContext) }} </label>
       <ng-container
         *ngTemplateOutlet="color; context: { lcontext: subContext }"
       ></ng-container>
-      } @default {
+    } @case('text') {
+      <label> {{ getLabel(subContext) }} </label>
+      @if(hasMask(subContext)) {
+        <oe-masked [context]="subContext"/>
+      }
+      @else {
+        <ng-container
+        *ngTemplateOutlet="default; context: { lcontext: subContext }"
+      ></ng-container>
+      }} @default {
       <!--<input [id]="ui_id + p + 'e'" [type]="getHtmlType(p)" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
       <label> {{ getLabel(subContext) }} </label>
       <ng-container
@@ -160,10 +172,10 @@
   </div>
   }
 </ng-template>
-<ng-template #subItem let-subContext="lcontext">
+<ng-template #subItem let-subContext="lcontext" let-isArray="isArray">
     @if(subContext) {
     <div>
-      <p style="display: flex; gap: 10px">
+      <p style="display: flex; gap: 10px;">
         @if(isediting(subContext)) {
         <i
           class="pi pi-pencil"
@@ -171,6 +183,14 @@
           (click)="edittoggle(subContext)"
         ></i>
         <i class="pi pi-trash" (click)="delete(subContext)"></i>
+        @if(isArray) {
+          @if(getNumber(subContext.key)>0) {
+            <i class="pi pi-arrow-up" (click)="arrayItemUp(subContext)"></i>
+          }
+          @if(getNumber(subContext.key)<subContext.pcontext.value.length-1) {
+            <i class="pi pi-arrow-down" (click)="arrayItemDown(subContext)"></i>
+          }          
+        }
         @switch(getHtmlType(subContext)) { @case('array') {
         <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
         } @case('object') {
@@ -186,9 +206,12 @@
         } @case('number') {
         <!--<input [id]="ui_id + p + 'e'" type="number" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
         <label> {{ getLabel(subContext) }} </label>
-        <oe-number [context]="subContext">
-        </oe-number>
-          } @case('color') {
+        @if(hasMask(subContext)) {
+          <oe-masked [context]="subContext"/>
+        }
+        @else {
+          <oe-number [context]="subContext"/>
+        }} @case('color') {
         <!--<input [id]="ui_id + p + 'e'" type="color" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
         <label> {{ getLabel(subContext) }} </label>
         <ng-container
@@ -197,16 +220,22 @@
         } @case('radio') {
           <label> {{ getLabel(subContext) }} </label>
           <oe-radio [context]="subContext"></oe-radio>
-<!--          <ng-container
-            *ngTemplateOutlet="radio; context: { lcontext: subContext }"
-          ></ng-container>
--->          } @default {
-        <!--<input [id]="ui_id + p + 'e'" [type]="getHtmlType(p)" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
-        <label> {{ getLabel(subContext) }} </label>
-        <ng-container
-          *ngTemplateOutlet="default; context: { lcontext: subContext }"
-        ></ng-container>
-        } }
+          } @case('text') {
+            <label> {{ getLabel(subContext) }} </label>
+            @if(hasMask(subContext)) {
+            <oe-masked [context]="subContext"/>
+            }
+            @else {
+              <ng-container
+                *ngTemplateOutlet="default; context: { lcontext: subContext }"></ng-container>
+            }
+          } @default {
+            <label> {{ getLabel(subContext) }} </label>
+            <ng-container
+              *ngTemplateOutlet="default; context: { lcontext: subContext }"
+            ></ng-container>
+          } 
+        }
       } @else {
         <i
           *ngIf="!isReadOnly(subContext)"
@@ -227,9 +256,12 @@
       } @case('number') {
         <!--<input [id]="ui_id + p + 'e'" type="number" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
         <label> {{ getLabel(subContext) }} </label>
-        <oe-number [context]="subContext">
-        </oe-number>
-        } @case('color') {
+        @if(hasMask(subContext)) {
+          <oe-masked [context]="subContext"/>
+        }
+        @else {
+          <oe-number [context]="subContext"/>
+        }} @case('color') {
         <label> {{ getLabel(subContext) }} </label>
         <span
           class="colorBox"
@@ -249,10 +281,16 @@
       } @case('radio') {
         <label> {{ getLabel(subContext) }} </label>
         <oe-radio [context]="subContext"></oe-radio>
-<!--        <ng-container
-          *ngTemplateOutlet="radio; context: { lcontext: subContext }"
-        ></ng-container>
--->      } @default() {
+      } @case('text') {
+        <label> {{ getLabel(subContext) }} </label>
+        @if(hasMask(subContext)) {
+        <oe-masked [context]="subContext"/>
+        }
+        @else {
+          <ng-container
+            *ngTemplateOutlet="default; context: { lcontext: subContext }"></ng-container>
+        }
+      } @default() {
         <label> {{ getLabel(subContext) }} </label>
         <input
           [id]="ui_id + subContext.key + 'ne'"
@@ -409,12 +447,13 @@
     <ng-container
       *ngTemplateOutlet="subItem; context: { lcontext: selectedSubContext }"
     ></ng-container>
-    } } @if(isObject() || isArray()) { @for (p of properties; track p) { 
+    } } @if(isObject() || isArray()) { 
+      <p [style]=getInnerStyle(context)>@for (p of properties; track p) { 
       @let subContext = getSubContext(p);
     <ng-container
-      *ngTemplateOutlet="subItem; context: { lcontext: subContext }"
+      *ngTemplateOutlet="subItem; context: { lcontext: subContext, isArray: isArray() }"
     ></ng-container>
-    }}
+    }</p>}
   </div>
 </fieldset>
 } }

@@ -30,6 +30,7 @@
     "@angular/common": "^19.1.0",
     "@angular/core": "^19.1.0",
     "@farfadev/ngx-a-tooltip": "^0.1.0",
+    "imask": "^7.6.1",
     "lodash-es": "^4.17.21",
     "decimal.js": "^10.5.0",
     "mathjs": "^14.3.1",

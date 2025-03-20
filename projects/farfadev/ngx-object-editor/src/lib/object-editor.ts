@@ -22,9 +22,13 @@ export namespace ObjectEditor {
 
   export type UIEffects = {
     toggle?: boolean;
-    scroll?: {
+  }
 
-    };
+  export type Checked = {
+    formattedValue?: string,
+    adjustedValue?: any,
+    message?: string,
+    cursorPosition?: number|'end'
   }
 
   export type Scheme<T = any, U = any> = {
@@ -35,9 +39,14 @@ export namespace ObjectEditor {
     label?: string;
     // for html style attribute
     style?: string | ((context: Context) => string)
+    // for html style attribute of the inner items (object/ array)
+    innerStyle?: string | ((context: Context) => string)
     // for html class (or primeng styleClass) attribute (need css injection :host::ngdeep)
     // TODO doesn't work yet
     styleClass?: string | ((context: Context) => string)
+    // for html class (or primeng styleClass) attribute (need css injection :host::ngdeep)
+    // TODO doesn't work yet
+    innerStyleClass?: string | ((context: Context) => string)
     // for primeng design token styling
     designToken?: object | ((context: Context) => object)
     // rules for UI , such as scrolling, toggling
@@ -67,20 +76,21 @@ export namespace ObjectEditor {
       forward: (t: T) => U;
       backward: (u: U) => T;
     }
-    customFrontEnd?: {
+    customFrontEnd?: { //TODO
       view?: () => string; // an html component when viewing
       edit?: () => string; // an html component when editing
     }
-
+    // https://imask.js.org/guide.html
+    maskOptions?: Record<string,unknown> | ((context: Context) => Record<string,unknown>);
     min?: T;
     max?: T;
     length?: {
       min?: number;
       max?: number;
     }
-    // a custom check returning a non emtpy string if check fails
-    // example: { customCheck: (t: T) => [2,4,6].find((el)=>el==t) ? "": "value shall be either 2, 4 or 6"}
-    customCheck?: (t: T) => string,
+    // a custom check returning optionally an adjusted value, a message to display, and a cursorPosition 
+    // example: check: (context: Context) => [2,4,6].find((el)=>el==context.value) ? null: {value: 2,message: "value shall be either 2, 4 or 6",cursorPosition: 'end'}
+    check?: (context: Context,cursorPosition?: number) => Checked|null,
     decimals?: number // number of decimal digits (digits in excess wil be truncated)
     significants?: number // number of significant digits (digits in excess will be truncated)
     regexp?: RegExp; // input text shall meet regexp
@@ -201,7 +211,7 @@ export namespace ObjectEditor {
     editUpdate?: () => void;
     // called by the client application to change the context (value and scheme)
     // eg in case of an update from the server, to avoid page reload
-    contextChange?: (context: Context) => void;
+    contextChange?: (context: Context,env?: {[key: string|number]: any}) => void;
     onClick?: () => void;
   }
 
@@ -363,7 +373,7 @@ export namespace ObjectEditor {
 
   export const selectEnum = (context: Context, enumKey?: string | number): void => {
 
-    if (!enumKey && context.value!==undefined) {
+    if (!enumKey && context.value !== undefined) {
       enumKey = getSelectedEnumKey(context);
     }
 
@@ -373,7 +383,7 @@ export namespace ObjectEditor {
     if (!enumKey && context.scheme && !context.scheme?.optional) {
       enumKey = ObjectEditor.getEnumKeys(context.scheme)?.[0];
     }
-    if (!enumKey || (context.scheme?.enum?.[enumKey]==undefined)) {
+    if (!enumKey || (context.scheme?.enum?.[enumKey] == undefined)) {
       context.value = undefined;
     }
     else {
@@ -585,7 +595,7 @@ export namespace ObjectEditor {
         properties.push(sp);
       }
     };
-    properties = properties.sort((a, b) => {
+    properties = (context.scheme?.uibase === 'object') ? properties.sort((a, b) => {
       const a_ct = context.scheme?.properties?.[a].ctime ?? 0;
       const b_ct = context.scheme?.properties?.[b].ctime ?? 0;
       if (a_ct == b_ct) {
@@ -597,12 +607,14 @@ export namespace ObjectEditor {
       else {
         return a_ct - b_ct;
       }
+    }) : properties.sort((a, b) => {
+      return Number(a) - Number(b)
     })
     return properties;
   }
 
   export const editUpdate = (context: Context) => {
-    if (context.editUpdate && context.pcontext && context.key!==undefined) {
+    if (context.editUpdate && context.pcontext && context.key !== undefined) {
       if (!context.pcontext.value) context.pcontext.value = {};
       if (!context.pcontext.scheme) context.pcontext.scheme = { uibase: 'object', properties: {} };
       context.pcontext.value[context.key] = ObjectEditor.convert(
@@ -676,9 +688,16 @@ export namespace ObjectEditor {
     ) {
       if (!context.scheme.properties)
         context.scheme.properties = {};
-      if (context.scheme.properties[newProperty.property]===undefined) {
+      if (context.scheme.properties[newProperty.property] === undefined) {
         if (ObjectEditor.isInnerSchemeSelectionKey(context.scheme, newProperty.schemeKey)) {
-          if (ObjectEditor.getBaseSchemes().includes(newProperty.schemeKey)) {
+          if (ObjectEditor.getInnerSchemeSelectionList(context.scheme)[newProperty.schemeKey] != undefined) {
+            context.scheme.properties[newProperty.property] =
+              cloneDeep(ObjectEditor.getInnerSchemeSelectionList(context.scheme)[newProperty.schemeKey]);
+            context.scheme.properties[newProperty.property].optional = true;
+            context.scheme.properties[newProperty.property].deletable = true;
+            context.scheme.properties[newProperty.property].ctime = Date.now();
+          }
+          else if (ObjectEditor.getBaseSchemes().includes(newProperty.schemeKey)) {
             // if there is no preset scheme for the added property
             // then create one based on the type, and mark it optional and deletable
             context.scheme.properties[newProperty.property] = {
@@ -688,13 +707,6 @@ export namespace ObjectEditor {
               ctime: Date.now()
             };
           }
-          else {
-            context.scheme.properties[newProperty.property] =
-              cloneDeep(ObjectEditor.getInnerSchemeSelectionList(context.scheme)[newProperty.schemeKey]);
-            context.scheme.properties[newProperty.property].optional = true;
-            context.scheme.properties[newProperty.property].deletable = true;
-            context.scheme.properties[newProperty.property].ctime = Date.now();
-          }
         }
       }
       if (newProperty.schemeKey == 'select') {
@@ -702,9 +714,20 @@ export namespace ObjectEditor {
         const selList = ObjectEditor.getSchemeSelectionList(pScheme);
         pScheme.schemeSelectionKey = Object.keys(selList)[0];
       }
-      context.value[newProperty.property] =
-        ObjectEditor.initValue(undefined,
-          context.scheme.properties?.[newProperty.property])
+      switch (context.scheme.uibase) {
+        case 'object': {
+          context.value[newProperty.property] =
+            ObjectEditor.initValue(undefined,
+              context.scheme.properties?.[newProperty.property])
+        }
+          break;
+        case 'array': {
+          context.value.splice(newProperty.property, 0,
+            ObjectEditor.initValue(undefined,
+              context.scheme.properties?.[newProperty.property]));
+        }
+          break;
+      }
       const subContext = ObjectEditor.getSubContext(context, newProperty.property);
       if (subContext) editUpdate(subContext);
       return subContext;
@@ -713,18 +736,34 @@ export namespace ObjectEditor {
   }
 
   export const deleteProperty = (context: Context) => {
-    if ((context.scheme?.optional || context.scheme?.deletable) && context.key!==undefined) {
-      delete context?.pcontext?.value[context.key];
-      context.value = undefined;
-    }
-    if (context.scheme?.deletable && context.key!==undefined) {
-      delete context.pcontext?.scheme?.properties?.[context.key];
-    }
-    if (context.scheme && (!context.scheme.optional && !context.scheme.deletable) && context.key!==undefined) {
-      context.value = ObjectEditor.initValue(undefined, context.scheme);
-      if (context.pcontext?.value!==undefined) {
-        context.pcontext.value[context.key] = context.value;
+    if (context.pcontext?.scheme?.uibase === 'object') {
+      if ((context.scheme?.optional || context.scheme?.deletable) && context.key !== undefined) {
+        delete context?.pcontext?.value[context.key];
+        context.value = undefined;
       }
+      if (context.scheme?.deletable && context.key !== undefined) {
+        delete context.pcontext?.scheme?.properties?.[context.key];
+      }
+      if (context.scheme && (!context.scheme.optional && !context.scheme.deletable) && context.key !== undefined) {
+        context.value = ObjectEditor.initValue(undefined, context.scheme);
+        if (context.pcontext?.value !== undefined) {
+          context.pcontext.value[context.key] = context.value;
+        }
+      }
+    }
+    if (context.pcontext?.scheme?.uibase === 'array') {
+      const nschemeP = context.pcontext.scheme.properties ?? {};
+      const end = context.pcontext?.value.length - 1;
+      (context.pcontext?.value as any[]).splice(Number(context.key), 1);
+      for (const i of Object.keys(context.pcontext.scheme.properties!)) {
+        if ((Number(i) >= Number(context.key)) && (Number(i) < end)) {
+          nschemeP[Number(i)] = context.pcontext.scheme.properties![Number(i) + 1];
+        }
+      }
+      context.key = undefined;
+      context.value = undefined;
+      context.scheme = undefined;
+      delete nschemeP[end];
     }
     if (context.editUpdate) {
       context.editUpdate();
@@ -749,6 +788,24 @@ export namespace ObjectEditor {
     }
   }
 
+  export const getInnerStyle = (context: Context) => {
+    if (typeof context.scheme?.innerStyle == 'function') {
+      return context.scheme.innerStyle(context);
+    }
+    else {
+      return context.scheme?.innerStyle;
+    }
+  }
+
+  export const getInnerStyleClass = (context: Context) => {
+    if (typeof context.scheme?.innerStyleClass == 'function') {
+      return context.scheme.innerStyleClass(context);
+    }
+    else {
+      return context.scheme?.innerStyleClass;
+    }
+  }
+
   export const getDesignToken = (context: Context) => {
     if (typeof context.scheme?.designToken == 'function') {
       return context.scheme.designToken(context);
@@ -758,9 +815,18 @@ export namespace ObjectEditor {
     }
   }
 
+  export const getMaskOptions = (context: Context): Record<string,unknown>|undefined => {
+    if (typeof context.scheme?.maskOptions == 'function') {
+      return context.scheme.maskOptions(context);
+    }
+    else {
+      return context.scheme?.maskOptions;
+    }
+  }
+
   export const getSubContext = (context: Context, p?: string | number): ObjectEditor.Context | undefined => {
     if (['object', 'array'].includes(context.scheme?.uibase ?? '')) {
-      if (!p) {
+      if (p===undefined) {
         return undefined;
       }
       const transform = context.scheme?.properties?.[p]?.transform;
@@ -770,10 +836,12 @@ export namespace ObjectEditor {
         pcontext: context,
         key: p,
         editUpdate: () => {
-          if (subContext.value!==undefined)
-            context.value[p] = transform?.backward ? transform.backward(subContext.value) : subContext.value;
-          else if (subContext.scheme?.optional)
-            delete context.value[p];
+          if (subContext.key !== undefined) {
+            if (subContext.value !== undefined)
+              context.value[subContext.key] = transform?.backward ? transform.backward(subContext.value) : subContext.value;
+            else if (subContext.scheme?.optional)
+              delete context.value[subContext.key];
+          }
           context.editUpdate?.();
         },
         contextChange: context.contextChange

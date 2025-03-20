@@ -11,13 +11,7 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import { ObjectEditor } from '../../object-editor';
-//import { abs, floor, log10, round, sign } from 'mathjs';
-import Decimal from 'decimal.js';
 
-type KeyLabel = {
-  key: string | number;
-  label: string | number;
-}
 @Component({
   standalone: false,
   selector: 'oe-number',
@@ -103,121 +97,39 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
     this._context?.onClick?.();
   }
 
-  stripFormat(v: string): string {
-    v = v.replaceAll(' ', '').replace(',', '.');
-    return v;
-  }
-
-  numberWithSeparator(x: string, c: string): string {
-//    return x.replace(/\B(?=(\d{3}?)+(?!\d))/g, c);
-    let r: string = '';
-    let vl: string = '';
-    let vr: string = '';
-    const ds = x.indexOf('.');
-    if(ds >=0) {
-      [vl , vr ] = x.split('.');
-    }
-    else {
-      vl = x;
-      vr = '';
-    }
-    for(let i = vl.length-1;i>=0;i--) {
-      if(((vl.length-i)%3 == 1)&&(i!=(vl.length-1))) r = ' '+r;
-      r = vl.charAt(i) + r;
-    }
-    if(ds >= 0) r = r + '.';
-    for(let i = 0; i<vr.length;i++) {
-      if(((i)%3 == 0)&&(i!=0)) r = r+' ';
-      r = r + vr.charAt(i);
-    }
-    return r;
-  }
-
-  format(v: string) {
-    v = this.stripFormat(v);
-    v = this.numberWithSeparator(v, ' ');
-    return v;
-  }
-
-  validate() {
-    this.err_msg = '';
-    let rValue: number = Number(this.stripFormat(this.value));
-    if ((this.context?.scheme?.min != undefined) && rValue < this.context?.scheme?.min) {
-      this.err_msg = 'value below minimum ' + this.context?.scheme?.min;
-      rValue = this.context?.scheme?.min
-    }
-    else if ((this.context?.scheme?.max != undefined) && rValue > this.context?.scheme?.max) {
-      this.err_msg = 'value over maximum ' + this.context?.scheme?.max;
-      rValue = this.context?.scheme?.max
-    }
-    else if (this.context?.scheme?.significants != undefined) {
-      if (this.countSignificant(rValue) > this.context?.scheme?.significants) {
-        this.err_msg = 'value significant digits over maximum ' + this.context?.scheme?.significants;
-      };
-      rValue = this.roundSignificant(rValue, this.context?.scheme?.significants);
-    }
-    this.context!.value = rValue;
-  }
-
-  adjustCursor(v:string,count: number): number {
-    let r = 0;
-    for(const c of [...v]) {
-      if(count == 0) break;
-      if("-0123456789.".indexOf(c)>=0) count--;
-      r++;
-    }
-    return r;
-  }
-
-  getDigitCount(v:String,p: number): number {
-    let r = 0;
-    for(let i = 0; i < p; i++) {
-      if(![' '].includes(v.charAt(i))) {
-        r++;
-      }
-    }
-    return r;
-  }
-
   editUpdate() {
-    this.validate();
+    this.context!.value = this.value;
+    const checked = this.context?.scheme?.check?.(this.context,this.inputElement!.selectionStart??0)
+    this.context!.value = checked?.adjustedValue;
+    this.value = checked?.formattedValue??'';
+    this.err_msg = checked?.message??'';
+
+/*    this.validate();
     const p0 = this.getDigitCount(this.value,this.inputElement!.selectionStart??0);
     this.value = this.format(this.value);
     const cursorPosition = this.adjustCursor(this.value,p0);
+*/
+    let cursorPosition = 0;
+    if(checked?.cursorPosition == 'end') {
+      cursorPosition = String(this.context!.value).length;
+    }
+    else {
+      cursorPosition = checked?.cursorPosition ?? 0;
+    }
+
     setTimeout(()=>{
       this.inputElement!.selectionStart = cursorPosition;
       this.inputElement!.selectionEnd = cursorPosition;
     },0);
+
     this._context!.editUpdate?.();
-  }
-
-  roundSignificant(xi: number, n: number): number {
-    let x = new Decimal(xi);
-    let ax = x.abs();
-    n = Math.round(n);
-    const rlog10x = Decimal.round(Decimal.log10(Decimal.abs(x)));
-    const exp = (rlog10x.toNumber() - n + 1);
-    const la = Decimal.floor(Decimal.div(ax , Decimal.pow(10 , exp)));
-    const y = Decimal.mul(Decimal.mul(Decimal.sign(x), la), Decimal.pow(10, exp));
-    return y.toNumber();
-  }
-
-  countSignificant(x: number, z?: number): number {
-    let index1 = 0, index2 = 0;
-    for (const c of x.toString()) {
-      if (c == '.') continue;
-      if ((c >= '0') && (c <= '9')) {
-        if (index2 != 0 || c != '0') index2++;
-        if (c != '0') index1 = index2;
-      }
-    }
-    return index1;
   }
 
   initContext() {
     if (!this.context) return;
-    this.value = this.format(this.context.value?.toString() ?? '');
-
+    const checked = this.context?.scheme?.check?.(this.context)
+    this.value = checked?.formattedValue??'';
+    this.err_msg = checked?.message??'';
   }
 
 }

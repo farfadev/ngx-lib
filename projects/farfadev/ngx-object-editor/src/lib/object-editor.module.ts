@@ -11,9 +11,11 @@ import { IftaLabelModule } from 'primeng/iftalabel';
 import { ATooltipModule } from '@farfadev/ngx-a-tooltip';
 import { OENumberComponent } from './component/number/number.component';
 import { OERadioComponent } from './component/radio/radio.component';
+import { OEMaskedComponent } from './component/masked/masked.component';
 
 @NgModule({
   declarations: [
+    OEMaskedComponent,
     OENumberComponent,
     OERadioComponent,
     ObjectEditorComponent,

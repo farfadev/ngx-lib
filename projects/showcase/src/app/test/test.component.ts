@@ -1,9 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { ObjectEditor } from '@farfadev/ngx-object-editor';
-import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
-import { round } from 'lodash-es';
-import { MathNumericType, MathScalarType, MathType, abs, divide, exp, fix, log10, multiply, pow } from 'mathjs';
+import { ObjectEditorModule, checkNumber } from "@farfadev/ngx-object-editor";
 
 type Coordinates = {
   lat: number;
@@ -29,10 +27,7 @@ export class TestComponent implements OnInit {
       uibase: 'object',
       label: 'test-object-editor',
       uiEffects: {
-        toggle: true,
-        scroll: {
-
-        }
+        toggle: true
       },
       unrestricted: true,
       innerSchemeSelectionList: {
@@ -65,9 +60,37 @@ export class TestComponent implements OnInit {
         '2-number': {
           uibase: 'number',
           default: 5,
+          check: (context: ObjectEditor.Context,cursorPosition?: number) => checkNumber(context.value,{
+            min: -1,
+            max: 17,
+            significants: 4  
+          },cursorPosition),
+        },
+        '2a-number': {
+          uibase: 'number',
+          default: 5,
           min: -1,
-          max: 17,
-          significants: 4
+          max: 1789,
+          significants: 8,
+          maskOptions: {
+            mask: Number,
+            thousandsSeparator: ' ',
+            radix: '.',
+            expose: true
+          }
+        },
+        '2b-dms': {
+          uibase: 'number',
+          default: 5,
+          min: -1,
+          max: 1789,
+          significants: 4,
+          maskOptions: {
+            mask: Number,
+            thousandsSeparator: 'z',
+            radix: '.',
+
+          }
         },
         '2-opt number': {
           uibase: 'number',
@@ -111,6 +134,9 @@ export class TestComponent implements OnInit {
         },
         '5a-array': {
           uibase: 'array',
+          innerStyle: (context: ObjectEditor.Context) => {
+            return context.value.length > 4 ?'overflow:scroll; height:100px;' :'';
+          },
           innerSchemeSelectionList: {
             'boolean': {
               uibase: 'boolean'
@@ -204,3 +230,7 @@ export class TestComponent implements OnInit {
   ngOnInit() { }
 
 }
+function numberCheck(context: ObjectEditor.Context, arg1: { min: number; max: number; significants: number; }): ObjectEditor.Checked | null {
+  throw new Error('Function not implemented.');
+}
+

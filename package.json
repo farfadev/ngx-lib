@@ -34,6 +34,7 @@
     "@farfadev/ngx-a-tooltip": "^0.0.1",
     "@primeng/themes": "^19.0.7",
     "decimal.js": "^10.5.0",
+    "imask": "^7.6.1",
     "lodash-es": "^4.17.21",
     "mathjs": "^14.3.1",
     "primeicons": "^7.0.0",

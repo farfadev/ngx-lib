@@ -24,6 +24,7 @@ type KeyLabel = {
   encapsulation: ViewEncapsulation.Emulated
 })
 export class ObjectEditorComponent implements OnInit, OnDestroy {
+
   @ViewChild('objectcontainer')
   private objectContainer!: ElementRef<HTMLElement>;
 
@@ -97,6 +98,44 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     this.ui_id = window.crypto.randomUUID();
   }
 
+  getNumber(arg0: any): number {
+    return Number(arg0);
+  }
+
+  arrayItemUp(context: ObjectEditor.Context) {
+    if(context?.key === undefined || 
+      context.pcontext?.scheme?.properties === undefined) return;
+    const i = Number(context.key);
+    if((i < 1)||(i >= context.pcontext.value.length))  return;
+    const v0 = context.pcontext.value[i-1];
+    const v1 = context.pcontext.value[i];
+    context.pcontext.value[i] = v0;
+    context.pcontext.value[i-1] = v1;
+
+    const s0 = context.pcontext?.scheme?.properties?.[i-1];
+    const s1 = context.pcontext?.scheme?.properties?.[i];
+    context.pcontext.scheme.properties[i] = s0;
+    context.pcontext.scheme.properties[i-1] = s1;
+    context.pcontext.contextChange?.(context.pcontext,{key: i-1});
+  }
+
+  arrayItemDown(context: ObjectEditor.Context) {
+    if(context?.key === undefined || 
+      context.pcontext?.scheme?.properties === undefined) return;
+    const i = Number(context.key);
+    if((i < 0)||(i >= context.pcontext.value.length-1))  return;
+    const v0 = context.pcontext.value[i];
+    const v1 = context.pcontext.value[i+1];
+    context.pcontext.value[i+1] = v0;
+    context.pcontext.value[i] = v1;
+
+    const s0 = context.pcontext?.scheme?.properties?.[i];
+    const s1 = context.pcontext?.scheme?.properties?.[i+1];
+    context.pcontext.scheme.properties[i+1] = s0;
+    context.pcontext.scheme.properties[i] = s1;
+    context.pcontext.contextChange?.(context.pcontext,{key: i+1});
+  }
+
   hasOptionalProperties(): boolean {
     return this.getOptionalPropertyKeyLabelList().length > 0;
   }
@@ -142,6 +181,10 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
       }
     }
     return this.subContextList[p];
+  }
+
+  hasMask(context: ObjectEditor.Context) {
+    return ObjectEditor.getMaskOptions(context) != undefined;
   }
 
   selectScheme(context: ObjectEditor.Context, schemeKey?: string | number) {
@@ -206,6 +249,16 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
 
   getStyleClass(context: ObjectEditor.Context) {
     return ObjectEditor.getStyleClass(context);
+  }
+
+  getInnerStyle(context: ObjectEditor.Context,stylePlus?: string) {
+    const style = ObjectEditor.getInnerStyle(context);
+    const rStyle = style ? (style + (stylePlus ? ';'+stylePlus:'')) : stylePlus ?? '';
+    return rStyle;
+  }
+
+  getInnerStyleClass(context: ObjectEditor.Context) {
+    return ObjectEditor.getInnerStyleClass(context);
   }
 
   getDesignToken(context: ObjectEditor.Context) {
@@ -274,11 +327,15 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     if (this.context?.scheme?.uibase == 'select' && typeof this.context?.key == 'string') {
       this.selectScheme(this.context, this.context.key)
     }
-    this.context.contextChange = (context) => {
+    this.context.contextChange = (context,env?: {[key: string|number]: any}) => {
       //this.ref.detectChanges();
       //this.reloadComponent();
       this.context = context;
-      this.setProperties();
+      //this.setProperties();
+      if(env?.['key'] != undefined) {
+        this.propertyClickEvent = true;
+        this.editing = this.getSubContext(env?.['key']);
+      }
     };
     const editUpdate = this.context.editUpdate;
     this.context.editUpdate = () => {
