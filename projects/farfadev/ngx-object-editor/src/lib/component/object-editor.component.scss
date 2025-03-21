@@ -20,8 +20,13 @@
 
   .grid {
     display: grid;
-    grid-template-areas: "a a";
     gap: 10px;
-    grid-auto-columns: 200px;
+    grid-auto-rows: auto;
+    grid-template-columns: repeat(3,max-content);
+//    grid-auto-columns: minmax(10px, auto);
   }
   
+  .grid-item {
+    grid-column: var(--column); 
+    grid-row: auto;
+  }

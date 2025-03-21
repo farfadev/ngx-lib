@@ -1,5 +1,6 @@
 import { animate, style, transition, trigger } from '@angular/animations';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -19,8 +20,15 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
   ],
 })
 export class ATooltipComponent {
+  _trustedHtml?: SafeHtml;
   @Input() text?: string;
-  @Input() html?: string;
+  @Input() set html(v: string|undefined) {
+    v = v ?? '';
+    this._trustedHtml = this.sanitizer.bypassSecurityTrustHtml(v);
+    const i = 0;
+  };
   @Input() style?: string = 'background-color: white; border: 1px solid black; padding: 1rem';
 
+  constructor(private sanitizer: DomSanitizer) {
+  }
 }

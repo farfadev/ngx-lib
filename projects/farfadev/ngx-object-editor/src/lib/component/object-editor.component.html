@@ -1,19 +1,4 @@
 @if(context) {
-<ng-template #checkBox_png let-lcontext="lcontext">
-  <p-iftalabel>
-    <p-checkbox
-      [id]="ui_id + lcontext.key + 'e'"
-      type="checkbox"
-      [(ngModel)]="lcontext.value"
-      (ngModelChange)="lcontext.editUpdate?.()"
-      [styleClass]="getStyleClass(lcontext)"
-      [dt]="getDesignToken(lcontext)"
-      [binary]="true"
-      (click)="onclick(lcontext, $event)"
-    />
-    <label [for]="ui_id + lcontext.key + 'e'">{{ getLabel(lcontext) }}</label>
-  </p-iftalabel>
-</ng-template>
 <ng-template #checkBox let-lcontext="lcontext">
   <input
     [id]="ui_id + lcontext.key + 'e'"
@@ -48,411 +33,262 @@
   />
 </ng-template>
 
-<ng-template #subItem_png let-subContext="lcontext">
-  @if(subContext) {
-  <div>
-    @if(isediting(subContext)) {
-    <p style="display: flex; gap: 10px">
-      <i
-        class="pi pi-pencil"
-        style="color: green"
-        (click)="edittoggle(subContext)"
-      ></i>
-      <i class="pi pi-trash" (click)="delete(subContext)"></i>
-      @switch(getHtmlType(subContext)) { @case('array') {
-      <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
-      } @case('object') {
-      <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
-      } @case('select') {
-      <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
-      } @case('checkbox') {
-      <!--<input [id]="ui_id + p + 'e'" type="checkbox" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
-      <label> {{ getLabel(subContext) }} </label>
-      <ng-container
-        *ngTemplateOutlet="checkBox; context: { lcontext: subContext }"
-      ></ng-container>
-      } @case('number') {
-      <!--<input [id]="ui_id + p + 'e'" type="number" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
-      <label> {{ getLabel(subContext) }} </label>
-      @if(hasMask(subContext)) {
-        <oe-masked [context]="subContext"/>
-      }
-      @else {
-        <oe-number [context]="subContext"/>
-      }} @case('color') {
-      <!--<input [id]="ui_id + p + 'e'" type="color" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
-      <label> {{ getLabel(subContext) }} </label>
-      <ng-container
-        *ngTemplateOutlet="color; context: { lcontext: subContext }"
-      ></ng-container>
-    } @case('text') {
-      <label> {{ getLabel(subContext) }} </label>
-      @if(hasMask(subContext)) {
-        <oe-masked [context]="subContext"/>
-      }
-      @else {
-        <ng-container
-        *ngTemplateOutlet="default; context: { lcontext: subContext }"
-      ></ng-container>
-      }} @default {
-      <!--<input [id]="ui_id + p + 'e'" [type]="getHtmlType(p)" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
-      <label> {{ getLabel(subContext) }} </label>
-      <ng-container
-        *ngTemplateOutlet="default; context: { lcontext: subContext }"
-      ></ng-container>
-      } } @if(subContext.debug) {
-      <span [style]="getStyle(subContext)"
-        >{{typeof subContext.value}} {{ subContext.value }}
-        {{ editing?.value }} {{ editing == subContext }}
-        {{subContext.key?subContext.pcontext?.value?.[subContext.key]:''}}</span
-      >
-      }
-    </p>
-    } @else {
-    <p style="display: flex; gap: 10px">
-      <i
-        *ngIf="!isReadOnly(subContext)"
-        class="pi pi-pencil"
-        (click)="edittoggle(subContext)"
-      ></i>
-      <i
-        class="pi pi-trash"
-        [style.visibility]="isOptional(subContext) ? 'visible' : 'hidden'"
-        (click)="delete(subContext)"
-      ></i>
-      @switch(getHtmlType(subContext)) { @case('array') {
-      <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
-      } @case('object') {
-      <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
-      } @case('select') {
-      <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
-      } @case('color') {
-      <label> {{ getLabel(subContext) }} </label>
-      <span
-        class="colorBox"
-        [style]="{
-          color: subContext.value,
-          background: subContext.value,
-          '--borderColor': invertColor(subContext.value)
-        }"
-        (click)="onclick(subContext, $event)"
-        >■■■</span
-      >
-      } @case('checkbox') {
-      <label> {{ getLabel(subContext) }} </label>
-      <ng-container
-        *ngTemplateOutlet="checkBox; context: { lcontext: subContext }"
-      ></ng-container>
-      } @default() {
-      <label> {{ getLabel(subContext) }} </label>
-      <input
-        [id]="ui_id + subContext.key + 'ne'"
-        [type]="getHtmlType(subContext)"
-        [(ngModel)]="subContext.value"
-        [class]="getStyleClass(subContext)"
-        [style]="getStyle(subContext)"
-        readonly
-        (click)="onclick(subContext, $event)"
-      />
-      } } @if(getDescriptionArticle(subContext)) {
-      <i class="pi pi-info-circle" (click)="op.toggle($event)"></i>
-      <p-popover #op
-        ><article [innerHTML]="getDescriptionArticle(subContext)"></article
-      ></p-popover>
-      } @if(subContext.debug) {
-      <span [style]="getStyle(subContext)"
-        >{{typeof subContext.value}} {{ subContext.value }}
-        {{ editing == subContext }}
-        {{subContext.key?subContext.pcontext?.value?.[subContext.key]:''}}</span
-      >
-      }
-    </p>
-    }
-  </div>
+<ng-template #preIcons let-subContext="lcontext">
+  @if(isediting(subContext)) {
+  <i
+    class="pi pi-pencil"
+    style="color: green"
+    (click)="edittoggle(subContext)"
+  ></i>
+  <i class="pi pi-trash" (click)="delete(subContext)"></i>
+  @if(canArrayItemUp(subContext)) {
+  <i class="pi pi-arrow-up" (click)="arrayItemUp(subContext)"></i>
+  } @if(canArrayItemDown(subContext)) {
+  <i class="pi pi-arrow-down" (click)="arrayItemDown(subContext)"></i>
+  } } @else() {
+  <i
+    *ngIf="!isReadOnly(subContext)"
+    class="pi pi-pencil"
+    (click)="edittoggle(subContext)"
+  ></i>
+  <i
+    class="pi pi-trash"
+    [style.visibility]="isOptional(subContext) ? 'visible' : 'hidden'"
+    (click)="delete(subContext)"
+  ></i>
+  <i
+    [id]="subContext.key"
+    [aTooltip]="{
+      mode: 'click',
+      html: getDescriptionArticle(subContext) ?? ''
+    }"
+    class="pi pi-info-circle"
+    style="background: inherit; border: none"
+    [style.visibility]="
+      getDescriptionArticle(subContext) ? 'visible' : 'hidden'
+    "
+  ></i>
   }
 </ng-template>
-<ng-template #subItem let-subContext="lcontext" let-isArray="isArray">
-    @if(subContext) {
-    <div>
-      <p style="display: flex; gap: 10px;">
-        @if(isediting(subContext)) {
-        <i
-          class="pi pi-pencil"
-          style="color: green"
-          (click)="edittoggle(subContext)"
-        ></i>
-        <i class="pi pi-trash" (click)="delete(subContext)"></i>
-        @if(isArray) {
-          @if(getNumber(subContext.key)>0) {
-            <i class="pi pi-arrow-up" (click)="arrayItemUp(subContext)"></i>
-          }
-          @if(getNumber(subContext.key)<subContext.pcontext.value.length-1) {
-            <i class="pi pi-arrow-down" (click)="arrayItemDown(subContext)"></i>
-          }          
-        }
-        @switch(getHtmlType(subContext)) { @case('array') {
-        <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
-        } @case('object') {
-        <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
-        } @case('select') {
-        <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
-        } @case('checkbox') {
-        <!--<input [id]="ui_id + p + 'e'" type="checkbox" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
-        <label> {{ getLabel(subContext) }} </label>
-        <ng-container
-          *ngTemplateOutlet="checkBox; context: { lcontext: subContext }"
-        ></ng-container>
-        } @case('number') {
-        <!--<input [id]="ui_id + p + 'e'" type="number" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
-        <label> {{ getLabel(subContext) }} </label>
-        @if(hasMask(subContext)) {
-          <oe-masked [context]="subContext"/>
-        }
-        @else {
-          <oe-number [context]="subContext"/>
-        }} @case('color') {
-        <!--<input [id]="ui_id + p + 'e'" type="color" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
-        <label> {{ getLabel(subContext) }} </label>
-        <ng-container
-          *ngTemplateOutlet="color; context: { lcontext: subContext }"
-        ></ng-container>
-        } @case('radio') {
-          <label> {{ getLabel(subContext) }} </label>
-          <oe-radio [context]="subContext"></oe-radio>
-          } @case('text') {
-            <label> {{ getLabel(subContext) }} </label>
-            @if(hasMask(subContext)) {
-            <oe-masked [context]="subContext"/>
-            }
-            @else {
-              <ng-container
-                *ngTemplateOutlet="default; context: { lcontext: subContext }"></ng-container>
-            }
-          } @default {
-            <label> {{ getLabel(subContext) }} </label>
-            <ng-container
-              *ngTemplateOutlet="default; context: { lcontext: subContext }"
-            ></ng-container>
-          } 
-        }
-      } @else {
-        <i
-          *ngIf="!isReadOnly(subContext)"
-          class="pi pi-pencil"
-          (click)="edittoggle(subContext)"
-        ></i>
-        <i
-          class="pi pi-trash"
-          [style.visibility]="isOptional(subContext) ? 'visible' : 'hidden'"
-          (click)="delete(subContext)"
-        ></i>
-        @switch(getHtmlType(subContext)) { @case('array') {
-        <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
-        } @case('object') {
-        <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
-        } @case('select') {
-        <object-editor [context]="subContext" [primeNg]="primeNg"></object-editor>
-      } @case('number') {
-        <!--<input [id]="ui_id + p + 'e'" type="number" [(ngModel)]="context.value![p]"  (click)="onclick(p,$event)"/> -->
-        <label> {{ getLabel(subContext) }} </label>
-        @if(hasMask(subContext)) {
-          <oe-masked [context]="subContext"/>
-        }
-        @else {
-          <oe-number [context]="subContext"/>
-        }} @case('color') {
-        <label> {{ getLabel(subContext) }} </label>
-        <span
-          class="colorBox"
-          [style]="{
-            color: subContext.value,
-            background: subContext.value,
-            '--borderColor': invertColor(subContext.value)
-          }"
-          (click)="onclick(subContext, $event)"
-          >■■■</span
-        >
-        } @case('checkbox') {
-        <label> {{ getLabel(subContext) }} </label>
-        <ng-container
-          *ngTemplateOutlet="checkBox; context: { lcontext: subContext }"
-        ></ng-container>
-      } @case('radio') {
-        <label> {{ getLabel(subContext) }} </label>
-        <oe-radio [context]="subContext"></oe-radio>
-      } @case('text') {
-        <label> {{ getLabel(subContext) }} </label>
-        @if(hasMask(subContext)) {
-        <oe-masked [context]="subContext"/>
-        }
-        @else {
-          <ng-container
-            *ngTemplateOutlet="default; context: { lcontext: subContext }"></ng-container>
-        }
-      } @default() {
-        <label> {{ getLabel(subContext) }} </label>
-        <input
-          [id]="ui_id + subContext.key + 'ne'"
-          [type]="getHtmlType(subContext)"
-          [(ngModel)]="subContext.value"
-          [class]="getStyleClass(subContext)"
-          [style]="getStyle(subContext)"
-          readonly
-          (click)="onclick(subContext, $event)"
-        />
-        } } 
-        }
-        @if(getDescriptionArticle(subContext)) {
-          <i [id]="subContext.key" [aTooltip]="{mode: 'click',html: getDescriptionArticle(subContext)??''}" class="pi pi-info-circle" style="background:inherit;border:none"></i>
-        } @if(subContext.debug) {
-        <span [style]="getStyle(subContext,'font-size: 0.5rem')"
-          >type={{typeof subContext.value}} value={{ getTextValue(subContext.value) }}
-          editing={{ editing == subContext }}
-          pValue={{getTextValue(subContext.key?subContext.pcontext?.value?.[subContext.key]:'')}}</span
-        >
-      }
-    </p>
-  </div>
-    }
-  </ng-template>
 
-@if(primeNg) {
-<p-fieldset
-  [legend]="(getLabel(context) ?? 'object-editor').toString()"
-  [toggleable]="true"
->
-  <div #objectcontainer>
-    @if(hasOptionalProperties()||(innerSchemeOptions.length > 0)) {
-    <p-fieldset
-      legend="add properties"
-      [toggleable]="true"
-      [dt]="{ legend: { font: { weight: 'normal' } } }"
+<ng-template #subItem let-subContext="lcontext" let-isArray="isArray">
+  @if(subContext) {
+
+  <span class="grid-item" style="--column: 1">
+    <ng-container
+      *ngTemplateOutlet="preIcons; context: { lcontext: subContext }"
+    ></ng-container>
+  </span>
+
+  @if(!['array','object','select'].includes(getHtmlType(subContext))) {
+  <label class="grid-item" style="--column: 2">
+    {{ getLabel(subContext) }}
+  </label>
+  }
+
+  <span
+    class="grid-item"
+    [style]="
+      !['array', 'object', 'select'].includes(getHtmlType(subContext))
+        ? '--column: 3'
+        : '--column: 2/4'
+    "
+  >
+    @if(['array','object','select'].includes(getHtmlType(subContext))) {
+    <object-editor [context]="subContext" [primeNg]="primeNg" />
+    } @else { @if(isediting(subContext)) { @switch(getHtmlType(subContext)) {
+    @case('checkbox') {
+    <ng-container
+      *ngTemplateOutlet="checkBox; context: { lcontext: subContext }"
+    ></ng-container>
+    } @case('number') { @if(hasMask(subContext)) {
+    <oe-masked [context]="subContext" />
+    } @else {
+    <oe-number [context]="subContext" />
+    }} @case('color') {
+    <ng-container
+      *ngTemplateOutlet="color; context: { lcontext: subContext }"
+    ></ng-container>
+    } @case('radio') {
+    <oe-radio [context]="subContext"></oe-radio>
+    } @case('text') { @if(hasMask(subContext)) {
+    <oe-masked [context]="subContext" />
+    } @else {
+    <ng-container
+      *ngTemplateOutlet="default; context: { lcontext: subContext }"
+    ></ng-container>
+    } } @default {
+    <ng-container
+      *ngTemplateOutlet="default; context: { lcontext: subContext }"
+    />
+    } } } @else { @switch(getHtmlType(subContext)) { @case('number') {
+    @if(hasMask(subContext)) {
+    <oe-masked [context]="subContext" />
+    } @else {
+    <oe-number [context]="subContext" />
+    }} @case('color') {
+    <span
+      class="colorBox"
+      [style]="{
+        color: subContext.value,
+        background: subContext.value,
+        '--borderColor': invertColor(subContext.value)
+      }"
+      (click)="onclick(subContext, $event)"
+      >■■■</span
     >
-      @if(hasOptionalProperties()) {
-      <p-select
-        [options]="getOptionalPropertyKeyLabelList()"
-        [(ngModel)]="optionalPropertySel"
-        placeholder="Select an Optional Property"
-      />
-      } @if(innerSchemeOptions.length > 0) {
-      <p style="display: flex; gap: 10px">
-        @if(isObject()) {
-        <input
-          [id]="ui_id + 0"
-          type="text"
-          pattern="[a-zA-Z]{1}[a-zA-Z0-9_]*"
-          [(ngModel)]="newProperty.property"
-        />
-        <select [(ngModel)]="newProperty.schemeKey">
-          <option>choose an option</option>
-          <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
-            {{ o }}
-          </option>
-        </select>
-        <i class="pi pi-plus-circle" (click)="addNewProperty()"></i>
-      }
-      @if(isArray()) {
-        <select [(ngModel)]="newProperty.schemeKey">
-          <option>choose an option</option>
-          <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
-            {{ o }}
-          </option>
-        </select>
-        <i class="pi pi-plus-circle" (click)="addNewProperty()"></i>
-      }
+    } @case('checkbox') {
+    <span>
+      <ng-container
+        *ngTemplateOutlet="checkBox; context: { lcontext: subContext }"
+      ></ng-container>
+    </span>
+    } @case('radio') {
+    <oe-radio [context]="subContext"></oe-radio>
+    } @case('text') { @if(hasMask(subContext)) {
+    <oe-masked [context]="subContext" />
+    } @else {
+    <span>
+      <ng-container
+        *ngTemplateOutlet="default; context: { lcontext: subContext }"
+      ></ng-container>
+    </span>
+    } } @default() {
+    <input
+      [id]="ui_id + subContext.key + 'ne'"
+      [type]="getHtmlType(subContext)"
+      [(ngModel)]="subContext.value"
+      [class]="getStyleClass(subContext)"
+      [style]="getStyle(subContext)"
+      readonly
+      (click)="onclick(subContext, $event)"
+    />
+    } } } }
+    <span>
+      @if(subContext.debug) {
+      <p [style]="getStyle(subContext, 'font-size: 0.5rem')"
+        >type={{typeof subContext.value}} value={{
+          getTextValue(subContext.value)
+        }}
+        pValue={{getTextValue(subContext.key?subContext.pcontext?.value?.[subContext.key]:'')}}
+        editing={{ editing == subContext }}
       </p>
       }
-    </p-fieldset>
-    } @if(getHtmlType(context)=='select') {
-    <p-select
-      [options]="getSchemeSelectionList(context)"
-      [(ngModel)]="selectionObj"
-      (ngModelChange)="selectScheme(context, selectionObj?.key)"
-      optionLabel="label"
-      placeholder="Select a Scheme"
-      class="w-full md:w-56"
-      (click)="onclick(context, $event)"
-    />
-    @if(selectedSubContext) {
-    <ng-container
-      *ngTemplateOutlet="subItem; context: { lcontext: selectedSubContext }"
-    ></ng-container>
-    } } @if(isObject() || isArray()) { @for (p of properties; track p) { @let
-    subContext = getSubContext(p);
-    <ng-container
-      *ngTemplateOutlet="subItem_png; context: { lcontext: subContext }"
-    ></ng-container>
-    }}
-  </div>
-</p-fieldset>
-} @else {
+    </span>
+  </span>
+  }
+</ng-template>
+
 <fieldset>
   <legend>
     @if(context.scheme?.uiEffects?.toggle) {
-      <i [class]="root_fieldset_expanded ? 'pi pi-minus-circle' : 'pi pi-plus-circle'" (click)="root_fieldset_expanded = !root_fieldset_expanded"></i>
+    <i
+      [class]="
+        root_fieldset_expanded ? 'pi pi-minus-circle' : 'pi pi-plus-circle'
+      "
+      (click)="root_fieldset_expanded = !root_fieldset_expanded"
+    ></i>
     }
     {{ (getLabel(context) ?? "object-editor").toString() }}
   </legend>
   <div #objectcontainer [hidden]="!root_fieldset_expanded">
-      @if(hasOptionalProperties()) {
-        <fieldset style="display:inline">
-          <legend>add an optional property</legend>
-          <select [(ngModel)]="optionalPropertySel" (ngModelChange)="optionalPropertySet()" style="border:solid lightgrey 1px;min-width:10rem">
-              <option selected value=''>optional property</option>
-            <option *ngFor="let o of getOptionalPropertyKeyLabelList()" value="{{ o.key }}">
-            {{ o.label }}
-          </option>
-        </select>
-      </fieldset>
-      } 
-      @if(innerSchemeOptions.length > 0) {
-        <fieldset style="display:inline">
-          <legend>{{isObject() ? "add a new property" : "add a new item"}}</legend>
-         @if(isObject()) {
-        <input
-          [id]="ui_id + 0"
-          type="text"
-          pattern="[a-zA-Z]{1}[a-zA-Z0-9_]*"
-          placeholder="enter property name"
-          [(ngModel)]="newProperty.property"
-          style="margin-right:1rem;border:solid 1px lightgrey"
-        />
-        <select [(ngModel)]="newProperty.schemeKey" style="margin-right:1rem;border:solid 1px lightgrey">
-          <option disabled value="">select type</option>
-          <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
-            {{ o }}
-          </option>
-        </select>
-        <i class="pi pi-plus-circle" [aTooltip]="{html: 'click to add property'}" (click)="addNewProperty()" [style]="!canAddObjectProperty()?'display:none':''"></i>
+    @if(hasOptionalProperties()) {
+    <fieldset style="display: inline">
+      <legend>add an optional property</legend>
+      <select
+        [(ngModel)]="optionalPropertySel"
+        (ngModelChange)="optionalPropertySet()"
+        style="border: solid lightgrey 1px; min-width: 10rem"
+      >
+        <option selected value="">optional property</option>
+        <option
+          *ngFor="let o of getOptionalPropertyKeyLabelList()"
+          value="{{ o.key }}"
+        >
+          {{ o.label }}
+        </option>
+      </select>
+    </fieldset>
+    } @if(innerSchemeOptions.length > 0) {
+    <fieldset style="display: inline">
+      <legend>
+        {{ isObject() ? "add a new property" : "add a new item" }}
+      </legend>
+      @if(isObject()) {
+      <input
+        [id]="ui_id + 0"
+        type="text"
+        pattern="[a-zA-Z]{1}[a-zA-Z0-9_]*"
+        placeholder="enter property name"
+        [(ngModel)]="newProperty.property"
+        style="margin-right: 1rem; border: solid 1px lightgrey"
+      />
+      <select
+        [(ngModel)]="newProperty.schemeKey"
+        style="margin-right: 1rem; border: solid 1px lightgrey"
+      >
+        <option disabled value="">select type</option>
+        <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
+          {{ o }}
+        </option>
+      </select>
+      <i
+        class="pi pi-plus-circle"
+        [aTooltip]="{ html: 'click to add property' }"
+        (click)="addNewProperty()"
+        [style]="!canAddObjectProperty() ? 'display:none' : ''"
+      ></i>
+      } @if(isArray()) {
+      <select
+        [(ngModel)]="newProperty.schemeKey"
+        style="margin-right: 1rem; border: solid 1px lightgrey"
+      >
+        <option disabled value="">select type</option>
+        <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
+          {{ o }}
+        </option>
+      </select>
+      <i
+        class="pi pi-plus-circle"
+        [aTooltip]="{ html: 'click to add item' }"
+        (click)="addNewProperty()"
+        [style]="!canAddArrayElement() ? 'display:none' : ''"
+      ></i>
       }
-      @if(isArray()) {
-        <select [(ngModel)]="newProperty.schemeKey" style="margin-right:1rem;border:solid 1px lightgrey">
-          <option disabled value="">select type</option>
-          <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
-            {{ o }}
-          </option>
-        </select>
-        <i class="pi pi-plus-circle" [aTooltip]="{html: 'click to add item'}" (click)="addNewProperty()" [style]="!canAddArrayElement()?'display:none':''"></i>
-      }
-      </fieldset>
+    </fieldset>
+    <p></p>
     } @if(getHtmlType(context)=='select') {
-    <select [(ngModel)]="schemeSelectionKey" (ngModelChange)="selectScheme(context,schemeSelectionKey)" >
+    <select
+      [(ngModel)]="schemeSelectionKey"
+      (ngModelChange)="selectScheme(context, schemeSelectionKey)"
+    >
       <option disabled value="">select type</option>
-      <option *ngFor="let o of getSchemeSelectionList(context)" value="{{o.key}}">
-        {{ o.label }}({{o.key}})
+      <option
+        *ngFor="let o of getSchemeSelectionList(context)"
+        value="{{ o.key }}"
+      >
+        {{ o.label }}({{ o.key }})
       </option>
     </select>
+    <p></p>
     @if(selectedSubContext) {
-    <ng-container
-      *ngTemplateOutlet="subItem; context: { lcontext: selectedSubContext }"
-    ></ng-container>
-    } } @if(isObject() || isArray()) { 
-      <p [style]=getInnerStyle(context)>@for (p of properties; track p) { 
-      @let subContext = getSubContext(p);
-    <ng-container
-      *ngTemplateOutlet="subItem; context: { lcontext: subContext, isArray: isArray() }"
-    ></ng-container>
-    }</p>}
+    <div>
+      <ng-container
+        *ngTemplateOutlet="subItem; context: { lcontext: selectedSubContext }"
+      ></ng-container>
+    </div>
+    } } @if(isObject() || isArray()) {
+    <div class="grid" [style]="getInnerStyle(context)">
+      @for (p of properties; track p) { @let subContext = getSubContext(p);
+      <ng-container
+        *ngTemplateOutlet="
+          subItem;
+          context: { lcontext: subContext, isArray: isArray() }
+        "
+      ></ng-container>
+      }
+    </div>
+    }
   </div>
 </fieldset>
-} }
+}

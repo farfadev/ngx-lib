@@ -55,7 +55,7 @@ export class TestComponent implements OnInit {
           uibase: 'text',
           default: 'test',
           style: (context: ObjectEditor.Context) => context.value == "red" ?  "color: red;font-weight: bold":"color: green;font-weight: bold",
-          description: (context: ObjectEditor.Context) => "<p><b>property p1</b></br></p<p>this is to test a text property</br></p>" +
+          description: (context: ObjectEditor.Context) => '<p><b>property '+context.key+'</b></br></p<p>this is to test a text input, style <span style=\'font-weight:bold;color:red;\'>bold red</span> when value is \'red\' </br></p>' +
             "<p>value=" + (typeof context.value) + " " + context.value + "</p>"
         },
         '2-number': {

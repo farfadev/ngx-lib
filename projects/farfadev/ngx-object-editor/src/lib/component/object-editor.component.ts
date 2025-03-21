@@ -81,8 +81,8 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
   canAddArrayElement(): boolean {
     return (this.context?.scheme?.uibase == 'array'
-    &&(this.newProperty.schemeKey != '')
-    &&(this.context.scheme.max?this.context.value.length < this.context.scheme.max:true));
+      && (this.newProperty.schemeKey != '')
+      && (this.context.scheme.max ? this.context.value.length < this.context.scheme.max : true));
   }
   editing?: ObjectEditor.Context;
   propertyClickEvent = false;
@@ -102,38 +102,55 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     return Number(arg0);
   }
 
+  canArrayItemUp(context: ObjectEditor.Context) {
+    return !(context?.pcontext == undefined 
+      || !ObjectEditor.isArray(context?.pcontext)
+      || context?.key === undefined 
+      || context.pcontext?.scheme?.properties === undefined)
+      && this.getNumber(context.key)>0;
+  }
+
   arrayItemUp(context: ObjectEditor.Context) {
-    if(context?.key === undefined || 
+    if (context?.key === undefined ||
       context.pcontext?.scheme?.properties === undefined) return;
     const i = Number(context.key);
-    if((i < 1)||(i >= context.pcontext.value.length))  return;
-    const v0 = context.pcontext.value[i-1];
+    if ((i < 1) || (i >= context.pcontext.value.length)) return;
+    const v0 = context.pcontext.value[i - 1];
     const v1 = context.pcontext.value[i];
     context.pcontext.value[i] = v0;
-    context.pcontext.value[i-1] = v1;
+    context.pcontext.value[i - 1] = v1;
 
-    const s0 = context.pcontext?.scheme?.properties?.[i-1];
+    const s0 = context.pcontext?.scheme?.properties?.[i - 1];
     const s1 = context.pcontext?.scheme?.properties?.[i];
     context.pcontext.scheme.properties[i] = s0;
-    context.pcontext.scheme.properties[i-1] = s1;
-    context.pcontext.contextChange?.(context.pcontext,{key: i-1});
+    context.pcontext.scheme.properties[i - 1] = s1;
+    context.pcontext.contextChange?.(context.pcontext, { key: i - 1 });
+  }
+
+  canArrayItemDown(context: ObjectEditor.Context) {
+    const res = !(context?.pcontext == undefined 
+      || !ObjectEditor.isArray(context?.pcontext)
+      || context?.key === undefined 
+      || context.pcontext?.scheme?.properties === undefined)
+      && this.getNumber(context.key)<context.pcontext.value.length-1;
+    return res;
   }
 
   arrayItemDown(context: ObjectEditor.Context) {
-    if(context?.key === undefined || 
+    if (context?.key === undefined ||
       context.pcontext?.scheme?.properties === undefined) return;
     const i = Number(context.key);
-    if((i < 0)||(i >= context.pcontext.value.length-1))  return;
+    if ((i < 0) || (i >= context.pcontext.value.length - 1)) return;
     const v0 = context.pcontext.value[i];
-    const v1 = context.pcontext.value[i+1];
-    context.pcontext.value[i+1] = v0;
+    const v1 = context.pcontext.value[i + 1];
+    context.pcontext.value[i + 1] = v0;
     context.pcontext.value[i] = v1;
 
     const s0 = context.pcontext?.scheme?.properties?.[i];
-    const s1 = context.pcontext?.scheme?.properties?.[i+1];
-    context.pcontext.scheme.properties[i+1] = s0;
+    const s1 = context.pcontext?.scheme?.properties?.[i + 1];
+    context.pcontext.scheme.properties[i + 1] = s0;
     context.pcontext.scheme.properties[i] = s1;
-    context.pcontext.contextChange?.(context.pcontext,{key: i+1});
+    context.pcontext.contextChange?.(context.pcontext, { key: i + 1 });
   }
 
   hasOptionalProperties(): boolean {
@@ -161,11 +178,11 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
       this.newProperty.property = '';
       this.newProperty.schemeKey = '';
     }
-/*  //TODO async replaced by setTimeout to workaround source map problem  
-    (async () => {
-      this.optionalPropertySel = '';
-    })();
-*/
+    /*  //TODO async replaced by setTimeout to workaround source map problem  
+        (async () => {
+          this.optionalPropertySel = '';
+        })();
+    */
     setTimeout(() => this.optionalPropertySel = '', 10);
   }
 
@@ -189,12 +206,12 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
 
   selectScheme(context: ObjectEditor.Context, schemeKey?: string | number) {
     this.selectedSubContext = ObjectEditor.selectScheme(context, schemeKey);
-  //TODO async replaced by setTimeout to workaround source map problem  
-/*    (async () => {
-      this.schemeSelectionKey = '';
-    })();
-*/
-    setTimeout(()=> this.schemeSelectionKey = '',10);
+    //TODO async replaced by setTimeout to workaround source map problem  
+    /*    (async () => {
+          this.schemeSelectionKey = '';
+        })();
+    */
+    setTimeout(() => this.schemeSelectionKey = '', 10);
   }
 
   getLabel(subContext: ObjectEditor.Context) {
@@ -241,9 +258,9 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     return ObjectEditor.getDescription(context);
   }
 
-  getStyle(context: ObjectEditor.Context,stylePlus?: string) {
+  getStyle(context: ObjectEditor.Context, stylePlus?: string) {
     const style = ObjectEditor.getStyle(context);
-    const rStyle = style ? (style + (stylePlus ? ';'+stylePlus:'')) : stylePlus ?? '';
+    const rStyle = style ? (style + (stylePlus ? ';' + stylePlus : '')) : stylePlus ?? '';
     return rStyle;
   }
 
@@ -251,9 +268,9 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     return ObjectEditor.getStyleClass(context);
   }
 
-  getInnerStyle(context: ObjectEditor.Context,stylePlus?: string) {
+  getInnerStyle(context: ObjectEditor.Context, stylePlus?: string) {
     const style = ObjectEditor.getInnerStyle(context);
-    const rStyle = style ? (style + (stylePlus ? ';'+stylePlus:'')) : stylePlus ?? '';
+    const rStyle = style ? (style + (stylePlus ? ';' + stylePlus : '')) : stylePlus ?? '';
     return rStyle;
   }
 
@@ -327,12 +344,12 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     if (this.context?.scheme?.uibase == 'select' && typeof this.context?.key == 'string') {
       this.selectScheme(this.context, this.context.key)
     }
-    this.context.contextChange = (context,env?: {[key: string|number]: any}) => {
+    this.context.contextChange = (context, env?: { [key: string | number]: any }) => {
       //this.ref.detectChanges();
       //this.reloadComponent();
       this.context = context;
       //this.setProperties();
-      if(env?.['key'] != undefined) {
+      if (env?.['key'] != undefined) {
         this.propertyClickEvent = true;
         this.editing = this.getSubContext(env?.['key']);
       }
