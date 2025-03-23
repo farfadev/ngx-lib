@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, Input, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ObjectEditor } from '@farfadev/ngx-object-editor';
-import { ObjectEditorModule, checkNumber } from "@farfadev/ngx-object-editor";
+import { ObjectEditorModule, adjustNumber, dmsMask } from "@farfadev/ngx-object-editor";
 
 type Coordinates = {
   lat: number;
@@ -12,12 +14,22 @@ type Coordinates = {
   selector: 'app-object-editor-test',
   templateUrl: './test.component.html',
   styleUrls: ['./test.component.scss'],
-  imports: [RouterModule, ObjectEditorModule],
+  imports: [CommonModule,FormsModule,RouterModule, ObjectEditorModule],
 })
 export class TestComponent implements OnInit {
 
+  _debug: boolean = false;
+  @Input()
+  set debug(v: boolean) {
+    this._debug = v;
+    this.mycontext1.debug = v;
+  };
+  get debug(): boolean {
+    return this._debug;
+  }
+
   mycontext1: ObjectEditor.Context = {
-//    debug: true,
+    debug: this.debug,
     value: {
       p1: 'coucou',
       p3: '#ffffff',
@@ -61,45 +73,28 @@ export class TestComponent implements OnInit {
         '2-number': {
           uibase: 'number',
           default: 5,
-          check: (context: ObjectEditor.Context,cursorPosition?: number) => checkNumber(context.value,{
-            min: -1,
-            max: 17,
-            significants: 4  
-          },cursorPosition),
+          adjust: adjustNumber({min: -1,max: 17,decimals:12,significants: 4})
         },
         '2a-number': {
           uibase: 'number',
           default: 5,
-          min: -1,
-          max: 1789,
-          significants: 8,
           maskOptions: {
             mask: Number,
-            thousandsSeparator: ' ',
+            thousandsSeparator: '!',
             radix: '.',
+            scale: 20,
             expose: true
           }
         },
         '2b-dms': {
           uibase: 'number',
           default: 5,
-          min: -1,
-          max: 1789,
-          significants: 4,
-          maskOptions: {
-            mask: Number,
-            thousandsSeparator: 'z',
-            radix: '.',
-
-          }
+          maskOptions: dmsMask
         },
         '2-opt number': {
           uibase: 'number',
           optional: true,
           default: 5,
-          min: -1,
-          max: 17,
-          significants: 4
         },
         '3-color': {
           uibase: 'color'
@@ -127,9 +122,6 @@ export class TestComponent implements OnInit {
             number: {
               uibase: 'number',
               default: 3,
-              min: 0,
-              max: 10,
-              decimals: 0
             }
           }
         },
@@ -163,9 +155,6 @@ export class TestComponent implements OnInit {
             number: {
               uibase: 'number',
               default: 3,
-              min: 0,
-              max: 10,
-              decimals: 0
             }
           }
         },
@@ -187,6 +176,9 @@ export class TestComponent implements OnInit {
         } as ObjectEditor.Scheme<number[],Coordinates>,
         '7-radio': {
           uibase: 'radio',
+          uiEffects: {
+              horizontal: true
+          },
           enum: {
             sel1: 'coucou',
             sel2: 0,
@@ -200,7 +192,11 @@ export class TestComponent implements OnInit {
           uibase: 'datetime'
         },
         '10-file': {
-          uibase: 'file'
+          uibase: 'file',
+          maskOptions: {
+//            multiple: true,
+            accept: '*.png;*.jpg;*.jpeg'
+          }
         },
         '11-image': {
           uibase: 'image'
@@ -230,8 +226,5 @@ export class TestComponent implements OnInit {
 
   ngOnInit() { }
 
-}
-function numberCheck(context: ObjectEditor.Context, arg1: { min: number; max: number; significants: number; }): ObjectEditor.Checked | null {
-  throw new Error('Function not implemented.');
 }
 

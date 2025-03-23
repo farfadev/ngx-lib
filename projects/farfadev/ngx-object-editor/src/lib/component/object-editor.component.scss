@@ -2,6 +2,15 @@
 // http://geon.github.io/programming/2016/02/24/flexbox-full-page-web-app-layout
 @import "primeicons/primeicons.css";
 
+.fieldset-main {
+  margin-bottom: 1em;
+  border: 1px solid lightgray;
+  width:max-content;
+  padding-bottom: 0;
+  padding-left:0;
+  padding-right:0;
+}
+
 .colorBox {
     display: inline-block;
     border: solid var(--borderColor);

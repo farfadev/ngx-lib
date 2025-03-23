@@ -5,8 +5,6 @@ import { routes } from './app.routes';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideHttpClient } from '@angular/common/http';
-import { providePrimeNG } from 'primeng/config';
-import Aura from '@primeng/themes/aura';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -15,17 +13,6 @@ export const appConfig: ApplicationConfig = {
       importProvidersFrom(BrowserAnimationsModule),
       provideRouter(routes,withDebugTracing()),
       provideAnimationsAsync(),
-      provideHttpClient(),
-      providePrimeNG({
-          theme: {
-              preset: Aura,
-              options: {
-                  cssLayer: {
-                      name: 'primeng',
-                      order: 'app-styles, primeng'
-                  }
-              }
-              },
-      })
+      provideHttpClient()
   ]
 };

@@ -22,9 +22,10 @@ export namespace ObjectEditor {
 
   export type UIEffects = {
     toggle?: boolean;
+    horizontal?: true;
   }
 
-  export type Checked = {
+  export type Adjusted = {
     formattedValue?: string,
     adjustedValue?: any,
     message?: string,
@@ -50,7 +51,7 @@ export namespace ObjectEditor {
     // for primeng design token styling
     designToken?: object | ((context: Context) => object)
     // rules for UI , such as scrolling, toggling
-    uiEffects?: UIEffects;
+    uiEffects?: UIEffects | ((context: Context) => UIEffects);
     // an html <article> that helps frontend user to understand/ set the value 
     description?: string | ((context: Context) => string);
     // a call-back to set Scheme dynamically depending on a runtime context
@@ -89,11 +90,9 @@ export namespace ObjectEditor {
       max?: number;
     }
     // a custom check returning optionally an adjusted value, a message to display, and a cursorPosition 
-    // example: check: (context: Context) => [2,4,6].find((el)=>el==context.value) ? null: {value: 2,message: "value shall be either 2, 4 or 6",cursorPosition: 'end'}
-    check?: (context: Context,cursorPosition?: number) => Checked|null,
-    decimals?: number // number of decimal digits (digits in excess wil be truncated)
-    significants?: number // number of significant digits (digits in excess will be truncated)
-    regexp?: RegExp; // input text shall meet regexp
+    // example: check: (context: Context) => [2,4,6].find((el)=>el==Number(context.value)) ? null: {value: 2,message: "value shall be either 2, 4 or 6",cursorPosition: 'end'}
+    // min , max     : (context: Context) => {if(Number(context.value)<min) return min; else return context.value; }
+    adjust?: (context: Context,cursorPosition?: number) => Adjusted|null,
     // provides a set of selectable schemes when value can have different schemes
     schemeSelectionList?: SchemeList<T, U> | (() => SchemeList<T, U>);
     // holds the scheme selection key from the scheme selection list
@@ -183,7 +182,7 @@ export namespace ObjectEditor {
     file: {
       type: 'file',
       html: 'file',
-      js: 'string',
+      js: 'object',
     },
     email: {
       type: 'email',
@@ -644,6 +643,10 @@ export namespace ObjectEditor {
     return context.scheme?.uibase == 'object'
   }
 
+  export const isSelect = (context: Context) => {
+    return context.scheme?.uibase == 'select'
+  }
+
   export const isReadOnly = (context: Context) => {
     const opt = context.scheme?.readonly;
     return opt ?? false;
@@ -655,7 +658,7 @@ export namespace ObjectEditor {
   }
 
   export const getOptionalPropertyList = (context: Context): string[] => {
-    if (!context.scheme?.properties) {
+    if (!(context.scheme?.uibase == 'object') || !context.scheme?.properties) {
       return [];
     }
     const isel = Object.keys(context.scheme?.properties);
@@ -769,6 +772,9 @@ export namespace ObjectEditor {
     if (context.editUpdate) {
       context.editUpdate();
     }
+    else if(context.pcontext?.editUpdate) {
+      context.pcontext?.editUpdate();
+    }
   }
 
   export const getStyle = (context: Context) => {
@@ -822,6 +828,15 @@ export namespace ObjectEditor {
     }
     else {
       return context.scheme?.maskOptions;
+    }
+  }
+
+  export const getUIEffects = (context: Context): UIEffects|undefined => {
+    if (typeof context.scheme?.uiEffects == 'function') {
+      return context.scheme.uiEffects(context);
+    }
+    else {
+      return context.scheme?.uiEffects;
     }
   }
 

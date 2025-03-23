@@ -1,4 +1,4 @@
-<object-editor [context]="mycontext1"  [primeNg]="false"></object-editor>
-<object-editor [context]="mycontext1" [primeNg]="true"></object-editor>
-<object-editor [context]="mycontext2" [primeNg]="true"></object-editor>
+DEBUG <input type="checkbox" [(ngModel)]="debug"/>
+<object-editor [context]="mycontext1" [debug]="mycontext1.debug??false"></object-editor>
+<object-editor [context]="mycontext2"></object-editor>
 

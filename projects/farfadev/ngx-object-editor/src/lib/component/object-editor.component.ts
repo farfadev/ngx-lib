@@ -3,9 +3,11 @@
 import {
   Component,
   ElementRef,
+  EventEmitter,
   Input,
   OnDestroy,
   OnInit,
+  Output,
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
@@ -37,9 +39,14 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     this._context = value;
     this.initContext();
   }
-
   @Input()
-  primeNg: boolean = false; // if true, will use the primeng components
+  set debug(value: boolean) {
+    for(const sc of Object.keys(this.subContextList)) {
+      this.subContextList[sc]!.debug = value;
+    }
+  }
+  @Output() 
+  propertyListChange = new EventEmitter<ObjectEditor.Context>();
 
   ui_id;
 
@@ -234,6 +241,9 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   isObject() {
     return this.context ? ObjectEditor.isObject(this.context) : false;
   }
+  isSelect() {
+    return this.context ? ObjectEditor.isSelect(this.context) : false;
+  }
   isediting(context: ObjectEditor.Context) {
     return context == this.editing;
   }
@@ -282,6 +292,14 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     return ObjectEditor.getDesignToken(context);
   }
 
+  getUIEffects(): ObjectEditor.UIEffects {
+    return ObjectEditor.getUIEffects(this.context!)!;
+  }
+
+  canToggle(): boolean {
+    return this.getUIEffects()?.toggle ?? false;
+  }
+
   onclick(context: ObjectEditor.Context, event?: MouseEvent) {
     this.propertyClickEvent = true;
     if (this.editing != context) {
@@ -305,6 +323,13 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     }
   }
 
+  updatePropertyList(subContext: ObjectEditor.Context) {
+    if(this.context != undefined && this.selectedSubContext === subContext) {
+      this.selectScheme(this.context);
+    }
+    this.setProperties();
+  }
+
   setProperties(): void {
     if (!this.context) return;
     this.properties = ObjectEditor.getProperties(this.context);
@@ -323,7 +348,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
 
   delete(context: ObjectEditor.Context) {
     ObjectEditor.deleteProperty(context);
-    this.setProperties();
+    this.propertyListChange.emit(context);
   }
 
   getTextValue(o: any) {

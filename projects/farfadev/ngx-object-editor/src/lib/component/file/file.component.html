@@ -1,0 +1,21 @@
+@if(context) {
+<div
+  [id]="getId()"
+  [class]="getStyleClass(context)"
+  [style]="getStyle(context)"
+>
+  <input
+    [id]="getId()+'fileElem'"
+    type="file"
+    [multiple]="isMultiple()"
+    [accept]="accept()"
+    style="display:none;"
+  />
+  <button [id]="getId()+'fileSelect'" type="button">Select some files</button>
+  @for(f of files; track f) {
+    <p><i class="pi pi-trash" (click)="trash(f)"></i><img style="size:20px" [src]="getURL(f)"><a [href]="getURL(f)" target="_blank">&nbsp;&nbsp;{{f.name}}</a></p>
+  }
+</div>
+@if(err_msg) {
+<p style="color: red; font-size: 0.8rem; margin: 0">{{ err_msg }}</p>
+} }

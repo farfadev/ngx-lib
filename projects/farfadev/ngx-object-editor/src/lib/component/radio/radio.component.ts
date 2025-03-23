@@ -47,6 +47,10 @@ export class OERadioComponent implements OnInit, OnDestroy {
     this.ui_id = window.crypto.randomUUID();
   }
 
+  isHorizontal() {
+    return ObjectEditor.getUIEffects(this.context!)?.['horizontal'] ?? false;
+  }
+
   ngOnInit(): void {
   }
 

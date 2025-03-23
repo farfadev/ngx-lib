@@ -90,65 +90,9 @@ export class OEMaskedComponent implements OnInit, OnDestroy, AfterViewInit {
     return value;
   }
 
-  validate() {
-    this.err_msg = '';
-    let rValue: number = Number(this.stripFormat(this.value));
-    if ((this.context?.scheme?.min != undefined) && rValue < this.context?.scheme?.min) {
-      this.err_msg = 'value is below the minimum allowed' + this.context?.scheme?.min;
-      rValue = this.context?.scheme?.min
-    }
-    else if ((this.context?.scheme?.max != undefined) && rValue > this.context?.scheme?.max) {
-      this.err_msg = 'value is over the maximum allowed' + this.context?.scheme?.max;
-      rValue = this.context?.scheme?.max
-    }
-    else if (this.context?.scheme?.significants != undefined) {
-      if (this.countSignificant(rValue) > this.context?.scheme?.significants) {
-        this.err_msg = 'significant digits over the maximum allowed' + this.context?.scheme?.significants;
-      };
-      rValue = this.roundSignificant(rValue, this.context?.scheme?.significants);
-    }
-    this.context!.value = rValue;
-  }
-
-  adjustCursor(v: string, count: number): number {
-    let r = 0;
-    for (const c of [...v]) {
-      if (count == 0) break;
-      if ("-0123456789.".indexOf(c) >= 0) count--;
-      r++;
-    }
-    return r;
-  }
-
-  getDigitCount(v: String, p: number): number {
-    let r = 0;
-    for (let i = 0; i < p; i++) {
-      if (![' '].includes(v.charAt(i))) {
-        r++;
-      }
-    }
-    return r;
-  }
-
   editUpdate() {
-    this.validate();
+    this.context!.value = this.value;
     this._context!.editUpdate?.();
-  }
-
-  roundSignificant(xi: number, n: number): number {
-    return xi; //TODO
-  }
-
-  countSignificant(x: number, z?: number): number {
-    let index1 = 0, index2 = 0;
-    for (const c of x.toString()) {
-      if (c == '.') continue;
-      if ((c >= '0') && (c <= '9')) {
-        if (index2 != 0 || c != '0') index2++;
-        if (c != '0') index1 = index2;
-      }
-    }
-    return index1;
   }
 
   initMask() {

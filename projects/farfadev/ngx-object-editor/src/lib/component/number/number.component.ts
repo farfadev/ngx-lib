@@ -11,6 +11,7 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import { ObjectEditor } from '../../object-editor';
+import { adjustNumber } from '../../adjust/adjust-number';
 
 @Component({
   standalone: false,
@@ -58,17 +59,25 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
     this.inputElement = document.getElementById(this.getId()) as HTMLInputElement;
     if (this.inputElement) {
       this.inputElement.addEventListener('keyup', (event: KeyboardEvent) => {
-        //this.adjustBOM();
       })
       this.inputElement.onkeydown = (e: KeyboardEvent) => {
+        const curPos = this.inputElement!.selectionStart??-1;
         if (e.key == '-') {
+          if(curPos === 0) {
+            return(this.value.charAt(1) != '-');
+          }
+          if(curPos > 0) {
+            return(this.value.charAt(curPos) != '-' && 
+              (this.value.charAt(curPos-1) == 'e' ||
+              this.value.charAt(curPos-1) == 'E'));
+          }
           if (this.value.indexOf('-') >= 0) return false;
           if (this.inputElement!.selectionStart??-1 > 0) return false;
         }
         if (['.'].includes(e.key)) {
           if (this.value.indexOf('.') >= 0) return false;
         }
-        return (e.key.length == 1 && ("-1234567890.".indexOf(e.key) >= 0)) ||
+        return (e.key.length == 1 && ("-1234567890.eE".indexOf(e.key) >= 0)) ||
           ['ArrowLeft', 'ArrowRight', 'Home', 'End', 'Backspace', 'Delete'].includes(e.key)
       };
     }
@@ -93,28 +102,27 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onclick() {
-    //this.adjustBOM();
     this._context?.onClick?.();
+  }
+
+  adjust(cursor?: number) {
+    const adjust = this.context?.scheme?.adjust ?? adjustNumber({});
+    return adjust(this.context!,cursor);
   }
 
   editUpdate() {
     this.context!.value = this.value;
-    const checked = this.context?.scheme?.check?.(this.context,this.inputElement!.selectionStart??0)
-    this.context!.value = checked?.adjustedValue;
-    this.value = checked?.formattedValue??'';
-    this.err_msg = checked?.message??'';
+    const adjusted = this.adjust(this.inputElement!.selectionStart??0);
+    this.context!.value = adjusted?.adjustedValue ?? '';
+    this.value = adjusted?.formattedValue??'';
+    this.err_msg = adjusted?.message??'';
 
-/*    this.validate();
-    const p0 = this.getDigitCount(this.value,this.inputElement!.selectionStart??0);
-    this.value = this.format(this.value);
-    const cursorPosition = this.adjustCursor(this.value,p0);
-*/
-    let cursorPosition = 0;
-    if(checked?.cursorPosition == 'end') {
+    let cursorPosition = this.inputElement!.selectionStart;
+    if(adjusted?.cursorPosition == 'end') {
       cursorPosition = String(this.context!.value).length;
     }
     else {
-      cursorPosition = checked?.cursorPosition ?? 0;
+      cursorPosition = adjusted?.cursorPosition ?? this.inputElement!.selectionStart;
     }
 
     setTimeout(()=>{
@@ -127,9 +135,9 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
 
   initContext() {
     if (!this.context) return;
-    const checked = this.context?.scheme?.check?.(this.context)
-    this.value = checked?.formattedValue??'';
-    this.err_msg = checked?.message??'';
+    const adjusted = this.adjust()
+    this.value = adjusted?.formattedValue??this.value;
+    this.err_msg = adjusted?.message??'';
   }
 
 }

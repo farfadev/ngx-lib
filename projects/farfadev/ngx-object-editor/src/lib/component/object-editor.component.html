@@ -34,6 +34,7 @@
 </ng-template>
 
 <ng-template #preIcons let-subContext="lcontext">
+  <span>&nbsp;&nbsp;&nbsp;</span>
   @if(isediting(subContext)) {
   <i
     class="pi pi-pencil"
@@ -73,21 +74,21 @@
 
 <ng-template #subItem let-subContext="lcontext" let-isArray="isArray">
   @if(subContext) {
-
+<!--
   <span class="grid-item" style="--column: 1">
     <ng-container
       *ngTemplateOutlet="preIcons; context: { lcontext: subContext }"
     ></ng-container>
   </span>
-
   @if(!['array','object','select'].includes(getHtmlType(subContext))) {
-  <label class="grid-item" style="--column: 2">
+  <label class="grid-item-x" style="--column: 2">
     {{ getLabel(subContext) }}
   </label>
   }
+-->
 
   <span
-    class="grid-item"
+    class="grid-item-x"
     [style]="
       !['array', 'object', 'select'].includes(getHtmlType(subContext))
         ? '--column: 3'
@@ -95,7 +96,7 @@
     "
   >
     @if(['array','object','select'].includes(getHtmlType(subContext))) {
-    <object-editor [context]="subContext" [primeNg]="primeNg" />
+    <object-editor [context]="subContext" (propertyListChange)="updatePropertyList($event)" [debug]="subContext.debug" />
     } @else { @if(isediting(subContext)) { @switch(getHtmlType(subContext)) {
     @case('checkbox') {
     <ng-container
@@ -110,14 +111,17 @@
       *ngTemplateOutlet="color; context: { lcontext: subContext }"
     ></ng-container>
     } @case('radio') {
-    <oe-radio [context]="subContext"></oe-radio>
+      <oe-radio [context]="subContext"></oe-radio>
     } @case('text') { @if(hasMask(subContext)) {
-    <oe-masked [context]="subContext" />
+      <oe-masked [context]="subContext" />
     } @else {
     <ng-container
       *ngTemplateOutlet="default; context: { lcontext: subContext }"
     ></ng-container>
-    } } @default {
+    }
+  } @case('file') {
+    <oe-file [context]="subContext"></oe-file>
+  } @default {
     <ng-container
       *ngTemplateOutlet="default; context: { lcontext: subContext }"
     />
@@ -153,7 +157,11 @@
         *ngTemplateOutlet="default; context: { lcontext: subContext }"
       ></ng-container>
     </span>
-    } } @default() {
+    } 
+  } @case('file') {
+    <oe-file [context]="subContext"></oe-file>
+  }
+     @default() {
     <input
       [id]="ui_id + subContext.key + 'ne'"
       [type]="getHtmlType(subContext)"
@@ -164,7 +172,7 @@
       (click)="onclick(subContext, $event)"
     />
     } } } }
-    <span>
+<!--    <span>
       @if(subContext.debug) {
       <p [style]="getStyle(subContext, 'font-size: 0.5rem')"
         >type={{typeof subContext.value}} value={{
@@ -175,13 +183,15 @@
       </p>
       }
     </span>
-  </span>
+-->  </span>
   }
 </ng-template>
-
-<fieldset>
+<!-- 
+  The main HTML STARTS HERE !!!!
+  -->
+<fieldset class='fieldset-main'>
   <legend>
-    @if(context.scheme?.uiEffects?.toggle) {
+    @if(canToggle()) {
     <i
       [class]="
         root_fieldset_expanded ? 'pi pi-minus-circle' : 'pi pi-plus-circle'
@@ -189,9 +199,12 @@
       (click)="root_fieldset_expanded = !root_fieldset_expanded"
     ></i>
     }
-    {{ (getLabel(context) ?? "object-editor").toString() }}
+    {{ (getLabel(context) ?? "object-editor").toString() + (context.debug ? ' (DEBUG) ':'')}}
+    <ng-container
+      *ngTemplateOutlet="preIcons; context: { lcontext: context }"
+    ></ng-container>
   </legend>
-  <div #objectcontainer [hidden]="!root_fieldset_expanded">
+  <div #objectcontainer [hidden]="!root_fieldset_expanded" style="margin-left:2rem">
     @if(hasOptionalProperties()) {
     <fieldset style="display: inline">
       <legend>add an optional property</legend>
@@ -270,25 +283,37 @@
         {{ o.label }}({{ o.key }})
       </option>
     </select>
-    <p></p>
     @if(selectedSubContext) {
-    <div>
-      <ng-container
-        *ngTemplateOutlet="subItem; context: { lcontext: selectedSubContext }"
-      ></ng-container>
-    </div>
+      <object-editor [context]="selectedSubContext" (propertyListChange)="updatePropertyList($event)" ></object-editor>
     } } @if(isObject() || isArray()) {
-    <div class="grid" [style]="getInnerStyle(context)">
+    <div class="grid-x" [style]="getInnerStyle(context)">
       @for (p of properties; track p) { @let subContext = getSubContext(p);
-      <ng-container
+        <object-editor [context]="subContext!" (propertyListChange)="updatePropertyList($event)" ></object-editor>
+<!--      <ng-container
         *ngTemplateOutlet="
           subItem;
           context: { lcontext: subContext, isArray: isArray() }
         "
       ></ng-container>
-      }
+-->      }
     </div>
     }
+    @if(!isObject() && !isArray() && !isSelect()) {
+      <div><ng-container
+        *ngTemplateOutlet="subItem; context: { lcontext: context }"
+      ></ng-container></div>
+    }
   </div>
+  <span>
+    @if(context.debug) {
+    <p [style]="getStyle(context, 'font-size: 0.5rem')"
+      >type={{typeof context.value}} value={{
+        getTextValue(context.value)
+      }}
+      pValue={{getTextValue(context.key?context.pcontext?.value?.[context.key]:'')}}
+      editing={{ editing == context }}
+    </p>
+    }
+  </span>
 </fieldset>
 }
