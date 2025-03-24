@@ -16,9 +16,14 @@ type AdjustNumberOptions = {
 }
 
 export const adjustNumber = (options: AdjustNumberOptions) => {
-  return ((context: ObjectEditor.Context, curPos?: number) => {
+  return {
+    adjust: ((context: ObjectEditor.Context, curPos?: number) => {
     return _adjustNumber(context.value, options, curPos);
-  });
+  }),
+  accept: ((context: ObjectEditor.Context, key: KeyboardEvent, curPos: number) => {
+    return _accept(context.value, key, curPos);
+  })
+};
 }
 
 const _adjustNumber = (value: string, options: AdjustNumberOptions, cursorPosition?: number): ObjectEditor.Adjusted | null => {
@@ -165,5 +170,26 @@ const countSignificant = (x: number, z?: number): number => {
     }
   }
   return index1;
+}
+
+const _accept = (value: string, keyb: KeyboardEvent, curPos: number = -1) => {
+  const key = keyb.key;
+  if (key == '-') {
+    if (curPos === 0) {
+      return (value.charAt(1) != '-');
+    }
+    if (curPos > 0) {
+      return (value.charAt(curPos) != '-' &&
+        (value.charAt(curPos - 1) == 'e' ||
+          value.charAt(curPos - 1) == 'E'));
+    }
+    if (value.indexOf('-') >= 0) return false;
+    if (curPos > 0) return false;
+  }
+  if (['.'].includes(key)) {
+    if (value.indexOf('.') >= 0) return false;
+  }
+  return (key.length == 1 && ("-1234567890.eE".indexOf(key) >= 0)) ||
+    ['ArrowLeft', 'ArrowRight', 'Home', 'End', 'Backspace', 'Delete'].includes(key)
 }
 

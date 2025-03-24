@@ -60,3 +60,6 @@ export class TestComponent  implements OnInit {<br>
 }<br>
 </code>
 
+<h2>further references (imask)</h2>
+https://imask.js.org/guide.html#getting-started
+https://github.com/nerdstep/react-coordinate-input/blob/master/README.md

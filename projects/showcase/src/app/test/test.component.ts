@@ -2,8 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ObjectEditor } from '@farfadev/ngx-object-editor';
+import { ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule, adjustNumber, dmsMask } from "@farfadev/ngx-object-editor";
+
+// https://github.com/nerdstep/react-coordinate-input/blob/master/README.md
+// https://imask.js.org/guide.html#getting-started
 
 type Coordinates = {
   lat: number;
@@ -89,7 +92,8 @@ export class TestComponent implements OnInit {
         '2b-dms': {
           uibase: 'number',
           default: 5,
-          maskOptions: dmsMask
+          adjust: adjustDMS({})
+//          maskOptions: dmsMask
         },
         '2-opt number': {
           uibase: 'number',
@@ -195,7 +199,7 @@ export class TestComponent implements OnInit {
           uibase: 'file',
           maskOptions: {
 //            multiple: true,
-            accept: '*.png;*.jpg;*.jpeg'
+            accept: '.png,.jpg,.jpeg'
           }
         },
         '11-image': {

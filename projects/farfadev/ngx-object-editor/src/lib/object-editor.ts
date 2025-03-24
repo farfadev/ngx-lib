@@ -32,6 +32,11 @@ export namespace ObjectEditor {
     cursorPosition?: number|'end'
   }
 
+  export type Adjust = {
+    adjust: (context: Context,cursorPosition?: number) => Adjusted|null,
+    accept: (context: Context,key: KeyboardEvent, cursorPosition: number) => boolean
+  }
+
   export type Scheme<T = any, U = any> = {
 
     uibase: UIBase;
@@ -92,7 +97,7 @@ export namespace ObjectEditor {
     // a custom check returning optionally an adjusted value, a message to display, and a cursorPosition 
     // example: check: (context: Context) => [2,4,6].find((el)=>el==Number(context.value)) ? null: {value: 2,message: "value shall be either 2, 4 or 6",cursorPosition: 'end'}
     // min , max     : (context: Context) => {if(Number(context.value)<min) return min; else return context.value; }
-    adjust?: (context: Context,cursorPosition?: number) => Adjusted|null,
+    adjust?: Adjust,
     // provides a set of selectable schemes when value can have different schemes
     schemeSelectionList?: SchemeList<T, U> | (() => SchemeList<T, U>);
     // holds the scheme selection key from the scheme selection list

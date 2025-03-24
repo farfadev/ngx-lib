@@ -62,24 +62,8 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
       })
       this.inputElement.onkeydown = (e: KeyboardEvent) => {
         const curPos = this.inputElement!.selectionStart??-1;
-        if (e.key == '-') {
-          if(curPos === 0) {
-            return(this.value.charAt(1) != '-');
-          }
-          if(curPos > 0) {
-            return(this.value.charAt(curPos) != '-' && 
-              (this.value.charAt(curPos-1) == 'e' ||
-              this.value.charAt(curPos-1) == 'E'));
-          }
-          if (this.value.indexOf('-') >= 0) return false;
-          if (this.inputElement!.selectionStart??-1 > 0) return false;
-        }
-        if (['.'].includes(e.key)) {
-          if (this.value.indexOf('.') >= 0) return false;
-        }
-        return (e.key.length == 1 && ("-1234567890.eE".indexOf(e.key) >= 0)) ||
-          ['ArrowLeft', 'ArrowRight', 'Home', 'End', 'Backspace', 'Delete'].includes(e.key)
-      };
+        return this.accept(e,curPos);
+      }
     }
   }
 
@@ -105,9 +89,14 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
     this._context?.onClick?.();
   }
 
+  accept(key: KeyboardEvent, cursor: number) {
+    const adjust = this.context?.scheme?.adjust ?? adjustNumber({});
+    return adjust.accept(this.context!,key,cursor);
+  }
+
   adjust(cursor?: number) {
     const adjust = this.context?.scheme?.adjust ?? adjustNumber({});
-    return adjust(this.context!,cursor);
+    return adjust.adjust(this.context!,cursor);
   }
 
   editUpdate() {

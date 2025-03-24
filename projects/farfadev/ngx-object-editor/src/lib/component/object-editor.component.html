@@ -37,39 +37,38 @@
   <span>&nbsp;&nbsp;&nbsp;</span>
   @if(isediting(subContext)) {
   <i
-    class="pi pi-pencil"
+    class="pi pi-pencil pre-icons"
     style="color: green"
     (click)="edittoggle(subContext)"
   ></i>
-  <i class="pi pi-trash" (click)="delete(subContext)"></i>
+  <i class="pi pi-trash pre-icons" (click)="delete(subContext)"></i>
   @if(canArrayItemUp(subContext)) {
-  <i class="pi pi-arrow-up" (click)="arrayItemUp(subContext)"></i>
+  <i class="pi pi-arrow-up pre-icons" (click)="arrayItemUp(subContext)"></i>
   } @if(canArrayItemDown(subContext)) {
-  <i class="pi pi-arrow-down" (click)="arrayItemDown(subContext)"></i>
+  <i class="pi pi-arrow-down pre-icons" (click)="arrayItemDown(subContext)"></i>
   } } @else() {
   <i
     *ngIf="!isReadOnly(subContext)"
-    class="pi pi-pencil"
+    class="pi pi-pencil pre-icons"
     (click)="edittoggle(subContext)"
   ></i>
   <i
-    class="pi pi-trash"
+    class="pi pi-trash pre-icons"
     [style.visibility]="isOptional(subContext) ? 'visible' : 'hidden'"
     (click)="delete(subContext)"
   ></i>
+  }
   <i
     [id]="subContext.key"
     [aTooltip]="{
       mode: 'click',
       html: getDescriptionArticle(subContext) ?? ''
     }"
-    class="pi pi-info-circle"
-    style="background: inherit; border: none"
+    class="pi pi-info-circle pre-icons"
     [style.visibility]="
       getDescriptionArticle(subContext) ? 'visible' : 'hidden'
     "
   ></i>
-  }
 </ng-template>
 
 <ng-template #subItem let-subContext="lcontext" let-isArray="isArray">
