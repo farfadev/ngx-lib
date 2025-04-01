@@ -1,7 +1,7 @@
 import { ObjectEditor } from "../object-editor";
 
 export class AdjustSocket {
-  constructor(private inputElement: HTMLInputElement, private adjust: ObjectEditor.Adjust, private context: any, private update: (context: any, err_msg: string) => void) {
+  constructor(private inputElement: HTMLInputElement, private adjust: ObjectEditor.Adjust, private context: ObjectEditor.Context, private update: (context: any, err_msg: string) => void) {
     if (this.inputElement) {
       this.inputElement.addEventListener('keyup', (event: KeyboardEvent) => {
       })
@@ -15,6 +15,11 @@ export class AdjustSocket {
       this.inputElement.onchange = () => {
         this._update(true);
       }
+      this.inputElement.onclick = () => {
+        context?.onClick?.();
+      }
+    
+    
       const adjusted = this.adjust.adjust(context,String(context.value??''));
       this.inputElement.value = adjusted?.formattedValue??'';
     }

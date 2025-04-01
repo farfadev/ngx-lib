@@ -1,4 +1,4 @@
-
+//TODO a similar to imask
 type AdjustMaskedOptions = {
 
 }

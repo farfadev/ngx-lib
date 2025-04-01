@@ -2,11 +2,8 @@
   <input
     [id]="getId()"
     type="text"
-    [(ngModel)]="value"
-    (ngModelChange)="editUpdate()"
     [class]="getStyleClass(context)"
     [style]="getStyle(context)"
-    (click)="onclick()"
   />
   @if(err_msg) {
     <p style='color:red;font-size: 0.8rem;margin: 0;'>{{err_msg}}</p>

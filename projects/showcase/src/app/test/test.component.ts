@@ -213,23 +213,25 @@ export class TestComponent implements OnInit {
         },
         '14-custom-frontend-coords': {
           uibase: 'custom',
-          default: [12.5542,15.87122],
+          default: [12.5542, 15.87122],
           transform: {
             forward: (value: number[]) => ({ lat: value[0], lon: value[1] }),
             backward: (value: Coordinates) => [value.lat, value.lon]
           },
           customFrontEnd: {
-            html: (context: ObjectEditor.Context) => 
-            "<label style='color:red;'>latitude&nbsp;&nbsp;  </label><input id='lat'></input><br>"
-            +"<label style='color:blue;'>longitude </label><input id='lon'></input><br>",
-            init: (context: ObjectEditor.Context, element: HTMLElement, err: (err_msg: string)=>void) => {
+            html: (context: ObjectEditor.Context) =>
+              "<label style='color:red;'>latitude&nbsp;&nbsp;  </label><input id='lat'></input><br>"
+              + "<label style='color:blue;'>longitude </label><input id='lon'></input><br>",
+            init: (context: ObjectEditor.Context, element: HTMLElement, err: (err_msg: string) => void) => {
               for (const c of element.children) {
                 if (c.tagName == 'INPUT') {
-                  const subContext = ObjectEditor.getSubContext(context,c.id);
-                  new AdjustSocket(c as HTMLInputElement, adjustDMS({}), subContext, (context: any, err_msg: string) => {
-                    err(err_msg);
-                    context.editUpdate();
-                  });
+                  const subContext = ObjectEditor.getSubContext(context, c.id);
+                  if (subContext) {
+                    new AdjustSocket(c as HTMLInputElement, adjustDMS({}), subContext, (context: ObjectEditor.Context, err_msg: string) => {
+                      err(err_msg);
+                      context.editUpdate?.();
+                    });
+                  }
                 }
               }
             }

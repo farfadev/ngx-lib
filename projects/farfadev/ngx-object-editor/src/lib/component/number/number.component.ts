@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { ObjectEditor } from '../../object-editor';
 import { adjustNumber } from '../../adjust/adjust-number';
+import { AdjustSocket } from '../../adjust/adjust-socket';
 
 @Component({
   standalone: false,
@@ -57,14 +58,10 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.inputElement = document.getElementById(this.getId()) as HTMLInputElement;
-    if (this.inputElement) {
-      this.inputElement.addEventListener('keyup', (event: KeyboardEvent) => {
-      })
-      this.inputElement.onkeydown = (e: KeyboardEvent) => {
-        const curPos = this.inputElement!.selectionStart??-1;
-        return this.accept(e,this.inputElement!.value,curPos);
-      }
-    }
+    new AdjustSocket(this.inputElement as HTMLInputElement, this.context?.scheme?.adjust ?? adjustNumber({}), this.context!, (context: any, err_msg: string) => {
+      this.err_msg = err_msg;
+      context.editUpdate();
+    });
   }
 
   ngOnDestroy(): void {
@@ -85,49 +82,8 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
     return ObjectEditor.getLabel(subContext);
   }
 
-  onclick() {
-    this._context?.onClick?.();
-  }
-
-  accept(key: KeyboardEvent, inputValue: string, cursor: number) {
-    const adjust = this.context?.scheme?.adjust ?? adjustNumber({});
-    return adjust.accept(this.context!,key,inputValue,cursor);
-  }
-
-  adjust(inputValue: string, cursor?: number) {
-    const adjust = this.context?.scheme?.adjust ?? adjustNumber({});
-    return adjust.adjust(this.context!,inputValue,cursor);
-  }
-
-  editUpdate() {
-    this.context!.value = this.value;
-    const adjusted = this.adjust(this.value,this.inputElement!.selectionStart??0);
-    this.context!.value = adjusted?.adjustedValue ?? '';
-    this.value = adjusted?.formattedValue??'';
-    this.err_msg = adjusted?.message??'';
-
-    let cursorPosition = this.inputElement!.selectionStart;
-    if(adjusted?.cursorPosition == 'end') {
-      cursorPosition = String(this.context!.value).length;
-    }
-    else {
-      cursorPosition = adjusted?.cursorPosition ?? this.inputElement!.selectionStart;
-    }
-
-    setTimeout(()=>{
-      this.inputElement!.selectionStart = cursorPosition;
-      this.inputElement!.selectionEnd = cursorPosition;
-    },0);
-
-    this._context!.editUpdate?.();
-  }
-
   initContext() {
     if (!this.context) return;
-    const adjusted = this.adjust(String(this.context.value))
-    this.value = adjusted?.formattedValue??this.value;
-    this.err_msg = adjusted?.message??'';
   }
-
 }
 
