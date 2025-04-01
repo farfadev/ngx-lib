@@ -62,7 +62,7 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
       })
       this.inputElement.onkeydown = (e: KeyboardEvent) => {
         const curPos = this.inputElement!.selectionStart??-1;
-        return this.accept(e,curPos);
+        return this.accept(e,this.inputElement!.value,curPos);
       }
     }
   }
@@ -89,19 +89,19 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
     this._context?.onClick?.();
   }
 
-  accept(key: KeyboardEvent, cursor: number) {
+  accept(key: KeyboardEvent, inputValue: string, cursor: number) {
     const adjust = this.context?.scheme?.adjust ?? adjustNumber({});
-    return adjust.accept(this.context!,key,cursor);
+    return adjust.accept(this.context!,key,inputValue,cursor);
   }
 
-  adjust(cursor?: number) {
+  adjust(inputValue: string, cursor?: number) {
     const adjust = this.context?.scheme?.adjust ?? adjustNumber({});
-    return adjust.adjust(this.context!,cursor);
+    return adjust.adjust(this.context!,inputValue,cursor);
   }
 
   editUpdate() {
     this.context!.value = this.value;
-    const adjusted = this.adjust(this.inputElement!.selectionStart??0);
+    const adjusted = this.adjust(this.value,this.inputElement!.selectionStart??0);
     this.context!.value = adjusted?.adjustedValue ?? '';
     this.value = adjusted?.formattedValue??'';
     this.err_msg = adjusted?.message??'';
@@ -124,7 +124,7 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
 
   initContext() {
     if (!this.context) return;
-    const adjusted = this.adjust()
+    const adjusted = this.adjust(String(this.context.value))
     this.value = adjusted?.formattedValue??this.value;
     this.err_msg = adjusted?.message??'';
   }

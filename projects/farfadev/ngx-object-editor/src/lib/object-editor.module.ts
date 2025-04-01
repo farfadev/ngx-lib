@@ -7,6 +7,7 @@ import { OENumberComponent } from './component/number/number.component';
 import { OERadioComponent } from './component/radio/radio.component';
 import { OEMaskedComponent } from './component/masked/masked.component';
 import { OEFileComponent } from './component/file/file.component';
+import { OECustomComponent } from './component/custom/custom.component';
 
 @NgModule({
   declarations: [
@@ -14,6 +15,7 @@ import { OEFileComponent } from './component/file/file.component';
     OENumberComponent,
     OERadioComponent,
     OEFileComponent,
+    OECustomComponent,
     ObjectEditorComponent,
   ],
   imports: [

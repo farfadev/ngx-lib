@@ -12,9 +12,12 @@ export namespace ObjectEditor {
     js: string;
   }
   // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input
+  /**
+   * - [UIBase]({@link ./object-editor.doc.md})
+   */
   export type UIBase = 'text' | 'password' | 'color' | 'number' | 'boolean' | 'radio' | 'range' |
     'date' | 'time' | 'datetime' | 'file' | 'tel' | 'email' | 'url' | 'image'
-    | 'object' | 'array' | 'select' | 'from';
+    | 'object' | 'array' | 'select' | 'from' | 'custom';
 
   export const schemeIdProperty = '_$schemeRef';
 
@@ -25,16 +28,26 @@ export namespace ObjectEditor {
     horizontal?: true;
   }
 
+  // type of values returned by the adjust callback
+  // - formattedValue is the new ui value as appearing to user
+  // - adjustedValue is the new actual value as set on the model
+  // - message is displayed to explain an erroneous value
+  // - cursorPosition is the new cursor position after value is formatted
   export type Adjusted = {
     formattedValue?: string,
     adjustedValue?: any,
     message?: string,
-    cursorPosition?: number|'end'
+    cursorPosition?: number | 'end'
   }
 
+  /** 
+   * {@link ./object-editor.doc.html}
+   */
   export type Adjust = {
-    adjust: (context: Context,cursorPosition?: number) => Adjusted|null,
-    accept: (context: Context,key: KeyboardEvent, cursorPosition: number) => boolean
+    // called after each value change (return Adjusted value)
+    adjust: (context: Context, inputValue?: string, cursorPosition?: number) => Adjusted | null,
+    // called on key down, to accept or not the event (return true/ falls)
+    accept: (context: Context, key: KeyboardEvent, inputValue: string, cursorPosition: number) => boolean
   }
 
   export type Scheme<T = any, U = any> = {
@@ -61,8 +74,8 @@ export namespace ObjectEditor {
     description?: string | ((context: Context) => string);
     // a call-back to set Scheme dynamically depending on a runtime context
     dynamic?: (context?: Context) => Scheme<T, U>;
-    // refer to another property when the value depends on another property value 
-    dependsOn?: { property: string; f: (value?: any) => T }
+    // the value depends on other values (properties) and shall be recalculated (callback f) when one of these valuess changes
+    dependsOn?: { properties: (string | number)[]; f: (value?: any) => T }
     // if value can be undefined (optional) - may depend on the outer value (value of the encompassing object)
     optional?: boolean | ((context?: Context) => boolean);
     // if scheme can be deleted (and corresponding value)
@@ -83,20 +96,18 @@ export namespace ObjectEditor {
       backward: (u: U) => T;
     }
     customFrontEnd?: { //TODO
-      view?: () => string; // an html component when viewing
-      edit?: () => string; // an html component when editing
+      html?: (context: Context) => string; // an html component
+      init?: (context: Context, el: HTMLElement, err_cb: (err_msg: string) => void) => void; // call back to initiaalise the html element after DOM attachment (event listeners ...)
     }
     // https://imask.js.org/guide.html
-    maskOptions?: Record<string,unknown> | ((context: Context) => Record<string,unknown>);
+    maskOptions?: Record<string, unknown> | ((context: Context) => Record<string, unknown>);
     min?: T;
     max?: T;
     length?: {
       min?: number;
       max?: number;
     }
-    // a custom check returning optionally an adjusted value, a message to display, and a cursorPosition 
-    // example: check: (context: Context) => [2,4,6].find((el)=>el==Number(context.value)) ? null: {value: 2,message: "value shall be either 2, 4 or 6",cursorPosition: 'end'}
-    // min , max     : (context: Context) => {if(Number(context.value)<min) return min; else return context.value; }
+    // value validation/ adjustment callbacks
     adjust?: Adjust,
     // provides a set of selectable schemes when value can have different schemes
     schemeSelectionList?: SchemeList<T, U> | (() => SchemeList<T, U>);
@@ -204,6 +215,11 @@ export namespace ObjectEditor {
       html: 'image',
       js: 'string',
     },
+    custom: {
+      type: 'custom',
+      html: 'custom',
+      js: 'custom'
+    }
   };
   export interface Context {
     value?: any; // the value
@@ -215,7 +231,7 @@ export namespace ObjectEditor {
     editUpdate?: () => void;
     // called by the client application to change the context (value and scheme)
     // eg in case of an update from the server, to avoid page reload
-    contextChange?: (context: Context,env?: {[key: string|number]: any}) => void;
+    contextChange?: (context: Context, env?: { [key: string | number]: any }) => void;
     onClick?: () => void;
     debug?: boolean; // display debugging information
   }
@@ -251,6 +267,9 @@ export namespace ObjectEditor {
         break;
       case 'boolean':
         return Boolean(value);
+        break;
+      case 'string':
+        return String(value);
         break;
       default:
         return value;
@@ -578,7 +597,18 @@ export namespace ObjectEditor {
           }
         }
         break;
-    }
+        case 'custom':
+          if (value == undefined && scheme.default != undefined) {
+            value = cloneDeep(scheme.default);
+          }
+          else if (value == undefined) {
+            value = '';
+            if (scheme.transform) {
+              value = scheme.transform.backward(value);
+            }
+          }
+          break;
+      }
     return value;
   }
 
@@ -777,7 +807,7 @@ export namespace ObjectEditor {
     if (context.editUpdate) {
       context.editUpdate();
     }
-    else if(context.pcontext?.editUpdate) {
+    else if (context.pcontext?.editUpdate) {
       context.pcontext?.editUpdate();
     }
   }
@@ -827,7 +857,7 @@ export namespace ObjectEditor {
     }
   }
 
-  export const getMaskOptions = (context: Context): Record<string,unknown>|undefined => {
+  export const getMaskOptions = (context: Context): Record<string, unknown> | undefined => {
     if (typeof context.scheme?.maskOptions == 'function') {
       return context.scheme.maskOptions(context);
     }
@@ -836,7 +866,7 @@ export namespace ObjectEditor {
     }
   }
 
-  export const getUIEffects = (context: Context): UIEffects|undefined => {
+  export const getUIEffects = (context: Context): UIEffects | undefined => {
     if (typeof context.scheme?.uiEffects == 'function') {
       return context.scheme.uiEffects(context);
     }
@@ -846,8 +876,8 @@ export namespace ObjectEditor {
   }
 
   export const getSubContext = (context: Context, p?: string | number): ObjectEditor.Context | undefined => {
-    if (['object', 'array'].includes(context.scheme?.uibase ?? '')) {
-      if (p===undefined) {
+    if (['object', 'array', 'custom'].includes(context.scheme?.uibase ?? '')) {
+      if (p === undefined) {
         return undefined;
       }
       const transform = context.scheme?.properties?.[p]?.transform;

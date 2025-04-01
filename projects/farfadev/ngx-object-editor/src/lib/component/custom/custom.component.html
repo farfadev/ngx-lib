@@ -1,0 +1,6 @@
+@if(context) {
+  <div [id]="getId()"></div>
+  @if(err_msg) {
+    <p style='color:red;font-size: 0.8rem;margin: 0;'>{{err_msg}}</p>
+  }
+}

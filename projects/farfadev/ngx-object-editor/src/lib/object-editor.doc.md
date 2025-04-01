@@ -1,0 +1,1 @@
+<span style="color:blue">COUCOU</span>

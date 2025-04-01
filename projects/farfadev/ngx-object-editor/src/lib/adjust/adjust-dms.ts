@@ -11,11 +11,11 @@ type AdjustDMSOptions = {
 
 export const adjustDMS = (options: AdjustDMSOptions) => {
   return {
-    adjust: ((context: ObjectEditor.Context, curPos?: number): ObjectEditor.Adjusted => {
-      return _adjustDMS(context.value, options, curPos);
+    adjust: ((context: ObjectEditor.Context, inputValue?: string,curPos?: number): ObjectEditor.Adjusted => {
+      return _adjustDMS(inputValue??'', options, curPos);
     }),
-    accept: ((context: ObjectEditor.Context, key: KeyboardEvent, curPos: number) => {
-      return _accept(context.value, key.key, curPos);
+    accept: ((context: ObjectEditor.Context, key: KeyboardEvent, inputValue: string, curPos: number) => {
+      return _accept(inputValue, key.key, curPos);
     })
   }
 }

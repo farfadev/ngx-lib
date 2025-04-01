@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
+import { AdjustSocket, ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule, adjustNumber, dmsMask } from "@farfadev/ngx-object-editor";
 
 // https://github.com/nerdstep/react-coordinate-input/blob/master/README.md
@@ -17,7 +17,7 @@ type Coordinates = {
   selector: 'app-object-editor-test',
   templateUrl: './test.component.html',
   styleUrls: ['./test.component.scss'],
-  imports: [CommonModule,FormsModule,RouterModule, ObjectEditorModule],
+  imports: [CommonModule, FormsModule, RouterModule, ObjectEditorModule],
 })
 export class TestComponent implements OnInit {
 
@@ -37,7 +37,7 @@ export class TestComponent implements OnInit {
       p1: 'coucou',
       p3: '#ffffff',
       p4: false,
-      p6: [32,67]
+      p6: [32, 67]
     },
     scheme: {
       uibase: 'object',
@@ -69,14 +69,14 @@ export class TestComponent implements OnInit {
         '1-text': {
           uibase: 'text',
           default: 'test',
-          style: (context: ObjectEditor.Context) => context.value == "red" ?  "color: red;font-weight: bold":"color: green;font-weight: bold",
-          description: (context: ObjectEditor.Context) => '<p><b>property '+context.key+'</b></br></p<p>this is to test a text input, style <span style=\'font-weight:bold;color:red;\'>bold red</span> when value is \'red\' </br></p>' +
+          style: (context: ObjectEditor.Context) => context.value == "red" ? "color: red;font-weight: bold" : "color: green;font-weight: bold",
+          description: (context: ObjectEditor.Context) => '<p><b>property ' + context.key + '</b></br></p<p>this is to test a text input, style <span style=\'font-weight:bold;color:red;\'>bold red</span> when value is \'red\' </br></p>' +
             "<p>value=" + (typeof context.value) + " " + context.value + "</p>"
         },
         '2-number': {
           uibase: 'number',
           default: 5,
-          adjust: adjustNumber({min: -1,max: 17,decimals:12,significants: 4})
+          adjust: adjustNumber({ min: -1, max: 17, decimals: 12, significants: 4 })
         },
         '2a-number': {
           uibase: 'number',
@@ -93,7 +93,7 @@ export class TestComponent implements OnInit {
           uibase: 'number',
           default: 5,
           adjust: adjustDMS({})
-//          maskOptions: dmsMask
+          //          maskOptions: dmsMask
         },
         '2-opt number': {
           uibase: 'number',
@@ -107,7 +107,7 @@ export class TestComponent implements OnInit {
           uibase: 'boolean',
           label: '4-boolean test-ui-label',
           styleClass: ".mycheckbox",
-          designToken: {background: 'lightgrey',icon: {color: 'red',checked: {color: 'red',hover:{color: 'red'}}},checked: {hover: {background: 'yellow'},background: 'yellow',color: 'blue',border: {color: 'yellow'}},width: '150px'},
+          designToken: { background: 'lightgrey', icon: { color: 'red', checked: { color: 'red', hover: { color: 'red' } } }, checked: { hover: { background: 'yellow' }, background: 'yellow', color: 'blue', border: { color: 'yellow' } }, width: '150px' },
           style: "color: red",
           default: true
         },
@@ -132,7 +132,7 @@ export class TestComponent implements OnInit {
         '5a-array': {
           uibase: 'array',
           innerStyle: (context: ObjectEditor.Context) => {
-            return context.value.length > 4 ?'overflow:scroll; height:100px;' :'';
+            return context.value.length > 4 ? 'overflow:scroll; height:100px;' : '';
           },
           innerSchemeSelectionList: {
             'boolean': {
@@ -176,17 +176,17 @@ export class TestComponent implements OnInit {
           transform: {
             forward: (value: number[]) => ({ lat: value[0], lon: value[1] }),
             backward: (value: Coordinates) => [value.lat, value.lon]
-          } 
-        } as ObjectEditor.Scheme<number[],Coordinates>,
+          }
+        } as ObjectEditor.Scheme<number[], Coordinates>,
         '7-radio': {
           uibase: 'radio',
           uiEffects: {
-              horizontal: true
+            horizontal: true
           },
           enum: {
             sel1: 'coucou',
             sel2: 0,
-            sel3: {a: 1, b: 'zebu'}
+            sel3: { a: 1, b: 'zebu' }
           }
         },
         '8-date': {
@@ -198,7 +198,7 @@ export class TestComponent implements OnInit {
         '10-file': {
           uibase: 'file',
           maskOptions: {
-//            multiple: true,
+            //            multiple: true,
             accept: '.png,.jpg,.jpeg'
           }
         },
@@ -211,7 +211,30 @@ export class TestComponent implements OnInit {
         '13-range': {
           uibase: 'range'
         },
-
+        '14-custom-frontend-coords': {
+          uibase: 'custom',
+          default: [12.5542,15.87122],
+          transform: {
+            forward: (value: number[]) => ({ lat: value[0], lon: value[1] }),
+            backward: (value: Coordinates) => [value.lat, value.lon]
+          },
+          customFrontEnd: {
+            html: (context: ObjectEditor.Context) => 
+            "<label style='color:red;'>latitude&nbsp;&nbsp;  </label><input id='lat'></input><br>"
+            +"<label style='color:blue;'>longitude </label><input id='lon'></input><br>",
+            init: (context: ObjectEditor.Context, element: HTMLElement, err: (err_msg: string)=>void) => {
+              for (const c of element.children) {
+                if (c.tagName == 'INPUT') {
+                  const subContext = ObjectEditor.getSubContext(context,c.id);
+                  new AdjustSocket(c as HTMLInputElement, adjustDMS({}), subContext, (context: any, err_msg: string) => {
+                    err(err_msg);
+                    context.editUpdate();
+                  });
+                }
+              }
+            }
+          }
+        },
       }
     }
   }
@@ -225,7 +248,7 @@ export class TestComponent implements OnInit {
   }
 
 
-  constructor() { 
+  constructor() {
   }
 
   ngOnInit() { }
