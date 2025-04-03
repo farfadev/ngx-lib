@@ -1,7 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable @typescript-eslint/member-ordering */
 import {
-  AfterViewInit,
   Component,
   ElementRef,
   Input,
@@ -11,17 +10,15 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import { ObjectEditor } from '../../object-editor';
-import { adjustNumber } from '../../adjust/adjust-number';
-import { AdjustSocket } from '../../adjust/adjust-socket';
 
 @Component({
   standalone: false,
-  selector: 'oe-number',
-  templateUrl: './number.component.html',
-  styleUrls: ['./number.component.scss'],
+  selector: 'oe-checkbox',
+  templateUrl: './checkbox.component.html',
+  styleUrls: ['./checkbox.component.scss'],
   encapsulation: ViewEncapsulation.Emulated
 })
-export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
+export class OECheckboxComponent implements OnInit, OnDestroy {
   @ViewChild('objectcontainer')
   private objectContainer!: ElementRef<HTMLElement>;
 
@@ -32,13 +29,10 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input()
   set context(value: ObjectEditor.Context) {
     this._context = value;
+    this.initContext();
   }
 
   ui_id;
-
-  err_msg: string = '';
-
-  value: string = '';
 
   constructor() {
     this.ui_id = window.crypto.randomUUID();
@@ -48,33 +42,36 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.ui_id + this.context?.key;
   }
 
-  ngOnInit(): void {
+  isHorizontal() {
+    return ObjectEditor.getUIEffects(this.context!)?.['horizontal'] ?? false;
   }
 
-  ngAfterViewInit(): void {
-    const inputElement = document.getElementById(this.getId()) as HTMLInputElement;
-    new AdjustSocket(inputElement as HTMLInputElement, this.context?.scheme?.adjust ?? adjustNumber({}), this.context!, (context: any, err_msg: string) => {
-      this.err_msg = err_msg;
-      context.editUpdate();
-    });
+  ngOnInit(): void {
   }
 
   ngOnDestroy(): void {
   }
 
+  getLabel(subContext: ObjectEditor.Context) {
+    return ObjectEditor.getLabel(subContext);
+  }
+
+  onclick() {
+    this._context?.onClick?.(this.context!);
+  }
+
+  initContext() {
+    if (!this.context) return;
+  }
+
   getStyle(context: ObjectEditor.Context) {
-    const stylePlus = this.err_msg!=''?'color:red':'';
     const rstyle = ObjectEditor.getStyle(context);
-    
-    return rstyle ? rstyle+';'+stylePlus:stylePlus;
+    return rstyle;
   }
 
   getStyleClass(context: ObjectEditor.Context) {
     return ObjectEditor.getStyleClass(context);
   }
 
-  getLabel(subContext: ObjectEditor.Context) {
-    return ObjectEditor.getLabel(subContext);
-  }
 }
 

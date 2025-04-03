@@ -82,7 +82,7 @@ export class OEMaskedComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onclick() {
-    this._context?.onClick?.();
+    this._context?.pcontext?.onClick?.(this._context);
   }
 
   stripFormat(value: string) {

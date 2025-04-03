@@ -26,6 +26,19 @@ export namespace ObjectEditor {
   export type UIEffects = {
     toggle?: boolean;
     horizontal?: true;
+    // for html style attribute
+    style?: string | ((context: Context) => string);
+    // for html style attribute of the inner items (object/ array)
+    inputAttributes?: {[key: string]: string} | ((context: Context) => {[key: string]: string});
+    innerStyle?: string | ((context: Context) => string);
+    // for html class (or primeng styleClass) attribute (need css injection :host::ngdeep)
+    // TODO doesn't work yet
+    styleClass?: string | ((context: Context) => string);
+    // for html class (or primeng styleClass) attribute (need css injection :host::ngdeep)
+    // TODO doesn't work yet
+    innerStyleClass?: string | ((context: Context) => string);
+    // for primeng design token styling
+    designToken?: object | ((context: Context) => object);
   }
 
   // type of values returned by the adjust callback
@@ -56,18 +69,6 @@ export namespace ObjectEditor {
 
     // the user-friendly ui label to identify the property, by default the property name
     label?: string;
-    // for html style attribute
-    style?: string | ((context: Context) => string)
-    // for html style attribute of the inner items (object/ array)
-    innerStyle?: string | ((context: Context) => string)
-    // for html class (or primeng styleClass) attribute (need css injection :host::ngdeep)
-    // TODO doesn't work yet
-    styleClass?: string | ((context: Context) => string)
-    // for html class (or primeng styleClass) attribute (need css injection :host::ngdeep)
-    // TODO doesn't work yet
-    innerStyleClass?: string | ((context: Context) => string)
-    // for primeng design token styling
-    designToken?: object | ((context: Context) => object)
     // rules for UI , such as scrolling, toggling
     uiEffects?: UIEffects | ((context: Context) => UIEffects);
     // an html <article> that helps frontend user to understand/ set the value 
@@ -101,8 +102,6 @@ export namespace ObjectEditor {
     }
     // https://imask.js.org/guide.html
     maskOptions?: Record<string, unknown> | ((context: Context) => Record<string, unknown>);
-    min?: T;
-    max?: T;
     length?: {
       min?: number;
       max?: number;
@@ -147,6 +146,11 @@ export namespace ObjectEditor {
       type: 'radio',
       html: 'radio',
       js: 'object',
+    },
+    'range': {
+      type: 'range',
+      html: 'range',
+      js: 'number',
     },
     from: {
       type: 'from',
@@ -232,7 +236,7 @@ export namespace ObjectEditor {
     // called by the client application to change the context (value and scheme)
     // eg in case of an update from the server, to avoid page reload
     contextChange?: (context: Context, env?: { [key: string | number]: any }) => void;
-    onClick?: () => void;
+    onClick?: (subContext: Context) => void;
     debug?: boolean; // display debugging information
   }
 
@@ -442,10 +446,10 @@ export namespace ObjectEditor {
         if (!(value instanceof Array)) {
           throw Error('Invalid value type, expecting Array');
         }
-        if (scheme.min) {
+        if (scheme.length?.min != undefined) {
           let lastKey;
           const keys = Object.keys(scheme.properties ?? {});
-          for (let i = 0; i < scheme.min; i++) {
+          for (let i = 0; i < scheme.length.min; i++) {
             if (scheme.properties?.[i]) {
               lastKey = i;
             }
@@ -774,6 +778,24 @@ export namespace ObjectEditor {
     return undefined;
   }
 
+  export const canDeleteProperty = (context: Context) => {
+    if (context.pcontext?.scheme?.uibase === 'object') {
+      if ((context.scheme?.optional || context.scheme?.deletable) && context.key !== undefined) {
+        return true;
+      }
+      if (context.scheme?.deletable && context.key !== undefined) {
+        return true;
+      }
+      if (context.scheme && (!context.scheme.optional && !context.scheme.deletable) && context.key !== undefined && context.scheme.default) {
+        return true;
+      }
+    }
+    if (context.pcontext?.scheme?.uibase === 'array') {
+      return true;
+    }
+    return false;
+  }
+
   export const deleteProperty = (context: Context) => {
     if (context.pcontext?.scheme?.uibase === 'object') {
       if ((context.scheme?.optional || context.scheme?.deletable) && context.key !== undefined) {
@@ -813,47 +835,62 @@ export namespace ObjectEditor {
   }
 
   export const getStyle = (context: Context) => {
-    if (typeof context.scheme?.style == 'function') {
-      return context.scheme.style(context);
+    const style = getUIEffects(context)?.style;
+    if (typeof style == 'function') {
+      return style(context);
     }
     else {
-      return context.scheme?.style;
+      return style;
     }
   }
 
   export const getStyleClass = (context: Context) => {
-    if (typeof context.scheme?.styleClass == 'function') {
-      return context.scheme.styleClass(context);
+    const styleClass = getUIEffects(context)?.styleClass;
+    if (typeof styleClass == 'function') {
+      return styleClass(context);
     }
     else {
-      return context.scheme?.styleClass;
+      return styleClass;
     }
   }
 
   export const getInnerStyle = (context: Context) => {
-    if (typeof context.scheme?.innerStyle == 'function') {
-      return context.scheme.innerStyle(context);
+    const innerStyle = getUIEffects(context)?.innerStyle;
+    if (typeof innerStyle == 'function') {
+      return innerStyle(context);
     }
     else {
-      return context.scheme?.innerStyle;
+      return innerStyle;
     }
   }
 
   export const getInnerStyleClass = (context: Context) => {
-    if (typeof context.scheme?.innerStyleClass == 'function') {
-      return context.scheme.innerStyleClass(context);
+    const innerStyleClass = getUIEffects(context)?.innerStyleClass;
+    if (typeof innerStyleClass == 'function') {
+      return innerStyleClass(context);
     }
     else {
-      return context.scheme?.innerStyleClass;
+      return innerStyleClass;
     }
   }
 
   export const getDesignToken = (context: Context) => {
-    if (typeof context.scheme?.designToken == 'function') {
-      return context.scheme.designToken(context);
+    const designToken = getUIEffects(context)?.designToken;
+    if (typeof designToken == 'function') {
+      return designToken(context);
     }
     else {
-      return context.scheme?.designToken;
+      return designToken;
+    }
+  }
+
+  export const getInputAttributes = (context: Context): {[key: string]: any} | undefined => {
+    const inputAttributes = getUIEffects(context)?.inputAttributes;
+    if (typeof inputAttributes == 'function') {
+      return inputAttributes(context);
+    }
+    else {
+      return inputAttributes;
     }
   }
 
@@ -896,6 +933,9 @@ export namespace ObjectEditor {
           context.editUpdate?.();
         },
         contextChange: context.contextChange,
+        onClick: () => {
+
+        },
         debug: context.debug
       }
       return subContext;
@@ -923,7 +963,7 @@ export namespace ObjectEditor {
   }
 
   export const getLabel = (context: Context) => {
-    return context.scheme?.label ?? context.key;
+    return context.scheme?.label ?? context.key ?? context.pcontext?.scheme?.schemeSelectionKey;
   }
 
   export const getDescription = (context: Context): string | undefined => {

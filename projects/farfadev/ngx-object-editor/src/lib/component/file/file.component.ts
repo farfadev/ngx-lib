@@ -121,7 +121,7 @@ export class OEFileComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onclick() {
-    this._context?.onClick?.();
+    this._context?.pcontext?.onClick?.(this._context);
   }
 
   editUpdate() {

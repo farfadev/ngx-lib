@@ -74,7 +74,7 @@ export class OERadioComponent implements OnInit, OnDestroy {
   }
 
   onclick() {
-    this._context?.onClick?.();
+    this._context?.onClick?.(this.context!);
   }
 
   initContext() {

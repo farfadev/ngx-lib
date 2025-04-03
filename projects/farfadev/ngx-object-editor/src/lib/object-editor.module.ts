@@ -8,15 +8,19 @@ import { OERadioComponent } from './component/radio/radio.component';
 import { OEMaskedComponent } from './component/masked/masked.component';
 import { OEFileComponent } from './component/file/file.component';
 import { OECustomComponent } from './component/custom/custom.component';
+import { OECheckboxComponent } from './component/checkbox/checkbox.component';
+import { OEDefaultComponent } from './component/default/default.component';
 
 @NgModule({
   declarations: [
     OEMaskedComponent,
+    OECheckboxComponent,
     OENumberComponent,
     OERadioComponent,
     OEFileComponent,
     OECustomComponent,
     ObjectEditorComponent,
+    OEDefaultComponent
   ],
   imports: [
     CommonModule,

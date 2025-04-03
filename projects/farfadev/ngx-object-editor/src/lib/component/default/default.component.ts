@@ -11,17 +11,15 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import { ObjectEditor } from '../../object-editor';
-import { adjustNumber } from '../../adjust/adjust-number';
-import { AdjustSocket } from '../../adjust/adjust-socket';
 
 @Component({
   standalone: false,
-  selector: 'oe-number',
-  templateUrl: './number.component.html',
-  styleUrls: ['./number.component.scss'],
+  selector: 'oe-default',
+  templateUrl: './default.component.html',
+  styleUrls: ['./default.component.scss'],
   encapsulation: ViewEncapsulation.Emulated
 })
-export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
+export class OEDefaultComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('objectcontainer')
   private objectContainer!: ElementRef<HTMLElement>;
 
@@ -32,13 +30,10 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input()
   set context(value: ObjectEditor.Context) {
     this._context = value;
+    this.initContext();
   }
 
   ui_id;
-
-  err_msg: string = '';
-
-  value: string = '';
 
   constructor() {
     this.ui_id = window.crypto.randomUUID();
@@ -48,33 +43,51 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.ui_id + this.context?.key;
   }
 
+  isHorizontal() {
+    return ObjectEditor.getUIEffects(this.context!)?.['horizontal'] ?? false;
+  }
+
   ngOnInit(): void {
   }
 
   ngAfterViewInit(): void {
-    const inputElement = document.getElementById(this.getId()) as HTMLInputElement;
-    new AdjustSocket(inputElement as HTMLInputElement, this.context?.scheme?.adjust ?? adjustNumber({}), this.context!, (context: any, err_msg: string) => {
-      this.err_msg = err_msg;
-      context.editUpdate();
-    });
+
+    const customElement = document.getElementById(this.getId()) as HTMLInputElement;
+    const attributes = ObjectEditor.getInputAttributes(this.context!);
+    if(attributes != undefined) {
+      for (const key of Object.keys(attributes)) {
+        customElement.setAttribute(key,attributes[key]);
+      }
+    }
   }
 
   ngOnDestroy(): void {
   }
 
+  getLabel(subContext: ObjectEditor.Context) {
+    return ObjectEditor.getLabel(subContext);
+  }
+
+  onclick() {
+    this._context?.onClick?.(this.context!);
+  }
+
+  initContext() {
+    if (!this.context) return;
+  }
+
+  getHtmlType(context: ObjectEditor.Context) {
+    return ObjectEditor.getBaseScheme(context)?.html;
+  }
+
   getStyle(context: ObjectEditor.Context) {
-    const stylePlus = this.err_msg!=''?'color:red':'';
     const rstyle = ObjectEditor.getStyle(context);
-    
-    return rstyle ? rstyle+';'+stylePlus:stylePlus;
+    return rstyle;
   }
 
   getStyleClass(context: ObjectEditor.Context) {
     return ObjectEditor.getStyleClass(context);
   }
 
-  getLabel(subContext: ObjectEditor.Context) {
-    return ObjectEditor.getLabel(subContext);
-  }
 }
 

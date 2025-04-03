@@ -37,6 +37,19 @@ const _adjustDMS = (valueIn: string, options: AdjustDMSOptions, curPos?: number)
   const regex1 = /^([+\-]{0,1})([0-9]*\.{0,1}[0-9]*)(°|'|''){0,1}$/
   const regex2 = /^([+\-]{0,1})((?:[0-9]+°){0,1})((?:[0-9]+'){0,1})([0-9]*\.{0,1}[0-9]*)('|''){0,1}$/
 
+//  const hasEndDot = value.match(/\.[°'"\s0]*$/);
+// 67.0000(°'")=>4  .06700(°'")=>2 6700(°'")=>0
+  let trailingZeros = 0;
+  for (let i = value.length-1; i >= 0; i--) {
+    if(value.charAt(i) == '0') trailingZeros++;
+    if(![' ','0','°','\'','\"'].includes(value.charAt(i))) {
+      if((value.charAt(i) != '.') && (trailingZeros==0)) trailingZeros=-1;
+      else if(i>0 && (value.substring(0,i+1).indexOf('.') < 0)) trailingZeros=-1;
+      break;
+    }
+  }
+//  const trailingZeros = value.search(/\.[0-9\s]*[1-9\s][\s0]+[°'"\s]*$/);
+
   const degI = value.indexOf('°');
 
   let degS, minS, secS;
@@ -74,13 +87,14 @@ const _adjustDMS = (valueIn: string, options: AdjustDMSOptions, curPos?: number)
   const negative = valueD.isNeg();
   valueD = valueD.absoluteValue();
   adjusted.adjustedValue = valueD.plus(valueM.dividedBy(60)).plus(valueS.dividedBy(3600)).times(negative ? -1 : 1).times(10**15).round().dividedBy(10**15).toNumber();
-  adjusted.formattedValue = format(adjusted.adjustedValue);
+  adjusted.formattedValue = format(adjusted.adjustedValue,trailingZeros);
+
   adjusted.cursorPosition = curPos;
   return adjusted;
 }
 
 const _accept = (value: string, key: string, curPos: number) => {
-  if (['-','.','\'','"'].includes(key)) {
+  if (['-','.','°','\'','"'].includes(key)) {
     if (value.indexOf(key) >= 0) return false;
   }
   const posD = (value.indexOf('°'));
@@ -94,7 +108,7 @@ const _accept = (value: string, key: string, curPos: number) => {
     && ((posD != -1 ? (posD > curPos):false) 
     ||  (posS != -1 ? (posS < curPos): false)))
     return false;
-  if((key == '"\'"')
+  if((key == '\"')
     && ((posD != -1 ? (posD > curPos):false) 
     ||  (posM != -1 ? (posM > curPos): false)))
     return false;
@@ -102,7 +116,7 @@ const _accept = (value: string, key: string, curPos: number) => {
     if (curPos > 0) return false;
     if (value.indexOf('-') >= 0) return false;
   }
-  return (key.length == 1 && ("-1234567890.°'\"".indexOf(key) >= 0)) ||
+  return (key.length == 1 && ("-1234567890.°'\"".indexOf(key) >= 0) && (curPos<=posS || posS == -1)) ||
     ['ArrowLeft', 'ArrowRight', 'Home', 'End', 'Backspace', 'Delete'].includes(key)
 }
 
@@ -111,7 +125,7 @@ const stripFormat = (value: string) => {
   return value;
 }
 
-const format = (value: number): string => {
+const format = (value: number,trailingZeros: number): string => {
   let valueDec = new Decimal(value);
   const sign = valueDec.isNegative();
   valueDec = valueDec.absoluteValue();
@@ -124,8 +138,13 @@ const format = (value: number): string => {
   const vd = valueD.toNumber();
   const vm = valueM.toNumber();
   const vs = valueS.toNumber();
+  const trailingZerosString = trailingZeros > 0 ? '0'.repeat(trailingZeros):'';
+  let vsTrailing = '', vmTrailing = '', vdTrailing = '';
+  if(vs != 0) vsTrailing = (((vs == Math.round(vs))&&(trailingZeros>-1)) ? '.':'')+trailingZerosString;
+  else if (vm != 0) vmTrailing = ((trailingZeros>-1) ? '.':'')+trailingZerosString;
+  else if (vd != 0) vdTrailing = ((trailingZeros>-1) ? '.':'')+trailingZerosString;
   return (sign ? '-' : '') 
-    + (vd + '°')
-    + ((vm == 0 && vs == 0) ? '' : (vm + '\''))
-    + (vs == 0 ? '' : (vs + '"'))
+    + (vd + vdTrailing + '°')
+    + ((vm == 0 && vs == 0) ? '' : (vm + vmTrailing + '\''))
+    + (vs == 0 ? '' : (vs + vsTrailing + '"'))
 }

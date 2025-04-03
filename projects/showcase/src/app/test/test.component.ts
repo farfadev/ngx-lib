@@ -69,7 +69,7 @@ export class TestComponent implements OnInit {
         '1-text': {
           uibase: 'text',
           default: 'test',
-          style: (context: ObjectEditor.Context) => context.value == "red" ? "color: red;font-weight: bold" : "color: green;font-weight: bold",
+          uiEffects: { style: (context: ObjectEditor.Context) => context.value == "red" ? "color: red;font-weight: bold" : "color: green;font-weight: bold" },
           description: (context: ObjectEditor.Context) => '<p><b>property ' + context.key + '</b></br></p<p>this is to test a text input, style <span style=\'font-weight:bold;color:red;\'>bold red</span> when value is \'red\' </br></p>' +
             "<p>value=" + (typeof context.value) + " " + context.value + "</p>"
         },
@@ -106,9 +106,11 @@ export class TestComponent implements OnInit {
         '4-boolean': {
           uibase: 'boolean',
           label: '4-boolean test-ui-label',
-          styleClass: ".mycheckbox",
-          designToken: { background: 'lightgrey', icon: { color: 'red', checked: { color: 'red', hover: { color: 'red' } } }, checked: { hover: { background: 'yellow' }, background: 'yellow', color: 'blue', border: { color: 'yellow' } }, width: '150px' },
-          style: "color: red",
+          uiEffects: {
+            styleClass: ".mycheckbox",
+            designToken: { background: 'lightgrey', icon: { color: 'red', checked: { color: 'red', hover: { color: 'red' } } }, checked: { hover: { background: 'yellow' }, background: 'yellow', color: 'blue', border: { color: 'yellow' } }, width: '150px' },
+            style: "color: red"
+          },
           default: true
         },
         '5-select': {
@@ -131,8 +133,10 @@ export class TestComponent implements OnInit {
         },
         '5a-array': {
           uibase: 'array',
-          innerStyle: (context: ObjectEditor.Context) => {
-            return context.value.length > 4 ? 'overflow:scroll; height:100px;' : '';
+          uiEffects: {
+            innerStyle: (context: ObjectEditor.Context) => {
+              return context.value.length > 4 ? 'overflow:scroll; height:100px;' : '';
+            }
           },
           innerSchemeSelectionList: {
             'boolean': {
@@ -209,7 +213,14 @@ export class TestComponent implements OnInit {
           uibase: 'password'
         },
         '13-range': {
-          uibase: 'range'
+          uibase: 'range',
+          uiEffects: {
+            inputAttributes: {
+              min: '0',
+              max: '100',
+              step: '10'
+            }
+          }
         },
         '14-custom-frontend-coords': {
           uibase: 'custom',
@@ -220,7 +231,7 @@ export class TestComponent implements OnInit {
           },
           customFrontEnd: {
             html: (context: ObjectEditor.Context) =>
-              "<label style='color:red;'>latitude&nbsp;&nbsp;  </label><input id='lat'></input><br>"
+              "<label style='color:red;'>latitude&nbsp;&nbsp;&nbsp;  </label><input id='lat'></input><br>"
               + "<label style='color:blue;'>longitude </label><input id='lon'></input><br>",
             init: (context: ObjectEditor.Context, element: HTMLElement, err: (err_msg: string) => void) => {
               for (const c of element.children) {

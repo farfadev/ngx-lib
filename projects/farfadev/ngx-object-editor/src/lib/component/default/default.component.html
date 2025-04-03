@@ -1,0 +1,11 @@
+@if(context) {
+  <input
+    [id]="getId()"
+    [type]="getHtmlType(context)"
+    [(ngModel)]="context.value"
+    (ngModelChange)="context.editUpdate?.()"
+    [class]="getStyleClass(context)"
+    [style]="getStyle(context)"
+    (click)="onclick()"
+  />
+}

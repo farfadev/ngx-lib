@@ -89,7 +89,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   canAddArrayElement(): boolean {
     return (this.context?.scheme?.uibase == 'array'
       && (this.newProperty.schemeKey != '')
-      && (this.context.scheme.max ? this.context.value.length < this.context.scheme.max : true));
+      && (this.context.scheme.length?.max ? this.context.value.length < this.context.scheme.length.max : true));
   }
   editing?: ObjectEditor.Context;
   propertyClickEvent = false;
@@ -199,8 +199,10 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     if (!this.subContextList[p] && this.context) {
       this.subContextList[p] = ObjectEditor.getSubContext(this.context, p);
       if (this.subContextList[p] != undefined) {
-        this.subContextList[p]!.onClick = () => {
+        const pOnClick = this.subContextList[p]!.onClick;
+        this.subContextList[p]!.onClick = (subContext: ObjectEditor.Context) => {
           this.onclick(this.subContextList[p]!);
+          pOnClick?.(subContext);
         }
       }
     }
@@ -244,8 +246,9 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   isSelect() {
     return this.context ? ObjectEditor.isSelect(this.context) : false;
   }
-  isediting(context: ObjectEditor.Context) {
-    return context == this.editing;
+  isediting(subContext: ObjectEditor.Context) {
+    return (subContext == this.editing);
+//    return (this.editing != undefined)&&((context == this.editing) || (this.subContextList?.[this.editing?.key ?? ''] == this.editing));
   }
 
   isReadOnly(context: ObjectEditor.Context): boolean {
@@ -344,6 +347,10 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
       property: '',
       schemeKey: ''
     };
+  }
+
+  canDelete(context: ObjectEditor.Context) {
+    return ObjectEditor.canDeleteProperty(context);
   }
 
   delete(context: ObjectEditor.Context) {

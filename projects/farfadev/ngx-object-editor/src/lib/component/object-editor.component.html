@@ -1,15 +1,4 @@
 @if(context) {
-<ng-template #checkBox let-lcontext="lcontext">
-  <input
-    [id]="ui_id + lcontext.key + 'e'"
-    type="checkbox"
-    [(ngModel)]="lcontext.value"
-    (ngModelChange)="lcontext.editUpdate?.()"
-    [class]="getStyleClass(lcontext)"
-    [class]="getStyle(lcontext)"
-    (click)="onclick(lcontext, $event)"
-  />
-</ng-template>
 <ng-template #color let-lcontext="lcontext">
   <input
     [id]="ui_id + lcontext.key + 'e'"
@@ -21,52 +10,25 @@
     (click)="onclick(lcontext, $event)"
   />
 </ng-template>
-<ng-template #default let-lcontext="lcontext">
-  <input
-    [id]="ui_id + lcontext.key + 'e'"
-    [type]="getHtmlType(lcontext)"
-    [(ngModel)]="lcontext.value"
-    (ngModelChange)="lcontext.editUpdate()"
-    [class]="getStyleClass(lcontext)"
-    [style]="getStyle(lcontext)"
-    (click)="onclick(lcontext, $event)"
-  />
-</ng-template>
-
-<ng-template #preIcons let-subContext="lcontext">
+<ng-template #preIcons let-lcontext="lcontext">
   <span>&nbsp;&nbsp;&nbsp;</span>
-  @if(isediting(subContext)) {
-  <i
-    class="pi pi-pencil pre-icons"
-    style="color: green"
-    (click)="edittoggle(subContext)"
-  ></i>
-  <i class="pi pi-trash pre-icons" (click)="delete(subContext)"></i>
-  @if(canArrayItemUp(subContext)) {
-  <i class="pi pi-arrow-up pre-icons" (click)="arrayItemUp(subContext)"></i>
-  } @if(canArrayItemDown(subContext)) {
-  <i class="pi pi-arrow-down pre-icons" (click)="arrayItemDown(subContext)"></i>
-  } } @else() {
-  <i
-    *ngIf="!isReadOnly(subContext)"
-    class="pi pi-pencil pre-icons"
-    (click)="edittoggle(subContext)"
-  ></i>
-  <i
-    class="pi pi-trash pre-icons"
-    [style.visibility]="isOptional(subContext) ? 'visible' : 'hidden'"
-    (click)="delete(subContext)"
-  ></i>
+  @if(canDelete(lcontext)) {
+  <i class="pi pi-trash pre-icons" (click)="delete(lcontext)"></i>
+  }
+  @if(canArrayItemUp(lcontext)) {
+  <i class="pi pi-arrow-up pre-icons" (click)="arrayItemUp(lcontext)"></i>
+  } @if(canArrayItemDown(lcontext)) {
+  <i class="pi pi-arrow-down pre-icons" (click)="arrayItemDown(lcontext)"></i>
   }
   <i
-    [id]="subContext.key"
+    [id]="lcontext.key"
     [aTooltip]="{
       mode: 'click',
-      html: getDescriptionArticle(subContext) ?? ''
+      html: getDescriptionArticle(lcontext) ?? ''
     }"
     class="pi pi-info-circle pre-icons"
     [style.visibility]="
-      getDescriptionArticle(subContext) ? 'visible' : 'hidden'
+      getDescriptionArticle(lcontext) ? 'visible' : 'hidden'
     "
   ></i>
 </ng-template>
@@ -100,13 +62,12 @@
       (propertyListChange)="updatePropertyList($event)"
       [debug]="subContext.debug"
     />
-    } @else { @if(isediting(subContext)) { @switch(getHtmlType(subContext)) {
+    } @else {
+      @switch(getHtmlType(subContext)) {
     @case('custom') {
     <oe-custom [context]="subContext" />
     } @case('checkbox') {
-    <ng-container
-      *ngTemplateOutlet="checkBox; context: { lcontext: subContext }"
-    ></ng-container>
+    <oe-checkbox [context]="subContext" />
     } @case('number') { @if(hasMask(subContext)) {
     <oe-masked [context]="subContext" />
     } @else {
@@ -120,77 +81,17 @@
     } @case('text') { @if(hasMask(subContext)) {
     <oe-masked [context]="subContext" />
     } @else {
-    <ng-container
-      *ngTemplateOutlet="default; context: { lcontext: subContext }"
-    ></ng-container>
+      <oe-default [context]="subContext" ></oe-default>
     } } @case('file') {
     <oe-file [context]="subContext"></oe-file>
     } @default {
-    <ng-container
-      *ngTemplateOutlet="default; context: { lcontext: subContext }"
-    />
-    } } } @else { @switch(getHtmlType(subContext)) { @case('custom') {
-    <oe-custom [context]="subContext" />
-    } @case('number') { @if(hasMask(subContext)) {
-    <oe-masked [context]="subContext" />
-    } @else {
-    <oe-number [context]="subContext" />
-    }} @case('color') {
-    <span
-      class="colorBox"
-      [style]="{
-        color: subContext.value,
-        background: subContext.value,
-        '--borderColor': invertColor(subContext.value)
-      }"
-      (click)="onclick(subContext, $event)"
-      >■■■</span
-    >
-    } @case('checkbox') {
-    <span>
-      <ng-container
-        *ngTemplateOutlet="checkBox; context: { lcontext: subContext }"
-      ></ng-container>
-    </span>
-    } @case('radio') {
-    <oe-radio [context]="subContext"></oe-radio>
-    } @case('text') { @if(hasMask(subContext)) {
-    <oe-masked [context]="subContext" />
-    } @else {
-    <span>
-      <ng-container
-        *ngTemplateOutlet="default; context: { lcontext: subContext }"
-      ></ng-container>
-    </span>
-    } } @case('file') {
-    <oe-file [context]="subContext"></oe-file>
-    } @default() {
-    <input
-      [id]="ui_id + subContext.key + 'ne'"
-      [type]="getHtmlType(subContext)"
-      [(ngModel)]="subContext.value"
-      [class]="getStyleClass(subContext)"
-      [style]="getStyle(subContext)"
-      readonly
-      (click)="onclick(subContext, $event)"
-    />
-    } } } }
-    <!--    <span>
-      @if(subContext.debug) {
-      <p [style]="getStyle(subContext, 'font-size: 0.5rem')"
-        >type={{typeof subContext.value}} value={{
-          getTextValue(subContext.value)
-        }}
-        pValue={{getTextValue(subContext.key?subContext.pcontext?.value?.[subContext.key]:'')}}
-        editing={{ editing == subContext }}
-      </p>
-      }
-    </span>
--->
+      <oe-default [context]="subContext" ></oe-default>
+    } }
+  }
   </span>
   }
 </ng-template>
-<!-- 
+<!-- ----------------------------------------------------------------------
   The main HTML STARTS HERE !!!!
   -->
 <fieldset class="fieldset-main">

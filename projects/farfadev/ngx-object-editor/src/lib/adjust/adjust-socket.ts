@@ -16,7 +16,7 @@ export class AdjustSocket {
         this._update(true);
       }
       this.inputElement.onclick = () => {
-        context?.onClick?.();
+        context?.onClick?.(context);
       }
     
     
