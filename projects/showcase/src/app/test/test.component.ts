@@ -210,7 +210,12 @@ export class TestComponent implements OnInit {
           uibase: 'image'
         },
         '12-password': {
-          uibase: 'password'
+          uibase: 'password',
+          uiEffects: {
+            inputAttributes: {
+              pattern: '[\u0021-\u007E]'
+            }
+          }
         },
         '13-range': {
           uibase: 'range',

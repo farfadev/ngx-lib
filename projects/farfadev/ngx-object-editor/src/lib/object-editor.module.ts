@@ -10,6 +10,7 @@ import { OEFileComponent } from './component/file/file.component';
 import { OECustomComponent } from './component/custom/custom.component';
 import { OECheckboxComponent } from './component/checkbox/checkbox.component';
 import { OEDefaultComponent } from './component/default/default.component';
+import { FarfaIconModule } from './farfa-icon/farfa-icon.module';
 
 @NgModule({
   declarations: [
@@ -25,7 +26,8 @@ import { OEDefaultComponent } from './component/default/default.component';
   imports: [
     CommonModule,
     FormsModule,
-    ATooltipModule
+    ATooltipModule,
+    FarfaIconModule
   ],
   exports: [
     ObjectEditorComponent,

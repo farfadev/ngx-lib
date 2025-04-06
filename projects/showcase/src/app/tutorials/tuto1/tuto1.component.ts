@@ -1,27 +1,6 @@
-<h1> @farfadev/ngx-object-editor </h1>
-
-An [Angular](https://angular.dev/) component to edit typescript/ javascript object following a user defined editing scheme
-
-<span style='color:red;font-weight:bold;'>WARNING:</span> this component is at a <span style='color:red;font-weight:bold;'>VERY DRAFT</span> development stage and we expect to have a stable release by June 2025 => Wait for release 0.1.0
-
-
-<h2>installation</h2>
-npm i @farfadev/ngx-object-editor
-
-<h2>sample utilisation</h2>
-<h3>./test-component.html</h3>
-
-```html
-<object-editor [context]="mycontext"/>
-```
-
-<h3>./test-component.ts</h3>
-
-```ts
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
 import { AdjustSocket, ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule, adjustNumber, dmsMask } from "@farfadev/ngx-object-editor";
 
@@ -34,103 +13,50 @@ type Coordinates = {
 }
 
 @Component({
-  selector: 'app-object-editor-test',
-  templateUrl: './test.component.html',
-  styleUrls: ['./test.component.scss'],
-  imports: [CommonModule, FormsModule, RouterModule, ObjectEditorModule],
+  selector: 'object-editor-tuto1',
+  templateUrl: './tuto1.component.html',
+  styleUrls: ['./tuto1.component.scss'],
+  imports: [CommonModule, FormsModule, ObjectEditorModule],
 })
-export class TestComponent implements OnInit {
+export class Tuto1Component implements OnInit {
 
   _debug: boolean = false;
   @Input()
   set debug(v: boolean) {
     this._debug = v;
-    this.mycontext1.debug = v;
+    this.mycontext.debug = v;
   };
   get debug(): boolean {
     return this._debug;
   }
 
-  mycontext1: ObjectEditor.Context = {
-    debug: this.debug,
+  mycontext: ObjectEditor.Context = {
     value: {
-      p1: 'coucou',
-      p3: '#ffffff',
-      p4: false,
+      simpleText: 'hello',
+      simpleNumber: 3,
+      simpleColor: '#ffffff',
+      simpleBoolean: false,
+      simpleRadio: undefined,
       p6: [32, 67]
     },
     scheme: {
       uibase: 'object',
-      label: 'test-object-editor',
-      uiEffects: {
-        toggle: true
-      },
-      unrestricted: true,
-      innerSchemeSelectionList: {
-        'test-object': {
-          uibase: 'object',
-        },
-        'test-object-2': {
-          uibase: 'object',
-          label: 'rantanplan',
-          innerSchemeSelectionList: () => {
-            return {
-              'sub-test-boolean': {
-                uibase: 'boolean'
-              }
-            }
-          }
-        },
-        'test-array': {
-          uibase: 'array'
-        }
-      },
+      label: 'tuto1',
       properties: {
-        '1-text': {
+        simpleText: {
           uibase: 'text',
-          default: 'test',
-          uiEffects: { style: (context: ObjectEditor.Context) => context.value == "red" ? "color: red;font-weight: bold" : "color: green;font-weight: bold" },
-          description: (context: ObjectEditor.Context) => '<p><b>property ' + context.key + '</b></br></p<p>this is to test a text input, style <span style=\'font-weight:bold;color:red;\'>bold red</span> when value is \'red\' </br></p>' +
-            "<p>value=" + (typeof context.value) + " " + context.value + "</p>"
+          default: 'test'
         },
-        '2-number': {
+        simpleNumber: {
           uibase: 'number',
-          default: 5,
-          adjust: adjustNumber({ min: -1, max: 17, decimals: 12, significants: 4 })
+          default: 5
         },
-        '2a-number': {
-          uibase: 'number',
-          default: 5,
-          maskOptions: {
-            mask: Number,
-            thousandsSeparator: '!',
-            radix: '.',
-            scale: 20,
-            expose: true
-          }
+        simpleColor: {
+          uibase: 'color',
+          default: 'red'
         },
-        '2b-dms': {
-          uibase: 'number',
-          default: 5,
-          adjust: adjustDMS({})
-          //          maskOptions: dmsMask
-        },
-        '2-opt number': {
-          uibase: 'number',
-          optional: true,
-          default: 5,
-        },
-        '3-color': {
-          uibase: 'color'
-        },
-        '4-boolean': {
+        simpleBoolean: {
           uibase: 'boolean',
-          label: '4-boolean test-ui-label',
-          uiEffects: {
-            styleClass: ".mycheckbox",
-            designToken: { background: 'lightgrey', icon: { color: 'red', checked: { color: 'red', hover: { color: 'red' } } }, checked: { hover: { background: 'yellow' }, background: 'yellow', color: 'blue', border: { color: 'yellow' } }, width: '150px' },
-            style: "color: red"
-          },
           default: true
         },
         '5-select': {
@@ -293,7 +219,3 @@ export class TestComponent implements OnInit {
 
 }
 
-```
-<h2>further references (imask)</h2>
-https://imask.js.org/guide.html#getting-started
-https://github.com/nerdstep/react-coordinate-input/blob/master/README.md

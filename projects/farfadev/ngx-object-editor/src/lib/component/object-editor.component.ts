@@ -12,7 +12,6 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import { ObjectEditor } from '../object-editor';
-import { ObjectEditorModule } from '../object-editor.module';
 
 type KeyLabel = {
   key: string | number;

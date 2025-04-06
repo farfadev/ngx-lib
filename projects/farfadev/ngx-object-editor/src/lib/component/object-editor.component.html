@@ -13,12 +13,12 @@
 <ng-template #preIcons let-lcontext="lcontext">
   <span>&nbsp;&nbsp;&nbsp;</span>
   @if(canDelete(lcontext)) {
-  <i class="pi pi-trash pre-icons" (click)="delete(lcontext)"></i>
+  <i [farfa-icon]="{name:'trash-2'}" class="pre-icons" (click)="delete(lcontext)"></i>
   }
   @if(canArrayItemUp(lcontext)) {
-  <i class="pi pi-arrow-up pre-icons" (click)="arrayItemUp(lcontext)"></i>
+  <i [farfa-icon]="{name:'move-up'}" class="pre-icons" (click)="arrayItemUp(lcontext)"></i>
   } @if(canArrayItemDown(lcontext)) {
-  <i class="pi pi-arrow-down pre-icons" (click)="arrayItemDown(lcontext)"></i>
+  <i [farfa-icon]="{name:'move-down'}" class="pre-icons" (click)="arrayItemDown(lcontext)"></i>
   }
   <i
     [id]="lcontext.key"
@@ -26,7 +26,8 @@
       mode: 'click',
       html: getDescriptionArticle(lcontext) ?? ''
     }"
-    class="pi pi-info-circle pre-icons"
+    [farfa-icon]="{name: 'info'}"
+    class="pre-icons"
     [style.visibility]="
       getDescriptionArticle(lcontext) ? 'visible' : 'hidden'
     "
@@ -97,12 +98,12 @@
 <fieldset class="fieldset-main">
   <legend>
     @if(canToggle()) {
-    <i
-      [class]="
-        root_fieldset_expanded ? 'pi pi-minus-circle' : 'pi pi-plus-circle'
-      "
-      (click)="root_fieldset_expanded = !root_fieldset_expanded"
-    ></i>
+      @if(root_fieldset_expanded) {
+        <i [farfa-icon]="{name:'circle-minus'}" style='display:inline-block;height:1em;width:1em;' (click)="root_fieldset_expanded=!root_fieldset_expanded"></i>
+      }
+      @else {
+        <i [farfa-icon]="{name:'circle-plus'}" style='display:inline-block;height:1em;width:1em;' (click)="root_fieldset_expanded=!root_fieldset_expanded"></i>
+      }
     }
     {{
       (getLabel(context) ?? "object-editor").toString() +
@@ -158,8 +159,9 @@
         </option>
       </select>
       <i
-        class="pi pi-plus-circle"
+        style="display:inline-block;height:1em;width:1em;"
         [aTooltip]="{ html: 'click to add property' }"
+        [farfa-icon]="{name:'circle-plus'}"
         (click)="addNewProperty()"
         [style]="!canAddObjectProperty() ? 'display:none' : ''"
       ></i>
@@ -174,9 +176,10 @@
         </option>
       </select>
       <i
-        class="pi pi-plus-circle"
-        [aTooltip]="{ html: 'click to add item' }"
-        (click)="addNewProperty()"
+      style="display:inline-block;height:1em;width:1em;"
+      [aTooltip]="{ html: 'click to add item' }"
+      [farfa-icon]="{name:'circle-plus'}"
+      (click)="addNewProperty()"
         [style]="!canAddArrayElement() ? 'display:none' : ''"
       ></i>
       }
