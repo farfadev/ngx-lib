@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
-import { ATooltipComponent } from './a-tooltip.component';
+import { FarfaTooltipComponent } from './farfa-tooltip.component';
 
 describe('ATooltipComponent', () => {
-  let component: ATooltipComponent;
-  let fixture: ComponentFixture<ATooltipComponent>;
+  let component: FarfaTooltipComponent;
+  let fixture: ComponentFixture<FarfaTooltipComponent>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ ATooltipComponent ]
+      declarations: [ FarfaTooltipComponent ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ATooltipComponent);
+    fixture = TestBed.createComponent(FarfaTooltipComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   }));

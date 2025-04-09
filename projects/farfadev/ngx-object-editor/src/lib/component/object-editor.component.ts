@@ -385,10 +385,6 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
         this.editing = this.getSubContext(env?.['key']);
       }
     };
-    const editUpdate = this.context.editUpdate;
-    this.context.editUpdate = () => {
-      if (editUpdate) editUpdate();
-    }
   }
 
   ngOnDestroy(): void {

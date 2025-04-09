@@ -6,8 +6,8 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   // eslint-disable-next-line @angular-eslint/component-selector
   standalone: false,
   selector: 'a-tooltip',
-  templateUrl: './a-tooltip.component.html',
-  styleUrls: ['./a-tooltip.component.scss'],
+  templateUrl: './farfa-tooltip.component.html',
+  styleUrls: ['./farfa-tooltip.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('tooltip', [
@@ -19,7 +19,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
     ]),
   ],
 })
-export class ATooltipComponent {
+export class FarfaTooltipComponent {
   _trustedHtml?: SafeHtml;
   @Input() text?: string;
   @Input() set html(v: string|undefined) {

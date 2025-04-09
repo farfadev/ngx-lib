@@ -232,7 +232,7 @@ export namespace ObjectEditor {
     pcontext?: Context;
     key?: string | number; // the key in the parent context
     // called by the editor when value changes on editor side to update the client application
-    editUpdate?: () => void;
+    editUpdate?: (self?: boolean) => void;
     // called by the client application to change the context (value and scheme)
     // eg in case of an update from the server, to avoid page reload
     contextChange?: (context: Context, env?: { [key: string | number]: any }) => void;

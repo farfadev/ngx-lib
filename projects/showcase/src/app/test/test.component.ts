@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { AdjustSocket, ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
+import { AdjustSocket, FarfaIconModule, FarfaIconService, ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule, adjustNumber, dmsMask } from "@farfadev/ngx-object-editor";
 
 // https://github.com/nerdstep/react-coordinate-input/blob/master/README.md
@@ -17,10 +17,11 @@ type Coordinates = {
   selector: 'app-object-editor-test',
   templateUrl: './test.component.html',
   styleUrls: ['./test.component.scss'],
-  imports: [CommonModule, FormsModule, RouterModule, ObjectEditorModule],
+  imports: [CommonModule, FormsModule, RouterModule, ObjectEditorModule, FarfaIconModule],
 })
 export class TestComponent implements OnInit {
 
+  err_msg: string = '';
   _debug: boolean = false;
   @Input()
   set debug(v: boolean) {
@@ -29,6 +30,11 @@ export class TestComponent implements OnInit {
   };
   get debug(): boolean {
     return this._debug;
+  }
+
+  testicon = { name: 'test' };
+
+  constructor(private iconService: FarfaIconService) {
   }
 
   mycontext1: ObjectEditor.Context = {
@@ -266,10 +272,35 @@ export class TestComponent implements OnInit {
   }
 
 
-  constructor() {
-  }
+  ngOnInit() {
+    let i = true;
+    this.iconService.fetchSVGIcon('world-losange', 'assets/world-in-losange.svg')
+      .catch((error) => {
+        this.err_msg = 'Error importing SVG Icon \'assets/world-in-losange.svg\' : ' + error;
+      });
+    this.iconService.fetchSVGIcon('microphone', 'assets/microphone.svg')
+      .catch((error) => {
+        this.err_msg = 'Error importing SVG Icon \'assets/microphone.svg\' : ' + error;
+      });
 
-  ngOnInit() { }
+    setInterval(() => {
+      if (i) {
+        this.iconService.fetchSVGIcon('changing-icon', 'assets/world-in-losange.svg')
+          .catch((error) => {
+            this.err_msg = 'Error importing SVG Icon \'assets/world-in-losange.svg\' : ' + error;
+          });
+        this.testicon = { name: 'world-losange' };
+      }
+      else {
+        this.iconService.fetchSVGIcon('changing-icon', 'assets/microphone.svg')
+          .catch((error) => {
+            this.err_msg = 'Error importing SVG Icon \'assets/microphone.svg\' : ' + error;
+          });
+        this.testicon = { name: 'microphone' };
+      }
+      i = !i;
+    }, 5000);
+  }
 
 }
 

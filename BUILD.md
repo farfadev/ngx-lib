@@ -7,6 +7,8 @@ https://angular.dev/tools/libraries/creating-libraries#publishing-libraries
 ## tutorials from the community
 https://sandroroth.com/blog/angular-library/
 
+https://gpiskas.com/posts/how-to-build-angular-library-including-assets-styles/
+
 https://dev.to/jsanddotnet/create-an-angular-library-and-consume-it-locally-with-debugging-cma
 
 https://medium.com/angular-in-depth/complete-beginner-guide-to-publish-an-angular-library-to-npm-d42343801660

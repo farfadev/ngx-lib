@@ -1,4 +1,4 @@
-export type AToolTipProperties = {
+export type FarfaToolTipProperties = {
     originX?: any; 
     originY?: any; 
     overlayX?: any; 

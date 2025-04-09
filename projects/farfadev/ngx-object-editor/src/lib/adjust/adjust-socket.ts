@@ -18,14 +18,21 @@ export class AdjustSocket {
       this.inputElement.onclick = () => {
         context?.onClick?.(context);
       }
-    
-    
-      const adjusted = this.adjust.adjust(context,String(context.value??''));
-      this.inputElement.value = adjusted?.formattedValue??'';
+      this.updateValue();
+      const editUpdate = this.context.editUpdate;
+      this.context.editUpdate = (self?: boolean) => {
+        if(self !== true) {
+          this.updateValue();
+        }
+        editUpdate?.();
+      }
     }
   }
-
-  _update(uiAdjust: boolean) {
+  private updateValue() {
+    const adjusted = this.adjust.adjust(this.context, String(this.context.value ?? ''));
+    this.inputElement.value = adjusted?.formattedValue ?? '';
+  }
+  private _update(uiAdjust: boolean) {
     let cursorPosition: number | null = 0;
     const adjusted = this.adjust.adjust(this.context, this.inputElement.value, this.inputElement.selectionStart ?? 0);
     this.context.value = adjusted?.adjustedValue;
@@ -44,11 +51,11 @@ export class AdjustSocket {
         cursorPosition = adjusted?.cursorPosition ?? this.inputElement.selectionStart;
       }
     }
-    setTimeout(() => {
+    (async () => {
       this.inputElement!.selectionStart = cursorPosition;
       this.inputElement!.selectionEnd = cursorPosition;
-    }, 0);
-
+    })();
+    this.context.editUpdate?.(true);
     this.update(this.context, uiAdjust ? '' : (adjusted?.message ?? ''));
   }
 

@@ -1,13 +1,21 @@
-import { Directive, ElementRef, Input, OnInit } from "@angular/core";
+import { Directive, ElementRef, Input, OnDestroy, OnInit } from "@angular/core";
 import { FarfaIconService } from "./farfa-icon.service";
 
 @Directive({ standalone: false, selector: '[farfa-icon]' })
-export class FarfaIconDirective implements OnInit {
+export class FarfaIconDirective implements OnInit, OnDestroy {
 
-  @Input('farfa-icon') properties!: Record<string,any>;
+  _properties?: Record<string, any>;
+  @Input('farfa-icon')
+  set properties(p: Record<string, any> | undefined) {
+    this._properties = p;
+    this.setIcon();
+  };
+  get properties() {
+    return this._properties;
+  }
 
   //observer: MutationObserver;
-
+  svgId?: number;
   constructor(private elementRef: ElementRef, private iconService: FarfaIconService) {
 /*    this.observer = new MutationObserver((mutations)=> {
       for(const mutation of mutations) {
@@ -24,22 +32,35 @@ export class FarfaIconDirective implements OnInit {
   updateSVGAttributes() {
     const attrs = this.elementRef.nativeElement.getAttributeNames?.();
     const svgEls = (this.elementRef.nativeElement as HTMLElement).getElementsByTagName('svg');
-    for(const svgEl of svgEls) {
+    for (const svgEl of svgEls) {
       svgEl.removeAttribute('width');
       svgEl.removeAttribute('height');
       //svgEl.setAttribute('width','100%');
       //svgEl.setAttribute('height','100%');
-      for(const attr of attrs??[]) {
-      if(![''].includes(attr)) continue;
+      for (const attr of attrs ?? []) {
+        if (![''].includes(attr)) continue;
         const attrValue = this.elementRef.nativeElement.getAttribute(attr);
-        svgEl.setAttribute(attr,attrValue);
+        svgEl.setAttribute(attr, attrValue);
       }
     }
   }
 
+  setIcon() {
+    if (this.svgId) {
+      this.iconService.remove(this.svgId);
+    }
+    if (this.properties?.['name']) {
+      this.svgId = this.iconService.getSVGIcon(this.properties['name'], (svg) => {
+        this.elementRef.nativeElement.innerHTML = svg;
+        this.updateSVGAttributes();
+      });
+    }
+  }
+
   ngOnInit(): void {
-    const svg = this.iconService.getSVGIcon(this.properties['name']);
-    this.elementRef.nativeElement.insertAdjacentHTML('afterbegin',svg);
-    this.updateSVGAttributes();
+  }
+
+  ngOnDestroy() {
+    if (this.svgId) this.iconService.remove(this.svgId);
   }
 }

@@ -32,6 +32,7 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input()
   set context(value: ObjectEditor.Context) {
     this._context = value;
+    this.setAdjustSocket();
   }
 
   ui_id;
@@ -40,8 +41,21 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
 
   value: string = '';
 
+  inputElement?: HTMLElement;
+
+  adjustSocket?: AdjustSocket;
+
   constructor() {
     this.ui_id = window.crypto.randomUUID();
+  }
+
+  setAdjustSocket() {
+    if (this.inputElement) {
+      this.adjustSocket = new AdjustSocket(this.inputElement as HTMLInputElement, this.context?.scheme?.adjust ?? adjustNumber({}), this.context!, (context: any, err_msg: string) => {
+        this.err_msg = err_msg;
+        context.editUpdate(true);
+      });
+    }
   }
 
   getId() {
@@ -52,21 +66,18 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    const inputElement = document.getElementById(this.getId()) as HTMLInputElement;
-    new AdjustSocket(inputElement as HTMLInputElement, this.context?.scheme?.adjust ?? adjustNumber({}), this.context!, (context: any, err_msg: string) => {
-      this.err_msg = err_msg;
-      context.editUpdate();
-    });
+    this.inputElement = document.getElementById(this.getId()) as HTMLInputElement;
+    this.setAdjustSocket();
   }
 
   ngOnDestroy(): void {
   }
 
   getStyle(context: ObjectEditor.Context) {
-    const stylePlus = this.err_msg!=''?'color:red':'';
+    const stylePlus = this.err_msg != '' ? 'color:red' : '';
     const rstyle = ObjectEditor.getStyle(context);
-    
-    return rstyle ? rstyle+';'+stylePlus:stylePlus;
+
+    return rstyle ? rstyle + ';' + stylePlus : stylePlus;
   }
 
   getStyleClass(context: ObjectEditor.Context) {

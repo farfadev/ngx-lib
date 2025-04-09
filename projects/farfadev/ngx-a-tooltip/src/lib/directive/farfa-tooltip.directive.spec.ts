@@ -1,4 +1,4 @@
-import { ATooltipDirective } from './a-tooltip.directive';
+import { FarfaTooltipDirective } from './farfa-tooltip.directive';
 
 describe('ATooltipDirective', () => {
   it('should create an instance', () => {

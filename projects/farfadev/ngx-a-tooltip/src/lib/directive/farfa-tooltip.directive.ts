@@ -1,17 +1,17 @@
 import { ComponentRef, Directive, ElementRef, HostListener, Input, OnInit } from '@angular/core';
 import { Overlay, OverlayPositionBuilder, OverlayRef, CloseScrollStrategy } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { ATooltipComponent } from '../component/a-tooltip.component';
-import { AToolTipProperties } from '../types/atooltip';
+import { FarfaTooltipComponent } from '../component/farfa-tooltip.component';
+import { FarfaToolTipProperties } from '../types/farfatooltip';
 
 // eslint-disable-next-line @angular-eslint/directive-selector
-@Directive({ standalone: false, selector: '[aTooltip]' })
-export class ATooltipDirective implements OnInit {
+@Directive({ standalone: false, selector: '[farfa-tooltip]' })
+export class FarfaTooltipDirective implements OnInit {
 
-  @Input('aTooltip') properties!: AToolTipProperties;
+  @Input('farfa-tooltip') properties!: FarfaToolTipProperties;
   private overlayRef!: OverlayRef;
 
-  private defaultProperties: AToolTipProperties = {
+  private defaultProperties: FarfaToolTipProperties = {
     html: '',
     text: '',
     mode: 'hover',
@@ -21,7 +21,7 @@ export class ATooltipDirective implements OnInit {
     overlayY: 'top',
     offsetX: -8,
     offsetY: -8,
-    style:'background-color: white; border: 1px solid black; padding: 1rem'
+    style: 'background-color: white; border: 1px solid black; padding: 1rem'
   };
 
   constructor(private overlay: Overlay,
@@ -66,11 +66,13 @@ export class ATooltipDirective implements OnInit {
   }
 
   show() {
-    const tooltipRef: ComponentRef<ATooltipComponent>
-      = this.overlayRef.attach(new ComponentPortal(ATooltipComponent));
-    tooltipRef.instance.text = this.properties.text;
-    tooltipRef.instance.html = this.properties.html;
-    tooltipRef.instance.style = this.defaultProperties.style + ';' + this.properties.style;
+    if (!this.overlayRef.hasAttached()) {
+      const tooltipRef: ComponentRef<FarfaTooltipComponent>
+        = this.overlayRef.attach(new ComponentPortal(FarfaTooltipComponent));
+      tooltipRef.instance.text = this.properties.text;
+      tooltipRef.instance.html = this.properties.html;
+      tooltipRef.instance.style = this.defaultProperties.style + ';' + this.properties.style;
+    }
   }
 
   hide() {

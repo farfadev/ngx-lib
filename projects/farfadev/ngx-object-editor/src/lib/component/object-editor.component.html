@@ -22,7 +22,7 @@
   }
   <i
     [id]="lcontext.key"
-    [aTooltip]="{
+    [farfa-tooltip]="{
       mode: 'click',
       html: getDescriptionArticle(lcontext) ?? ''
     }"
@@ -105,10 +105,8 @@
         <i [farfa-icon]="{name:'circle-plus'}" style='display:inline-block;height:1em;width:1em;' (click)="root_fieldset_expanded=!root_fieldset_expanded"></i>
       }
     }
-    {{
-      (getLabel(context) ?? "object-editor").toString() +
-        (context.debug ? " (DEBUG) " : "")
-    }}
+    <span>{{(getLabel(context) ?? "object-editor").toString()}}</span>
+    <span  style="font-size:0.5em">{{(context.debug ? " (DEBUG) " : "")}}</span>
     <ng-container
       *ngTemplateOutlet="preIcons; context: { lcontext: context }"
     ></ng-container>
@@ -160,7 +158,7 @@
       </select>
       <i
         style="display:inline-block;height:1em;width:1em;"
-        [aTooltip]="{ html: 'click to add property' }"
+        [farfa-tooltip]="{ html: 'click to add property' }"
         [farfa-icon]="{name:'circle-plus'}"
         (click)="addNewProperty()"
         [style]="!canAddObjectProperty() ? 'display:none' : ''"
@@ -177,7 +175,7 @@
       </select>
       <i
       style="display:inline-block;height:1em;width:1em;"
-      [aTooltip]="{ html: 'click to add item' }"
+      [farfa-tooltip]="{ html: 'click to add item' }"
       [farfa-icon]="{name:'circle-plus'}"
       (click)="addNewProperty()"
         [style]="!canAddArrayElement() ? 'display:none' : ''"
