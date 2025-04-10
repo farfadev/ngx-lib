@@ -1,0 +1,12 @@
+.grid-2 {
+  display: grid;
+  gap: 10px;
+  grid-auto-rows: auto;
+  grid-template-columns: repeat(2, max-content);
+  //    grid-auto-columns: minmax(10px, auto);
+}
+
+.grid-item {
+  grid-column: var(--column);
+  grid-row: auto;
+}

@@ -2,8 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { AdjustSocket, FarfaIconModule, FarfaIconService, ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
+import { AdjustSocket, FarfaIconModule, ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
+import { FarfaSourceCodeComponent } from '../../source-code/source-code.component';
 
 type Coordinates = {
   lat: number;
@@ -11,10 +12,10 @@ type Coordinates = {
 }
 
 @Component({
-  selector: 'app-object-editor-test',
+  selector: 'showcases-custom-frontend',
   templateUrl: './custom-frontend.component.html',
   styleUrls: ['./custom-frontend.component.scss'],
-  imports: [CommonModule, FormsModule, RouterModule, ObjectEditorModule, FarfaIconModule],
+  imports: [CommonModule, FormsModule, ObjectEditorModule, FarfaIconModule],
 })
 export class ShowcasesCustomFrontendComponent implements OnInit {
 
