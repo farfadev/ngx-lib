@@ -4,29 +4,22 @@ import { FormsModule } from '@angular/forms';
 import { ObjectEditorModule, ObjectEditor } from '@farfadev/ngx-object-editor';
 
 @Component({
-  selector: 'object-editor-tuto1',
+  selector: 'showcases-dynamic-styling',
   templateUrl: './dynamic-styling.component.html',
   styleUrls: ['./dynamic-styling.component.scss'],
   imports: [CommonModule, FormsModule, ObjectEditorModule],
 })
 export class ShowcaseDynamicStylingComponent {
 
-  _debug: boolean = false;
   @Input()
-  set debug(v: boolean) {
-    this._debug = v;
-    this.mycontext.debug = v;
-  };
-  get debug(): boolean {
-    return this._debug;
-  }
+  debug = false;
 
   mycontext: ObjectEditor.Context = {
     value: {
     },
     scheme: {
       uibase: 'object',
-      label: 'dynamic styling showcase',
+      label: 'showcase dynamic styling',
       properties: {
         'dynamic-styling-text': {
           uibase: 'text',

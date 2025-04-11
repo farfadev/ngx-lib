@@ -2,49 +2,43 @@ import { Component, ComponentFactoryResolver, Input, OnInit } from '@angular/cor
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
 import typescript from 'highlight.js/lib/languages/typescript';
-//import html from 'highlight.js/lib/languages/html';
+import xml from 'highlight.js/lib/languages/xml';
 import scss from 'highlight.js/lib/languages/scss';
 import css from 'highlight.js/lib/languages/css';
 import 'highlight.js/styles/github.css';
 import { ActivatedRoute } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'source-code',
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './source-code.component.html',
   styleUrl: './source-code.component.scss'
 })
 export class FarfaSourceCodeComponent implements OnInit {
-  _urls?: Record<string, string>;
+  _sources?: Record<string, string> = {};
   @Input()
-  set urls(urls: Record<string, string> | undefined) {
-    this._urls = urls;
+  set sources(sources: Record<string, string>|undefined) {
+    this._sources = sources;
     this.loadSourceCode();
   };
-  get urls() {
-    return this._urls;
+  get sources() {
+    return this._sources;
   }
 
-  sources: Record<string, string> = {};
-  innerComponent: any;
+  getSourcesKeys() {
+    return(Object.keys(this.sources??{}));
+  }
 
   constructor(private route: ActivatedRoute) {
     hljs.registerLanguage('javascript', javascript);
     hljs.registerLanguage('typescript', typescript);
-    //hljs.registerLanguage('html', html);
+    hljs.registerLanguage('xml', xml);
     hljs.registerLanguage('scss', scss);
     hljs.registerLanguage('css', css);
   }
 
   ngOnInit() {
-    this.route
-    .data
-    .subscribe((v: any) => {
-      v.component?.then((component: any)=>{
-        this.innerComponent = component;
-      }); 
-      if(v.sources) this.loadSourceCode(v.sources);
-    });  
   }
 
   openSourceCode(evt: Event, sourceType: string) {
@@ -69,11 +63,8 @@ export class FarfaSourceCodeComponent implements OnInit {
     (evt.currentTarget as any).className += " active";
   }
 
-  getSourceCode(sourceType: string) {
-    return this.sources?.[sourceType];
-  }
-  loadSourceCode(sources?: Record<string,string>) {
-    if(!sources) sources = this.urls;
+  loadSourceCode() {
+    const sources = this.sources;
     for (const sourceType of Object.keys(sources ?? {})) {
       const url = sources?.[sourceType];
       if (url) {

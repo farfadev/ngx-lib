@@ -5,7 +5,7 @@ import { FarfaTooltipModule } from '@farfadev/ngx-a-tooltip';
 import { FarfaIconModule, FarfaIconService } from "@farfadev/ngx-object-editor";
 
 @Component({
-  selector: 'tuto-icons-tooltip',
+  selector: 'showcases-icons-tooltip',
   templateUrl: './icons-tooltip.component.html',
   styleUrls: ['./icons-tooltip.component.scss'],
   imports: [CommonModule, FormsModule, FarfaIconModule, FarfaTooltipModule],

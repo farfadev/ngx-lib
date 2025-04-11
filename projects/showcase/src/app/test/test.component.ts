@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { AdjustSocket, FarfaIconModule, FarfaIconService, ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
+import { InputSocket, FarfaIconModule, FarfaIconService, ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule, adjustNumber, dmsMask } from "@farfadev/ngx-object-editor";
 
 // https://github.com/nerdstep/react-coordinate-input/blob/master/README.md
@@ -22,23 +22,15 @@ type Coordinates = {
 export class TestComponent implements OnInit {
 
   err_msg: string = '';
-  _debug: boolean = false;
   @Input()
-  set debug(v: boolean) {
-    this._debug = v;
-    this.mycontext1.debug = v;
-  };
-  get debug(): boolean {
-    return this._debug;
-  }
+  debug: boolean = false;
 
   testicon = { name: 'test' };
 
   constructor(private iconService: FarfaIconService) {
   }
 
-  mycontext1: ObjectEditor.Context = {
-    debug: this.debug,
+  mycontext: ObjectEditor.Context = {
     value: {
       p1: 'coucou',
       p3: '#ffffff',
@@ -249,7 +241,7 @@ export class TestComponent implements OnInit {
                 if (c.tagName == 'INPUT') {
                   const subContext = ObjectEditor.getSubContext(context, c.id);
                   if (subContext) {
-                    new AdjustSocket(c as HTMLInputElement, adjustDMS({}), subContext, (context: ObjectEditor.Context, err_msg: string) => {
+                    new InputSocket(c as HTMLInputElement, adjustDMS({}), subContext, (context: ObjectEditor.Context, err_msg: string) => {
                       err(err_msg);
                       context.editUpdate?.();
                     });

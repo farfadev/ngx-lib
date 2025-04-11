@@ -8,6 +8,7 @@ import { OERadioComponent } from './component/radio/radio.component';
 import { OEMaskedComponent } from './component/masked/masked.component';
 import { OEFileComponent } from './component/file/file.component';
 import { OECustomComponent } from './component/custom/custom.component';
+import { OEAngularComponent } from './component/angular/angular.component';
 import { OECheckboxComponent } from './component/checkbox/checkbox.component';
 import { OEDefaultComponent } from './component/default/default.component';
 import { FarfaIconModule } from './farfa-icon/farfa-icon.module';
@@ -21,6 +22,7 @@ import { FarfaIconService } from './farfa-icon/farfa-icon.service';
     OERadioComponent,
     OEFileComponent,
     OECustomComponent,
+    OEAngularComponent,
     ObjectEditorComponent,
     OEDefaultComponent
   ],

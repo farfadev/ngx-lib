@@ -1,13 +1,13 @@
 import { ObjectEditor } from "../object-editor";
 
-export class AdjustSocket {
+export class InputSocket {
   constructor(private inputElement: HTMLInputElement, private adjust: ObjectEditor.Adjust, private context: ObjectEditor.Context, private update: (context: any, err_msg: string) => void) {
     if (this.inputElement) {
       this.inputElement.addEventListener('keyup', (event: KeyboardEvent) => {
       })
       this.inputElement.onkeydown = (e: KeyboardEvent) => {
         const curPos = this.inputElement!.selectionStart ?? -1;
-        return this.adjust.accept(this.context, e, this.inputElement.value, curPos);
+        return this.adjust.accept ? this.adjust.accept(this.context, e, this.inputElement.value, curPos) : true;
       }
       this.inputElement.oninput = () => {
         this._update(false);
@@ -21,7 +21,7 @@ export class AdjustSocket {
       this.updateValue();
       const editUpdate = this.context.editUpdate;
       this.context.editUpdate = (self?: boolean) => {
-        if(self !== true) {
+        if (self !== true) {
           this.updateValue();
         }
         editUpdate?.();
@@ -29,16 +29,32 @@ export class AdjustSocket {
     }
   }
   private updateValue() {
-    const adjusted = this.adjust.adjust(this.context, String(this.context.value ?? ''));
-    this.inputElement.value = adjusted?.formattedValue ?? '';
+    if (this.adjust.adjust) {
+      const adjusted = this.adjust.adjust(this.context, String(this.context.value ?? ''));
+      this.inputElement.value = adjusted?.formattedValue ?? '';
+    }
+    else {
+      this.inputElement.value = String(this.context.value ?? '');
+    }
   }
   private _update(uiAdjust: boolean) {
     let cursorPosition: number | null = 0;
-    const adjusted = this.adjust.adjust(this.context, this.inputElement.value, this.inputElement.selectionStart ?? 0);
-    this.context.value = adjusted?.adjustedValue;
+    let adjusted;
+    if(this.adjust.adjust) {
+      adjusted = this.adjust.adjust(this.context, this.inputElement.value, this.inputElement.selectionStart ?? 0);
+      this.context.value = adjusted?.adjustedValue;
+    }
+    else {
+      this.context.value = this.inputElement.value;
+    }
     if (uiAdjust) { // adjust UI value when focus is lost
-      const adjusted = this.adjust.adjust(this.context, this.context.value, this.inputElement.selectionStart ?? 0);
-      this.inputElement.value = adjusted?.formattedValue ?? '';
+      if(this.adjust.adjust) {
+        const adjusted = this.adjust.adjust(this.context, this.context.value, this.inputElement.selectionStart ?? 0);
+        this.inputElement.value = adjusted?.formattedValue ?? '';
+      }
+      else {
+        this.inputElement.value = this.context.value;
+      }
       cursorPosition = String(this.inputElement.value).length;
     }
     else {
@@ -58,5 +74,4 @@ export class AdjustSocket {
     this.context.editUpdate?.(true);
     this.update(this.context, uiAdjust ? '' : (adjusted?.message ?? ''));
   }
-
 }

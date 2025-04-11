@@ -5,22 +5,15 @@ import { ObjectEditor } from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
 
 @Component({
-  selector: 'object-editor-tuto1',
+  selector: 'showcases-simple-object',
   templateUrl: './simple-object.component.html',
   styleUrls: ['./simple-object.component.scss'],
   imports: [CommonModule, FormsModule, ObjectEditorModule],
 })
 export class ShowcaseSimpleObjectComponent {
 
-  _debug: boolean = false;
   @Input()
-  set debug(v: boolean) {
-    this._debug = v;
-    this.mycontext.debug = v;
-  };
-  get debug(): boolean {
-    return this._debug;
-  }
+  debug: boolean = false;
 
   mycontext: ObjectEditor.Context = {
     value: {
@@ -32,7 +25,7 @@ export class ShowcaseSimpleObjectComponent {
     },
     scheme: {
       uibase: 'object',
-      label: 'tuto1',
+      label: 'showcase simple object',
       properties: {
         simpleText: {
           uibase: 'text',

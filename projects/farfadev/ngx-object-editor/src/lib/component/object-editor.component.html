@@ -13,12 +13,23 @@
 <ng-template #preIcons let-lcontext="lcontext">
   <span>&nbsp;&nbsp;&nbsp;</span>
   @if(canDelete(lcontext)) {
-  <i [farfa-icon]="{name:'trash-2'}" class="pre-icons" (click)="delete(lcontext)"></i>
-  }
-  @if(canArrayItemUp(lcontext)) {
-  <i [farfa-icon]="{name:'move-up'}" class="pre-icons" (click)="arrayItemUp(lcontext)"></i>
+  <i
+    [farfa-icon]="{ name: 'trash-2' }"
+    class="pre-icons"
+    (click)="delete(lcontext)"
+  ></i>
+  } @if(canArrayItemUp(lcontext)) {
+  <i
+    [farfa-icon]="{ name: 'move-up' }"
+    class="pre-icons"
+    (click)="arrayItemUp(lcontext)"
+  ></i>
   } @if(canArrayItemDown(lcontext)) {
-  <i [farfa-icon]="{name:'move-down'}" class="pre-icons" (click)="arrayItemDown(lcontext)"></i>
+  <i
+    [farfa-icon]="{ name: 'move-down' }"
+    class="pre-icons"
+    (click)="arrayItemDown(lcontext)"
+  ></i>
   }
   <i
     [id]="lcontext.key"
@@ -26,11 +37,9 @@
       mode: 'click',
       html: getDescriptionArticle(lcontext) ?? ''
     }"
-    [farfa-icon]="{name: 'info'}"
+    [farfa-icon]="{ name: 'info' }"
     class="pre-icons"
-    [style.visibility]="
-      getDescriptionArticle(lcontext) ? 'visible' : 'hidden'
-    "
+    [style.visibility]="getDescriptionArticle(lcontext) ? 'visible' : 'hidden'"
   ></i>
 </ng-template>
 
@@ -63,9 +72,9 @@
       (propertyListChange)="updatePropertyList($event)"
       [debug]="subContext.debug"
     />
-    } @else {
-      @switch(getHtmlType(subContext)) {
-    @case('custom') {
+    } @else { @switch(getHtmlType(subContext)) { @case('angular') {
+    <oe-angular [debug]="debug" [context]="subContext" />
+    } @case('custom') {
     <oe-custom [context]="subContext" />
     } @case('checkbox') {
     <oe-checkbox [context]="subContext" />
@@ -82,13 +91,12 @@
     } @case('text') { @if(hasMask(subContext)) {
     <oe-masked [context]="subContext" />
     } @else {
-      <oe-default [context]="subContext" ></oe-default>
+    <oe-default [context]="subContext"></oe-default>
     } } @case('file') {
     <oe-file [context]="subContext"></oe-file>
     } @default {
-      <oe-default [context]="subContext" ></oe-default>
-    } }
-  }
+    <oe-default [context]="subContext"></oe-default>
+    } } }
   </span>
   }
 </ng-template>
@@ -97,16 +105,21 @@
   -->
 <fieldset class="fieldset-main">
   <legend>
-    @if(canToggle()) {
-      @if(root_fieldset_expanded) {
-        <i [farfa-icon]="{name:'circle-minus'}" style='display:inline-block;height:1em;width:1em;' (click)="root_fieldset_expanded=!root_fieldset_expanded"></i>
-      }
-      @else {
-        <i [farfa-icon]="{name:'circle-plus'}" style='display:inline-block;height:1em;width:1em;' (click)="root_fieldset_expanded=!root_fieldset_expanded"></i>
-      }
-    }
-    <span>{{(getLabel(context) ?? "object-editor").toString()}}</span>
-    <span  style="font-size:0.5em">{{(context.debug ? " (DEBUG) " : "")}}</span>
+    @if(canToggle()) { @if(root_fieldset_expanded) {
+    <i
+      [farfa-icon]="{ name: 'circle-minus' }"
+      style="display: inline-block; height: 1em; width: 1em"
+      (click)="root_fieldset_expanded = !root_fieldset_expanded"
+    ></i>
+    } @else {
+    <i
+      [farfa-icon]="{ name: 'circle-plus' }"
+      style="display: inline-block; height: 1em; width: 1em"
+      (click)="root_fieldset_expanded = !root_fieldset_expanded"
+    ></i>
+    } }
+    <span>{{ (getLabel(context) ?? "object-editor").toString() }}</span>
+    <span style="font-size: 0.5em">{{ context.debug ? " (DEBUG) " : "" }}</span>
     <ng-container
       *ngTemplateOutlet="preIcons; context: { lcontext: context }"
     ></ng-container>
@@ -157,10 +170,10 @@
         </option>
       </select>
       <i
-        style="display:inline-block;height:1em;width:1em;"
+        style="display: inline-block; height: 1em; width: 1em"
         [farfa-tooltip]="{ html: 'click to add property' }"
-        [farfa-icon]="{name:'circle-plus'}"
-        (click)="addNewProperty()"
+        [farfa-icon]="{ name: 'circle-plus' }"
+        (click)="addProperty()"
         [style]="!canAddObjectProperty() ? 'display:none' : ''"
       ></i>
       } @if(isArray()) {
@@ -174,10 +187,10 @@
         </option>
       </select>
       <i
-      style="display:inline-block;height:1em;width:1em;"
-      [farfa-tooltip]="{ html: 'click to add item' }"
-      [farfa-icon]="{name:'circle-plus'}"
-      (click)="addNewProperty()"
+        style="display: inline-block; height: 1em; width: 1em"
+        [farfa-tooltip]="{ html: 'click to add item' }"
+        [farfa-icon]="{ name: 'circle-plus' }"
+        (click)="addProperty()"
         [style]="!canAddArrayElement() ? 'display:none' : ''"
       ></i>
       }

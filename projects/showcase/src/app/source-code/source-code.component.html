@@ -1,33 +1,12 @@
-<div class="grid-2">
-  <div class="grid-item" style="--column: 1">
-    <ng-container *ngComponentOutlet="innerComponent" />
-  </div>
-  <div class="grid-item" style="--column: 2">
-    <div class="tab">
-      <button class="tablinks" (click)="openSourceCode($event, 'TS')">
-        TS
-      </button>
-      <button class="tablinks" (click)="openSourceCode($event, 'HTML')">
-        HTML
-      </button>
-      <button class="tablinks" (click)="openSourceCode($event, 'SCSS')">
-        SCSS
-      </button>
-    </div>
-    <!-- Tab content -->
-    <div id="TS" class="tabcontent">
-      <h3>TS</h3>
-      <pre><code id="TS-toto"></code></pre>
-    </div>
-
-    <div id="HTML" class="tabcontent">
-      <h3>HTML</h3>
-      <pre><code id="HTML-toto"></code></pre>
-    </div>
-
-    <div id="SCSS" class="tabcontent">
-      <h3>SCSS</h3>
-      <pre><code id="SCSS-toto"></code></pre>
-    </div>
-  </div>
+<div class="tab">
+  @for(f of getSourcesKeys();track f) {
+  <button class="tablinks" (click)="openSourceCode($event, f)">{{ f }}</button>
+  }
 </div>
+<!-- Tab content -->
+@for(f of getSourcesKeys();track f) {
+<div id="{{ f }}" class="tabcontent">
+  <h3>{{ f }}</h3>
+  <pre><code id="{{f}}-toto"></code></pre>
+</div>
+}

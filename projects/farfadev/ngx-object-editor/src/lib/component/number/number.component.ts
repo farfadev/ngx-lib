@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { ObjectEditor } from '../../object-editor';
 import { adjustNumber } from '../../adjust/adjust-number';
-import { AdjustSocket } from '../../adjust/adjust-socket';
+import { InputSocket } from '../../input/input-socket';
 
 @Component({
   standalone: false,
@@ -43,7 +43,7 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
 
   inputElement?: HTMLElement;
 
-  adjustSocket?: AdjustSocket;
+  adjustSocket?: InputSocket;
 
   constructor() {
     this.ui_id = window.crypto.randomUUID();
@@ -51,7 +51,7 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
 
   setAdjustSocket() {
     if (this.inputElement) {
-      this.adjustSocket = new AdjustSocket(this.inputElement as HTMLInputElement, this.context?.scheme?.adjust ?? adjustNumber({}), this.context!, (context: any, err_msg: string) => {
+      this.adjustSocket = new InputSocket(this.inputElement as HTMLInputElement, this.context?.scheme?.adjust ?? adjustNumber({}), this.context!, (context: any, err_msg: string) => {
         this.err_msg = err_msg;
         context.editUpdate(true);
       });

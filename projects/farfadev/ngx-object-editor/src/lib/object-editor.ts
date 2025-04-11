@@ -1,4 +1,5 @@
 //import cloneDeep from "lodash.clonedeep";
+import { ComponentType } from "@angular/cdk/overlay";
 import { cloneDeep } from "lodash-es";
 
 export namespace ObjectEditor {
@@ -17,7 +18,7 @@ export namespace ObjectEditor {
    */
   export type UIBase = 'text' | 'password' | 'color' | 'number' | 'boolean' | 'radio' | 'range' |
     'date' | 'time' | 'datetime' | 'file' | 'tel' | 'email' | 'url' | 'image'
-    | 'object' | 'array' | 'select' | 'from' | 'custom';
+    | 'object' | 'array' | 'select' | 'from' | 'custom' | 'angular';
 
   export const schemeIdProperty = '_$schemeRef';
 
@@ -58,9 +59,9 @@ export namespace ObjectEditor {
    */
   export type Adjust = {
     // called after each value change (return Adjusted value)
-    adjust: (context: Context, inputValue?: string, cursorPosition?: number) => Adjusted | null,
+    adjust?: (context: Context, inputValue?: string, cursorPosition?: number) => Adjusted | null,
     // called on key down, to accept or not the event (return true/ falls)
-    accept: (context: Context, key: KeyboardEvent, inputValue: string, cursorPosition: number) => boolean
+    accept?: (context: Context, key: KeyboardEvent, inputValue: string, cursorPosition: number) => boolean
   }
 
   export type Scheme<T = any, U = any> = {
@@ -96,9 +97,13 @@ export namespace ObjectEditor {
       forward: (t: T) => U;
       backward: (u: U) => T;
     }
-    customFrontEnd?: { //TODO
+    customFrontEnd?: {
       html?: (context: Context) => string; // an html component
       init?: (context: Context, el: HTMLElement, err_cb: (err_msg: string) => void) => void; // call back to initiaalise the html element after DOM attachment (event listeners ...)
+    }
+    angularFrontEnd?: {
+      component?: (context: Context) => any; // an angular component
+      inputs?: (context: Context) => Record<string,any>; // call back to set the input attributes of the component
     }
     // https://imask.js.org/guide.html
     maskOptions?: Record<string, unknown> | ((context: Context) => Record<string, unknown>);
@@ -223,6 +228,11 @@ export namespace ObjectEditor {
       type: 'custom',
       html: 'custom',
       js: 'custom'
+    },
+    angular: {
+      type: 'angular',
+      html: 'angular',
+      js: 'angular'
     }
   };
   export interface Context {
@@ -420,6 +430,13 @@ export namespace ObjectEditor {
     context.editUpdate?.();
   }
 
+  export const initContext = (context: Context): void => {
+    if(!context.scheme) {
+      context.scheme = { uibase: 'object' };
+    }
+    context.value = ObjectEditor.initValue(context.value, context.scheme);
+  }
+
   export const initValue = (value: any, scheme: Scheme): any => {
     switch (scheme.uibase) {
       case 'object':
@@ -602,11 +619,11 @@ export namespace ObjectEditor {
         }
         break;
         case 'custom':
-          if (value == undefined && scheme.default != undefined) {
+        case 'angular':
+            if (value == undefined && scheme.default != undefined) {
             value = cloneDeep(scheme.default);
           }
           else if (value == undefined) {
-            value = '';
             if (scheme.transform) {
               value = scheme.transform.backward(value);
             }
@@ -710,7 +727,7 @@ export namespace ObjectEditor {
     return rsel;
   }
 
-  export const addNewProperty = (context: Context, newProperty: { property: string | number, schemeKey: string }): ObjectEditor.Context | undefined => {
+  export const addProperty = (context: Context, newProperty: { property: string | number, schemeKey: string }): ObjectEditor.Context | undefined => {
     if (context.scheme === undefined) {
       context.scheme = { uibase: 'object' };
     }
@@ -727,7 +744,8 @@ export namespace ObjectEditor {
       // cannot replace existing property
       context.value[newProperty.property] === undefined &&
       // sanity check on newproperty type
-      ObjectEditor.isInnerSchemeSelectionKey(context.scheme, newProperty.schemeKey)
+      (ObjectEditor.isInnerSchemeSelectionKey(context.scheme, newProperty.schemeKey)||
+      ObjectEditor.getOptionalPropertyList(context).includes(String(newProperty.property)))
     ) {
       if (!context.scheme.properties)
         context.scheme.properties = {};
@@ -913,7 +931,7 @@ export namespace ObjectEditor {
   }
 
   export const getSubContext = (context: Context, p?: string | number): ObjectEditor.Context | undefined => {
-    if (['object', 'array', 'custom'].includes(context.scheme?.uibase ?? '')) {
+    if (['object', 'array', 'custom', 'angular'].includes(context.scheme?.uibase ?? '')) {
       if (p === undefined) {
         return undefined;
       }

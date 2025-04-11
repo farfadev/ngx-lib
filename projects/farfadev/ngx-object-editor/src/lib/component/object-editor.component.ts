@@ -180,7 +180,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     if (s && this.context?.scheme?.properties?.[s]) {
       this.newProperty.property = s;
       this.newProperty.schemeKey = this.context.scheme?.properties[s].uibase ?? "";
-      this.addNewProperty();
+      this.addProperty();
       this.newProperty.property = '';
       this.newProperty.schemeKey = '';
     }
@@ -338,14 +338,15 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     this.subContextList = {};
   }
 
-  addNewProperty() {
+  addProperty() {
     if (!this.context) return;
-    this.editing = ObjectEditor.addNewProperty(this.context, this.newProperty);
+    this.editing = ObjectEditor.addProperty(this.context, this.newProperty);
     this.setProperties();
     this.newProperty = {
       property: '',
       schemeKey: ''
     };
+    this.propertyListChange.emit(this.context);
   }
 
   canDelete(context: ObjectEditor.Context) {
@@ -370,7 +371,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     this.innerSchemeOptions = ObjectEditor.getInnerSchemeSelectionKeys(this.context.scheme);
     //    if(!this.context.value) this.context.value = {};
     if (!this.context.scheme) this.context.scheme = { uibase: 'object' };
-    ObjectEditor.initValue(this.context.value, this.context.scheme);
+    ObjectEditor.initContext(this.context);
     this.setProperties();
     if (this.context?.scheme?.uibase == 'select' && typeof this.context?.key == 'string') {
       this.selectScheme(this.context, this.context.key)

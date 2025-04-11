@@ -1,6 +1,8 @@
 <div class="grid-2">
   <div class="grid-item" style="--column: 1">
-    <ng-container *ngComponentOutlet="innerComponent"></ng-container>
+    <ng-container #vcr />
   </div>
-  <source-code [urls]="sources"></source-code>
+  <div class="grid-item" style="--column: 2">
+    <source-code [sources]="sources"></source-code>
+  </div>
 </div>
