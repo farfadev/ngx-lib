@@ -16,21 +16,3 @@
   margin-left: 0.5em;
 }
 
-.colorBox {
-  display: inline-block;
-  border: solid var(--borderColor);
-  border-radius: var(--radius);
-}
-
-.grid {
-  display: grid;
-  gap: 10px;
-  grid-auto-rows: auto;
-  grid-template-columns: repeat(3, max-content);
-  //    grid-auto-columns: minmax(10px, auto);
-}
-
-.grid-item {
-  grid-column: var(--column);
-  grid-row: auto;
-}

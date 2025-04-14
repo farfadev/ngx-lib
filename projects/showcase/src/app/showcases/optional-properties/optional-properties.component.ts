@@ -15,6 +15,11 @@ export class ShowcaseOptionalPropertiesComponent {
   @Input()
   debug: boolean = false;
 
+  value2scheme(value: any,label?: string) {
+    const scheme: ObjectEditor.Scheme = {uibase: 'none',default: value,label,readonly:true};
+    return scheme;
+  }
+
   mycontext: ObjectEditor.Context = {
     value: {
       simpleText: 'hello',
@@ -42,7 +47,7 @@ export class ShowcaseOptionalPropertiesComponent {
           default: '#008000'
         },
         simpleBoolean: {
-          uibase: 'boolean',
+          uibase: 'checkbox',
           default: true
         },
         simpleRadio: {
@@ -51,10 +56,10 @@ export class ShowcaseOptionalPropertiesComponent {
           uiEffects: {
             horizontal: true
           },
-          enum: {
-            sel1: 'coucou',
-            sel2: 0,
-            sel3: { a: 1, b: 'zebu' }
+          selectionList: {
+            sel1: this.value2scheme('coucou'),
+            sel2: this.value2scheme(0),
+            sel3: this.value2scheme({ a: 1, b: 'zebu' })
           }
         },
       }

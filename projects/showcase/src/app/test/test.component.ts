@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { InputSocket, FarfaIconModule, FarfaIconService, ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule, adjustNumber, dmsMask } from "@farfadev/ngx-object-editor";
+import hljs from 'highlight.js/lib/core';
+import json from 'highlight.js/lib/languages/json';
+import 'highlight.js/styles/github.css';
 
 // https://github.com/nerdstep/react-coordinate-input/blob/master/README.md
 // https://imask.js.org/guide.html#getting-started
@@ -27,10 +30,23 @@ export class TestComponent implements OnInit {
 
   testicon = { name: 'test' };
 
+  chimereHL?: string;
+
   constructor(private iconService: FarfaIconService) {
+    hljs.registerLanguage('json', json);
+  }
+
+  value2scheme(value: any,label?: string) {
+    const scheme: ObjectEditor.Scheme = {uibase: 'none',default: value,label,readonly:true};
+    return scheme;
   }
 
   mycontext: ObjectEditor.Context = {
+    editUpdate: () => {
+      const chimere = ObjectEditor.toChimere(this.mycontext);
+      const chimereJSON = JSON.stringify(chimere);
+      this.chimereHL = hljs.highlightAuto(chimereJSON).value;
+    },
     value: {
       p1: 'coucou',
       p3: '#ffffff',
@@ -43,10 +59,11 @@ export class TestComponent implements OnInit {
       uiEffects: {
         toggle: true
       },
-      unrestricted: true,
       innerSchemeSelectionList: {
-        'test-object': {
-          uibase: 'object',
+        'test-value': {
+          uibase: 'none',
+          readonly: true,
+          default: 675
         },
         'test-object-2': {
           uibase: 'object',
@@ -54,7 +71,7 @@ export class TestComponent implements OnInit {
           innerSchemeSelectionList: () => {
             return {
               'sub-test-boolean': {
-                uibase: 'boolean'
+                uibase: 'checkbox'
               }
             }
           }
@@ -102,7 +119,7 @@ export class TestComponent implements OnInit {
           uibase: 'color'
         },
         '4-boolean': {
-          uibase: 'boolean',
+          uibase: 'checkbox',
           label: '4-boolean test-ui-label',
           uiEffects: {
             styleClass: ".mycheckbox",
@@ -113,14 +130,14 @@ export class TestComponent implements OnInit {
         },
         '5-select': {
           uibase: 'select',
-          schemeSelectionList: {
+          selectionList: {
             color: {
               uibase: 'color',
               label: 'mycolor',
               default: '#ff004e'
             },
             boolean: {
-              uibase: 'boolean',
+              uibase: 'checkbox',
               label: 'myboolean'
             },
             number: {
@@ -137,8 +154,8 @@ export class TestComponent implements OnInit {
             }
           },
           innerSchemeSelectionList: {
-            'boolean': {
-              uibase: 'boolean'
+            'checkbox': {
+              uibase: 'checkbox'
             },
             'number': {
               uibase: 'number'
@@ -148,14 +165,14 @@ export class TestComponent implements OnInit {
         '5-opt-select': {
           uibase: 'select',
           optional: true,
-          schemeSelectionList: {
+          selectionList: {
             color: {
               uibase: 'color',
               label: 'mycolor',
               default: '#ff004e'
             },
             boolean: {
-              uibase: 'boolean',
+              uibase: 'checkbox',
               label: 'myboolean'
             },
             number: {
@@ -185,10 +202,10 @@ export class TestComponent implements OnInit {
           uiEffects: {
             horizontal: true
           },
-          enum: {
-            sel1: 'coucou',
-            sel2: 0,
-            sel3: { a: 1, b: 'zebu' }
+          selectionList: {
+            sel1: this.value2scheme('coucou'),
+            sel2: this.value2scheme(0),
+            sel3: this.value2scheme({ a: 1, b: 'zebu' })
           }
         },
         '8-date': {
@@ -255,14 +272,9 @@ export class TestComponent implements OnInit {
     }
   }
 
-  mycontext2: ObjectEditor.Context = {
-    value: false,
-    scheme: {
-      uibase: 'boolean',
-      label: 'test-object-editor2',
-    }
+  getChimere() {
+    const chimere = ObjectEditor.toChimere(this.mycontext);
   }
-
 
   ngOnInit() {
     let i = true;

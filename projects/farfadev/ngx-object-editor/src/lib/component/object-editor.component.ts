@@ -39,11 +39,8 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     this.initContext();
   }
   @Input()
-  set debug(value: boolean) {
-    for(const sc of Object.keys(this.subContextList)) {
-      this.subContextList[sc]!.debug = value;
-    }
-  }
+  debug = false;
+
   @Output() 
   propertyListChange = new EventEmitter<ObjectEditor.Context>();
 
@@ -53,7 +50,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   root_fieldset_expanded = true;
 
   // bindings to select the scheme on 'select' schemes
-  schemeSelectionKey: string | number = '';
+  schemeSelectionKey: string = '';
   selectionObj?: KeyLabel;
 
   // holds the selected scheme when a 'select' scheme has been selected
@@ -212,8 +209,8 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     return ObjectEditor.getMaskOptions(context) != undefined;
   }
 
-  selectScheme(context: ObjectEditor.Context, schemeKey?: string | number) {
-    this.selectedSubContext = ObjectEditor.selectScheme(context, schemeKey);
+  selectScheme(context: ObjectEditor.Context, schemeKey?: string) {
+    this.selectedSubContext = ObjectEditor.select(context, schemeKey);
     //TODO async replaced by setTimeout to workaround source map problem  
     /*    (async () => {
           this.schemeSelectionKey = '';
@@ -224,16 +221,6 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
 
   getLabel(subContext: ObjectEditor.Context) {
     return ObjectEditor.getLabel(subContext);
-  }
-
-  getSchemeSelectionList(context: ObjectEditor.Context) {
-    const result: KeyLabel[] = [];
-    const selList = ObjectEditor.getSchemeSelectionList(context.scheme);
-    const keys = Object.keys(selList);
-    for (let key of keys) {
-      result.push({ key, label: selList[key].label ?? key });
-    }
-    return result;
   }
 
   isArray() {
@@ -254,16 +241,12 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     return ObjectEditor.isReadOnly(context);
   }
 
-  isRestricted(context: ObjectEditor.Context): boolean {
-    return ObjectEditor.isRestricted(context);
-  }
-
   isOptional(context: ObjectEditor.Context): boolean {
     return ObjectEditor.isOptional(context);
   }
 
-  getHtmlType(context: ObjectEditor.Context) {
-    return ObjectEditor.getBaseScheme(context)?.html;
+  getUIBase(context: ObjectEditor.Context) {
+    return context.scheme?.uibase ?? '';
   }
 
   getDescriptionArticle(context: ObjectEditor.Context) {
@@ -349,6 +332,14 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     this.propertyListChange.emit(this.context);
   }
 
+  canReset(context: ObjectEditor.Context) {
+    return ObjectEditor.canReset(context);
+  }
+
+  reset(context: ObjectEditor.Context) {
+    ObjectEditor.reset(context);
+  }
+
   canDelete(context: ObjectEditor.Context) {
     return ObjectEditor.canDeleteProperty(context);
   }
@@ -368,7 +359,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
 
   initContext() {
     if (!this.context) return;
-    this.innerSchemeOptions = ObjectEditor.getInnerSchemeSelectionKeys(this.context.scheme);
+    this.innerSchemeOptions = ObjectEditor.getInnerSchemeSelectionKeys(this.context);
     //    if(!this.context.value) this.context.value = {};
     if (!this.context.scheme) this.context.scheme = { uibase: 'object' };
     ObjectEditor.initContext(this.context);

@@ -1,0 +1,21 @@
+@if(context) {
+<fieldset>
+  <legend>Select Value</legend>
+  <select
+    [(ngModel)]="selectionKey"
+    (ngModelChange)="select(context, selectionKey)"
+    style="margin-bottom:0.5em;"
+  >
+    <option disabled value="">select type</option>
+    <option
+      *ngFor="let o of getSelectionKeyLabels(context)"
+      value="{{ o.key }}"
+    >
+      {{ o.label }}({{ o.key }})
+    </option>
+  </select>
+  @if(subContext) {
+  <object-editor [debug]="debug" [context]="subContext"></object-editor>
+  }
+</fieldset>
+}

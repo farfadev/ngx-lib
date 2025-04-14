@@ -12,7 +12,13 @@
 </ng-template>
 <ng-template #preIcons let-lcontext="lcontext">
   <span>&nbsp;&nbsp;&nbsp;</span>
-  @if(canDelete(lcontext)) {
+  @if(canReset(lcontext)) {
+  <i
+    [farfa-icon]="{ name: 'reset' }"
+    class="pre-icons"
+    (click)="reset(lcontext)"
+  ></i>
+  } @if(canDelete(lcontext)) {
   <i
     [farfa-icon]="{ name: 'trash-2' }"
     class="pre-icons"
@@ -45,34 +51,15 @@
 
 <ng-template #subItem let-subContext="lcontext" let-isArray="isArray">
   @if(subContext) {
-  <!--
-  <span class="grid-item" style="--column: 1">
-    <ng-container
-      *ngTemplateOutlet="preIcons; context: { lcontext: subContext }"
-    ></ng-container>
-  </span>
-  @if(!['array','object','select'].includes(getHtmlType(subContext))) {
-  <label class="grid-item-x" style="--column: 2">
-    {{ getLabel(subContext) }}
-  </label>
-  }
--->
 
-  <span
-    class="grid-item-x"
-    [style]="
-      !['array', 'object', 'select'].includes(getHtmlType(subContext))
-        ? '--column: 3'
-        : '--column: 2/4'
-    "
-  >
-    @if(['array','object','select'].includes(getHtmlType(subContext))) {
+  <span>
+    @if(['array','object'].includes(getUIBase(subContext))) {
     <object-editor
       [context]="subContext"
       (propertyListChange)="updatePropertyList($event)"
-      [debug]="subContext.debug"
+      [debug]="debug"
     />
-    } @else { @switch(getHtmlType(subContext)) { @case('angular') {
+    } @else { @switch(getUIBase(subContext)) { @case('angular') {
     <oe-angular [debug]="debug" [context]="subContext" />
     } @case('custom') {
     <oe-custom [context]="subContext" />
@@ -86,8 +73,12 @@
     <ng-container
       *ngTemplateOutlet="color; context: { lcontext: subContext }"
     ></ng-container>
+    } @case('select') {
+    <oe-select [debug]="debug" [context]="subContext"></oe-select>
     } @case('radio') {
-    <oe-radio [context]="subContext"></oe-radio>
+    <oe-radio [debug]="debug" [context]="subContext"></oe-radio>
+    } @case('none') {
+    <!-- no display -->
     } @case('text') { @if(hasMask(subContext)) {
     <oe-masked [context]="subContext" />
     } @else {
@@ -100,9 +91,12 @@
   </span>
   }
 </ng-template>
+
 <!-- ----------------------------------------------------------------------
   The main HTML STARTS HERE !!!!
   -->
+@if(context.scheme?.uibase != 'none') {
+
 <fieldset class="fieldset-main">
   <legend>
     @if(canToggle()) { @if(root_fieldset_expanded) {
@@ -119,7 +113,7 @@
     ></i>
     } }
     <span>{{ (getLabel(context) ?? "object-editor").toString() }}</span>
-    <span style="font-size: 0.5em">{{ context.debug ? " (DEBUG) " : "" }}</span>
+    <span style="font-size: 0.5em">{{ debug ? " (DEBUG) " : "" }}</span>
     <ng-container
       *ngTemplateOutlet="preIcons; context: { lcontext: context }"
     ></ng-container>
@@ -196,41 +190,17 @@
       }
     </fieldset>
     <p></p>
-    } @if(getHtmlType(context)=='select') {
-    <select
-      [(ngModel)]="schemeSelectionKey"
-      (ngModelChange)="selectScheme(context, schemeSelectionKey)"
-    >
-      <option disabled value="">select type</option>
-      <option
-        *ngFor="let o of getSchemeSelectionList(context)"
-        value="{{ o.key }}"
-      >
-        {{ o.label }}({{ o.key }})
-      </option>
-    </select>
-    @if(selectedSubContext) {
-    <object-editor
-      [context]="selectedSubContext"
-      (propertyListChange)="updatePropertyList($event)"
-    ></object-editor>
-    } } @if(isObject() || isArray()) {
-    <div class="grid-x" [style]="getInnerStyle(context)">
+    } @if(isObject() || isArray()) {
+    <div [style]="getInnerStyle(context!)">
       @for (p of properties; track p) { @let subContext = getSubContext(p);
       <object-editor
+        [debug]="debug"
         [context]="subContext!"
         (propertyListChange)="updatePropertyList($event)"
       ></object-editor>
-      <!--      <ng-container
-        *ngTemplateOutlet="
-          subItem;
-          context: { lcontext: subContext, isArray: isArray() }
-        "
-      ></ng-container>
--->
       }
     </div>
-    } @if(!isObject() && !isArray() && !isSelect()) {
+    } @else() {
     <div>
       <ng-container
         *ngTemplateOutlet="subItem; context: { lcontext: context }"
@@ -239,7 +209,7 @@
     }
   </div>
   <span>
-    @if(context.debug) {
+    @if(debug) {
     <p [style]="getStyle(context, 'font-size: 0.5rem')">
       type={{typeof context.value}} value={{
         getTextValue(context.value)
@@ -250,4 +220,4 @@
     }
   </span>
 </fieldset>
-}
+} }

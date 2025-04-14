@@ -5,6 +5,7 @@ import typescript from 'highlight.js/lib/languages/typescript';
 import xml from 'highlight.js/lib/languages/xml';
 import scss from 'highlight.js/lib/languages/scss';
 import css from 'highlight.js/lib/languages/css';
+import json from 'highlight.js/lib/languages/json';
 import 'highlight.js/styles/github.css';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -18,7 +19,7 @@ import { CommonModule } from '@angular/common';
 export class FarfaSourceCodeComponent implements OnInit {
   _sources?: Record<string, string> = {};
   @Input()
-  set sources(sources: Record<string, string>|undefined) {
+  set sources(sources: Record<string, any> | undefined) {
     this._sources = sources;
     this.loadSourceCode();
   };
@@ -27,12 +28,13 @@ export class FarfaSourceCodeComponent implements OnInit {
   }
 
   getSourcesKeys() {
-    return(Object.keys(this.sources??{}));
+    return (Object.keys(this.sources ?? {}));
   }
 
   constructor(private route: ActivatedRoute) {
     hljs.registerLanguage('javascript', javascript);
     hljs.registerLanguage('typescript', typescript);
+    hljs.registerLanguage('json', json);
     hljs.registerLanguage('xml', xml);
     hljs.registerLanguage('scss', scss);
     hljs.registerLanguage('css', css);
@@ -66,19 +68,19 @@ export class FarfaSourceCodeComponent implements OnInit {
   loadSourceCode() {
     const sources = this.sources;
     for (const sourceType of Object.keys(sources ?? {})) {
-      const url = sources?.[sourceType];
-      if (url) {
-        fetch(url).then((res: Response) => {
+      const source = sources?.[sourceType];
+      if (source.url) {
+        fetch(source.url).then((res: Response) => {
           if (res.status >= 200 && res.status < 300) {
             res.body?.getReader().read().then(async (value: ReadableStreamReadResult<Uint8Array>) => {
               if (value?.value) {
                 try {
-                let str = utf8ArrayToStr(value.value);
-                str = hljs.highlightAuto(str).value;
-                const el = document.getElementById(sourceType + '-toto');
-                if (el) el.innerHTML = str;
+                  let str = utf8ArrayToStr(value.value);
+                  str = hljs.highlightAuto(str).value;
+                  const el = document.getElementById(sourceType + '-toto');
+                  if (el) el.innerHTML = str;
                 }
-                catch(e) {
+                catch (e) {
                   const i = 0;
                 }
               }
@@ -88,6 +90,11 @@ export class FarfaSourceCodeComponent implements OnInit {
           .catch((reject) => {
             const i = 0;
           });
+      }
+      else if (source.data) {
+        const str = hljs.highlightAuto(source.data).value;
+        const el = document.getElementById(sourceType + '-toto');
+        if (el) el.innerHTML = str;
       }
     }
   }

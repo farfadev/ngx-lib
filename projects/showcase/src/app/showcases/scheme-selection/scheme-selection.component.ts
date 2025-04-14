@@ -22,16 +22,24 @@ export class ShowcaseSchemeSelectionComponent {
       properties: {
         'scheme-selection': {
           uibase: 'select',
-          schemeSelectionList: {
+          defaultSelectionKey: 'value',
+          selectionList: {
             color: {
               uibase: 'color',
               label: 'mycolor',
               default: '#ff004e'
             },
+            value: {
+              uibase:'none',
+              label: 'default value',
+              readonly: true,
+              default: 'default'
+            },
             boolean: {
-              uibase: 'boolean',
+              uibase: 'checkbox',
               label: 'myboolean'
             },
+
             number: {
               uibase: 'number',
               default: 3,

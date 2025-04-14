@@ -17,12 +17,12 @@ type KeyLabel = {
 }
 @Component({
   standalone: false,
-  selector: 'oe-radio',
-  templateUrl: './radio.component.html',
-  styleUrls: ['./radio.component.scss'],
+  selector: 'oe-select',
+  templateUrl: './select.component.html',
+  styleUrls: ['./select.component.scss'],
   encapsulation: ViewEncapsulation.Emulated
 })
-export class OERadioComponent implements OnInit, OnDestroy {
+export class OESelectComponent implements OnInit, OnDestroy {
   @ViewChild('objectcontainer')
   private objectContainer!: ElementRef<HTMLElement>;
 
@@ -36,21 +36,17 @@ export class OERadioComponent implements OnInit, OnDestroy {
     this.initContext();
   }
 
-  @Input()
+  @Input() 
   debug = false;
 
   ui_id;
 
-  subContext?: ObjectEditor.Context;
-
   selectionKey?: string;
+
+  subContext?: ObjectEditor.Context;
 
   constructor() {
     this.ui_id = window.crypto.randomUUID();
-  }
-
-  isHorizontal() {
-    return ObjectEditor.getUIEffects(this.context!)?.['horizontal'] ?? false;
   }
 
   ngOnInit(): void {
@@ -86,6 +82,5 @@ export class OERadioComponent implements OnInit, OnDestroy {
     }
     this.selectionKey = ObjectEditor.getSelectionKey(this.context);
   }
-
 }
 

@@ -1,12 +1,15 @@
 @if(context) {
   <fieldset>
     <legend>Select Value</legend>
-    @for(p of getEnumList(context);track p) {
+    @for(p of getSelectionKeyLabels(context);track p.key) {
       <div [style]="{display: isHorizontal() ? 'inline': 'block'}">
-        <input type="radio" [id]="p" [name]="context.key+'radio'" [value]="p"
-          [(ngModel)]="selectedEnumKey" (ngModelChange)="selectEnum(context,p)" (click)="onclick()"/>
-        <label [for]="p">{{p}}</label>
+        <input type="radio" [id]="p.key" [name]="context.key+'radio'" [value]="p.key"
+          [(ngModel)]="selectionKey" (ngModelChange)="select(context,p.key)" (click)="onclick()"/>
+        <label [for]="p.key">{{p.label}}</label>
       </div>
     }
+    @if(subContext) {
+      <object-editor [debug]="debug" [context]="subContext"></object-editor>
+    }    
   </fieldset>
 }

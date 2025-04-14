@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
 
 const getSources = (v: string, key: string = '') => {
-  const o: Record<string, string> = {};
-  o['TS' + key] = 'assets/' + v.substring(2) + '.ts';
-  o['HTML' + key] = 'assets/' + v.substring(2) + '.html';
-  o['SCSS' + key] = 'assets/' + v.substring(2) + '.scss';
+  const o: Record<string, any> = {};
+  o['TS' + key] = {url: 'assets/' + v.substring(2) + '.ts'};
+  o['HTML' + key] = {url: 'assets/' + v.substring(2) + '.html'};
+  o['SCSS' + key] = {url: 'assets/' + v.substring(2) + '.scss'};
   return o;
 }
 
@@ -27,7 +27,7 @@ export const routes: Routes = [
     loadComponent: () => import('./showcases/container/container.component').then((m) => m.ShowcasesContainerComponent),
     data: {
       component: () => import('./showcases/icons-tooltip/icons-tooltip.component').then((m) => m.ShowcaseIconsTooltipComponent),
-      sources: getSources('./showcases/icons-tooltip/icons-tooltip.component'),
+      sources: {...getSources('./showcases/icons-tooltip/icons-tooltip.component'), },
     }
   },
   {

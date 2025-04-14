@@ -77,7 +77,7 @@ export class OEDefaultComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getHtmlType(context: ObjectEditor.Context) {
-    return ObjectEditor.getBaseScheme(context)?.html;
+    return context?.scheme?.uibase;
   }
 
   getStyle(context: ObjectEditor.Context) {
