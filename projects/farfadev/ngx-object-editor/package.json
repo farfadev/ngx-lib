@@ -29,7 +29,8 @@
   "peerDependencies": {
     "@angular/common": "^19.1.0",
     "@angular/core": "^19.1.0",
-    "@farfadev/ngx-a-tooltip": "^0.2.0",
+    "@farfadev/ngx-svg": "^0.0.1",
+    "@farfadev/ngx-a-tooltip": "^0.3.0",
     "imask": "^7.6.1",
     "lodash-es": "^4.17.21",
     "decimal.js": "^10.5.0",

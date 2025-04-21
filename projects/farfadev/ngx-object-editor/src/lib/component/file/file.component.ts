@@ -38,7 +38,7 @@ export class OEFileComponent implements OnInit, OnDestroy, AfterViewInit {
 
   files = new Array<File>();
 
-  urls = new Map<File,string>();
+  urls = new Map<File, string>();
 
   ui_id;
 
@@ -54,6 +54,10 @@ export class OEFileComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.ui_id + this.context?.key;
   }
 
+  isReadOnly(context: ObjectEditor.Context) {
+    return ObjectEditor.isReadOnly(context);
+  }
+
   isMultiple() {
     return ObjectEditor.getMaskOptions(this.context!)?.['multiple'] ?? false;
   }
@@ -64,9 +68,9 @@ export class OEFileComponent implements OnInit, OnDestroy, AfterViewInit {
 
   trash(f: File) {
     const i = this.files.indexOf(f);
-    if(i>=0) this.files.splice(i,1);
+    if (i >= 0) this.files.splice(i, 1);
     const url = this.urls.get(f);
-    if(url !== undefined) URL.revokeObjectURL(url);
+    if (url !== undefined) URL.revokeObjectURL(url);
     this.urls.delete(f);
     this.editUpdate();
   }
@@ -84,9 +88,9 @@ export class OEFileComponent implements OnInit, OnDestroy, AfterViewInit {
     this.inputElement.addEventListener("dragover", this.dragover, false);
     this.inputElement.addEventListener("drop", this.drop, false);
 
-    const fileSelect = document.getElementById(this.getId()+"fileSelect");
-    const fileElem = document.getElementById(this.getId()+"fileElem");
-    fileElem?.addEventListener("change", (e: Event)=>{
+    const fileSelect = document.getElementById(this.getId() + "fileSelect");
+    const fileElem = document.getElementById(this.getId() + "fileElem");
+    fileElem?.addEventListener("change", (e: Event) => {
       this.handleFiles((e.target as any).files);
     }, false);
     if (fileSelect)
@@ -148,24 +152,26 @@ export class OEFileComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   drop = (e: DragEvent) => {
+    if (!this.isReadOnly(this.context!)) {
 
-    let files: FileList | undefined = undefined;
+      let files: FileList | undefined = undefined;
 
-    e.stopPropagation();
-    e.preventDefault();
+      e.stopPropagation();
+      e.preventDefault();
 
-    const dt = e.dataTransfer;
-    if (dt?.files)
-      files = dt?.files;
+      const dt = e.dataTransfer;
+      if (dt?.files)
+        files = dt?.files;
 
-    if (files)
-      this.handleFiles(files);
+      if (files)
+        this.handleFiles(files);
+    }
   }
 
   handleFiles = (files: FileList) => {
     for (let i = 0; i < files.length; i++) {
       this.files.push(files[i]);
-      this.urls.set(files[i],URL.createObjectURL(files[i]));
+      this.urls.set(files[i], URL.createObjectURL(files[i]));
     }
     this.editUpdate();
   }

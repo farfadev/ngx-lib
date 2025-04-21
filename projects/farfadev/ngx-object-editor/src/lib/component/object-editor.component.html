@@ -3,6 +3,7 @@
   <input
     [id]="ui_id + lcontext.key + 'e'"
     type="color"
+    [disabled]="isReadOnly(lcontext)"
     [(ngModel)]="lcontext.value"
     (ngModelChange)="lcontext.editUpdate()"
     [class]="getStyleClass(lcontext)"
@@ -14,25 +15,25 @@
   <span>&nbsp;&nbsp;&nbsp;</span>
   @if(canReset(lcontext)) {
   <i
-    [farfa-icon]="{ name: 'reset' }"
+    [farfa-svg]="{ name: 'reset' }"
     class="pre-icons"
     (click)="reset(lcontext)"
   ></i>
   } @if(canDelete(lcontext)) {
   <i
-    [farfa-icon]="{ name: 'trash-2' }"
+    [farfa-svg]="{ name: 'trash-2' }"
     class="pre-icons"
     (click)="delete(lcontext)"
   ></i>
   } @if(canArrayItemUp(lcontext)) {
   <i
-    [farfa-icon]="{ name: 'move-up' }"
+    [farfa-svg]="{ name: 'move-up' }"
     class="pre-icons"
     (click)="arrayItemUp(lcontext)"
   ></i>
   } @if(canArrayItemDown(lcontext)) {
   <i
-    [farfa-icon]="{ name: 'move-down' }"
+    [farfa-svg]="{ name: 'move-down' }"
     class="pre-icons"
     (click)="arrayItemDown(lcontext)"
   ></i>
@@ -43,7 +44,7 @@
       mode: 'click',
       html: getDescriptionArticle(lcontext) ?? ''
     }"
-    [farfa-icon]="{ name: 'info' }"
+    [farfa-svg]="{ name: 'info' }"
     class="pre-icons"
     [style.visibility]="getDescriptionArticle(lcontext) ? 'visible' : 'hidden'"
   ></i>
@@ -101,13 +102,13 @@
   <legend>
     @if(canToggle()) { @if(root_fieldset_expanded) {
     <i
-      [farfa-icon]="{ name: 'circle-minus' }"
+      [farfa-svg]="{ name: 'circle-minus' }"
       style="display: inline-block; height: 1em; width: 1em"
       (click)="root_fieldset_expanded = !root_fieldset_expanded"
     ></i>
     } @else {
     <i
-      [farfa-icon]="{ name: 'circle-plus' }"
+      [farfa-svg]="{ name: 'circle-plus' }"
       style="display: inline-block; height: 1em; width: 1em"
       (click)="root_fieldset_expanded = !root_fieldset_expanded"
     ></i>
@@ -140,7 +141,7 @@
         </option>
       </select>
     </fieldset>
-    } @if(innerSchemeOptions.length > 0) {
+    } @if(innerSchemeOptions.length > 0  && !isReadOnly(context)) {
     <fieldset style="display: inline">
       <legend>
         {{ isObject() ? "add a new property" : "add a new item" }}
@@ -158,7 +159,7 @@
         [(ngModel)]="newProperty.schemeKey"
         style="margin-right: 1rem; border: solid 1px lightgrey"
       >
-        <option disabled value="">select type</option>
+        <option disabled value="">select</option>
         <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
           {{ o }}
         </option>
@@ -166,7 +167,7 @@
       <i
         style="display: inline-block; height: 1em; width: 1em"
         [farfa-tooltip]="{ html: 'click to add property' }"
-        [farfa-icon]="{ name: 'circle-plus' }"
+        [farfa-svg]="{ name: 'circle-plus' }"
         (click)="addProperty()"
         [style]="!canAddObjectProperty() ? 'display:none' : ''"
       ></i>
@@ -175,7 +176,7 @@
         [(ngModel)]="newProperty.schemeKey"
         style="margin-right: 1rem; border: solid 1px lightgrey"
       >
-        <option disabled value="">select type</option>
+        <option disabled value="">select</option>
         <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
           {{ o }}
         </option>
@@ -183,7 +184,7 @@
       <i
         style="display: inline-block; height: 1em; width: 1em"
         [farfa-tooltip]="{ html: 'click to add item' }"
-        [farfa-icon]="{ name: 'circle-plus' }"
+        [farfa-svg]="{ name: 'circle-plus' }"
         (click)="addProperty()"
         [style]="!canAddArrayElement() ? 'display:none' : ''"
       ></i>
@@ -196,7 +197,7 @@
       <object-editor
         [debug]="debug"
         [context]="subContext!"
-        (propertyListChange)="updatePropertyList($event)"
+        (propertyListChange)="updatePropertyList(subContext!)"
       ></object-editor>
       }
     </div>

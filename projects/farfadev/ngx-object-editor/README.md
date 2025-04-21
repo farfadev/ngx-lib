@@ -2,6 +2,8 @@
 
 An [Angular](https://angular.dev/) component to edit typescript/ javascript object following a user defined editing scheme
 
+<a href='https://stackblitz.com/github/farfadev/ngx-lib'>Run Showcase on Stackblitz</a>
+
 <span style='color:red;font-weight:bold;'>WARNING:</span> this component is at a <span style='color:red;font-weight:bold;'>VERY DRAFT</span> development stage and we expect to have a stable release by June 2025 => Wait for release 0.1.0
 
 
@@ -24,9 +26,6 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AdjustSocket, ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule, adjustNumber, dmsMask } from "@farfadev/ngx-object-editor";
-
-// https://github.com/nerdstep/react-coordinate-input/blob/master/README.md
-// https://imask.js.org/guide.html#getting-started
 
 type Coordinates = {
   lat: number;

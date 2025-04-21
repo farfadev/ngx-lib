@@ -50,6 +50,10 @@ export class OEMaskedComponent implements OnInit, OnDestroy, AfterViewInit {
     this.ui_id = window.crypto.randomUUID();
   }
 
+  isReadOnly(context: ObjectEditor.Context) {
+    return ObjectEditor.isReadOnly(context);
+  }
+
   getId() {
     return this.ui_id + this.context?.key;
   }

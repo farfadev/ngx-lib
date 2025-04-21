@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, ElementRef, Host, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { InputSocket, FarfaIconModule, ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
+import { InputSocket, ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
 
 type Coordinates = {
@@ -13,13 +13,15 @@ type Coordinates = {
   selector: 'showcases-custom-frontend',
   templateUrl: './custom-frontend.component.html',
   styleUrls: ['./custom-frontend.component.scss'],
-  imports: [CommonModule, FormsModule, ObjectEditorModule, FarfaIconModule],
+  imports: [CommonModule, FormsModule, ObjectEditorModule],
 })
 export class ShowcasesCustomFrontendComponent {
 
   err_msg: string = '';
   @Input()
   debug = false;
+
+  marker?: string;
 
   constructor() {
   }
@@ -44,7 +46,7 @@ export class ShowcasesCustomFrontendComponent {
           },
           customFrontEnd: {
             html: (context: ObjectEditor.Context) =>
-              "<label style='color:red;'>latitude&nbsp;&nbsp;&nbsp;  </label><input id='lat'/><br>"
+              "<label class='latitude'>latitude&nbsp;&nbsp;&nbsp;  </label><input id='lat'/><br>"
               + "<label style='color:blue;'>longitude </label><input id='lon'/><br>",
             init: (context: ObjectEditor.Context, element: HTMLElement, err: (err_msg: string) => void) => {
               for (const c of element.children) {

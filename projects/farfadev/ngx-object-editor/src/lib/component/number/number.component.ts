@@ -49,6 +49,10 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
     this.ui_id = window.crypto.randomUUID();
   }
 
+  isReadOnly(context: ObjectEditor.Context) {
+    return ObjectEditor.isReadOnly(context);
+  }
+
   setAdjustSocket() {
     if (this.inputElement) {
       this.adjustSocket = new InputSocket(this.inputElement as HTMLInputElement, this.context?.scheme?.adjust ?? adjustNumber({}), this.context!, (context: any, err_msg: string) => {

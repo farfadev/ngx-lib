@@ -16,6 +16,7 @@ export namespace ObjectEditor {
   export type UIEffects = {
     toggle?: boolean;
     horizontal?: true;
+    selectLabel?: string | ((context: Context) => string);
     // for html style attribute
     style?: string | ((context: Context) => string);
     // for html style attribute of the inner items (object/ array)
@@ -28,6 +29,7 @@ export namespace ObjectEditor {
     // TODO doesn't work yet
     innerStyleClass?: string | ((context: Context) => string);
     // for primeng design token styling
+    // TODO doesn't work yet
     designToken?: object | ((context: Context) => object);
   }
 
@@ -95,6 +97,8 @@ export namespace ObjectEditor {
     }
     /** https://imask.js.org/guide.html */
     maskOptions?: Record<string, unknown> | ((context: Context) => Record<string, unknown>);
+
+    /** for arrays, specifies min and/ or max array length */
     length?: {
       min?: number;
       max?: number;
@@ -115,18 +119,22 @@ export namespace ObjectEditor {
     properties?: { [key: number | string]: Scheme }
   }
   export interface Context {
-    value?: any; // the value
-    scheme?: Scheme; // the scheme associated with the value
-    // the parent context (encompassing object, array, select, undefined on the root Context)
+    /** the value which is edited */
+    value?: any;
+    /** the edition scheme */
+    scheme?: Scheme;
+
+    /** the parent context (encompassing object, array, select, undefined on the root Context)  */
     pcontext?: Context;
-    key?: string | number; // the key in the parent context
-    // called by the editor when value changes on editor side to update the client application
+    /** the key in the parent context (object property name, array item number, selection key */
+    key?: string | number; 
+    /** a call back which is called by the editor when the value changes */
     editUpdate?: (self?: boolean) => void;
-    // called by the client application to change the context (value and scheme)
-    // eg in case of an update from the server, to avoid page reload
+    /** called by the client application to change the context (value and/ or scheme)
+     eg in case of an update from the server, to avoid full page reload */
     contextChange?: (context: Context, env?: { [key: string | number]: any }) => void;
+    /** a call back which is called when the ui is clicked, internal use only */
     onClick?: (subContext: Context) => void;
-    debug?: boolean; // display debugging information
   }
 
   interface IntScheme<ValueType = any, FwdValueType = any> extends Scheme<ValueType, FwdValueType> {
@@ -188,6 +196,16 @@ export namespace ObjectEditor {
 
   export const getSelectionKey = (context?: Context): string | undefined => {
     return (context?.scheme as IntScheme)?.selectionKey;
+  }
+
+  export const getSelectionLabel = (context: Context) : string | undefined => {
+    const selectionLabel = getUIEffects(context)?.selectLabel;
+    if (typeof selectionLabel == 'function') {
+      return selectionLabel(context);
+    }
+    else {
+      return selectionLabel;
+    }
   }
 
   export const select = (context: Context, key?: string): Context | undefined => {
@@ -428,17 +446,10 @@ export namespace ObjectEditor {
       context.value;
     const schemeKeys = Object.keys(context.scheme?.properties ?? {});
     for (const sp of schemeKeys) {
-      if (value?.[sp] && !(context.scheme?.properties?.[sp] as IntScheme).deletable) {
+      if ((value?.[sp] != undefined) || !(context.scheme?.properties?.[sp] as IntScheme).optional) {
         properties.push(sp);
       }
     }
-    for (const sp of Object.keys(value ?? {})) {
-      if (!properties.includes(sp)
-        && (context.scheme?.properties?.[sp] != undefined)
-        && (value[sp] == undefined ? !context.scheme?.properties?.[sp].optional : true)) {
-        properties.push(sp);
-      }
-    };
     properties = (context.scheme?.uibase === 'object') ? properties.sort((a, b) => {
       const a_ct = (context.scheme?.properties?.[a] as IntScheme).ctime ?? 0;
       const b_ct = (context.scheme?.properties?.[b] as IntScheme).ctime ?? 0;
@@ -734,8 +745,7 @@ export namespace ObjectEditor {
         contextChange: context.contextChange,
         onClick: () => {
 
-        },
-        debug: context.debug
+        }
       }
       return subContext;
     }

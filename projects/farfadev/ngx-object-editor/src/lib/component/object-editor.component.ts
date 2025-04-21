@@ -4,6 +4,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  Host,
   Input,
   OnDestroy,
   OnInit,
@@ -12,6 +13,7 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import { ObjectEditor } from '../object-editor';
+import { _farfa_oe_marker } from './markers';
 
 type KeyLabel = {
   key: string | number;
@@ -25,9 +27,6 @@ type KeyLabel = {
   encapsulation: ViewEncapsulation.Emulated
 })
 export class ObjectEditorComponent implements OnInit, OnDestroy {
-
-  @ViewChild('objectcontainer')
-  private objectContainer!: ElementRef<HTMLElement>;
 
   _context?: ObjectEditor.Context;
   get context(): ObjectEditor.Context | undefined {
@@ -97,8 +96,9 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     this.propertyClickEvent = false;
   };
 
-  constructor() {
+  constructor(@Host() elementRef: ElementRef) {
     this.ui_id = window.crypto.randomUUID();
+    elementRef.nativeElement.setAttribute(_farfa_oe_marker,'');
   }
 
   getNumber(arg0: any): number {

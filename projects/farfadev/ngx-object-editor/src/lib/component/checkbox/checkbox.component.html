@@ -2,6 +2,7 @@
   <input
     [id]="getId()"
     type="checkbox"
+    [disabled]="isReadOnly(context)"
     [(ngModel)]="context.value"
     (ngModelChange)="context.editUpdate?.()"
     [class]="getStyleClass(context)"

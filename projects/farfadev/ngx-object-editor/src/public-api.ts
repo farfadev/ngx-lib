@@ -3,9 +3,6 @@
  */
 
 //export * from './lib/ngx-object-editor.service';
-export * from './lib/farfa-icon/farfa-icon.module';
-export * from './lib/farfa-icon/farfa-icon.service';
-export * from './lib/farfa-icon/farfa-icon.directive';
 export * from './lib/component/object-editor.component';
 export * from './lib/object-editor.module';
 export * from './lib/adjust/adjust-number';

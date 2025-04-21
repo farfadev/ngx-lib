@@ -1,10 +1,10 @@
 @if(context) {
   <fieldset>
-    <legend>Select Value</legend>
+    <legend>{{getSelectionLabel(context)}}</legend>
     @for(p of getSelectionKeyLabels(context);track p.key) {
       <div [style]="{display: isHorizontal() ? 'inline': 'block'}">
         <input type="radio" [id]="p.key" [name]="context.key+'radio'" [value]="p.key"
-          [(ngModel)]="selectionKey" (ngModelChange)="select(context,p.key)" (click)="onclick()"/>
+          [disabled]="isReadOnly(context)" [(ngModel)]="selectionKey" (ngModelChange)="select(context,p.key)" (click)="onclick()"/>
         <label [for]="p.key">{{p.label}}</label>
       </div>
     }

@@ -2,6 +2,7 @@
   <input
     [id]="getId()"
     type="text"
+    [disabled]="isReadOnly(context)"
     [class]="getStyleClass(context)"
     [style]="getStyle(context)"
     (click)="onclick()"

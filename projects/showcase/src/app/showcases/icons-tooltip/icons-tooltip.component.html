@@ -1,3 +1,28 @@
-<div>{{err_msg}}</div>
-<i style="display:inline-block;height:2em;width:2em;" [farfa-icon]="{name:'changing-icon'}" [farfa-tooltip]="{html: '<div><span style=\'color:blue;\'>HELLO</span></div>',mode: 'hover',style:'border-radius:15px;background-color:#FAA0A0;'}"></i>
-<i class="test-icon" [farfa-icon]="testicon"  [farfa-tooltip]="{html: '<div><span style=\'color:zhite;\'>GOOD DAY</span></div>',mode: 'hover',style:'border-radius:15px;background-color:lightblue;'}"></i>
+<div>{{ err_msg }}</div>
+<i
+  style="display: inline-block; height: 2em; width: 2em"
+  [farfa-svg]="{ name: 'changing-icon' }"
+  [farfa-tooltip]="{
+    html: '<div><span style=\'color:blue;\'>HELLO</span></div>',
+    mode: 'hover',
+    style: 'border-radius:15px;background-color:#FAA0A0;'
+  }"
+></i>
+<i
+  class="test-icon"
+  [farfa-svg]="testicon"
+  [farfa-tooltip]="{
+    html: '<div><span style=\'color:zhite;\'>GOOD DAY</span></div>',
+    mode: 'hover',
+    style: 'border-radius:15px;background-color:lightblue;'
+  }"
+></i>
+<i
+  style="display: inline-block; height: 2em; width: 2em"
+  [farfa-svg]="{
+    svg: '<svg viewBox=&quot;0 0 100 100&quot; xmlns=&quot;http:\/\/www.w3.org\/2000\/svg&quot;><path id=&quot;BezierQ2&quot;></path></svg>'
+  }"
+></i>
+<div class="indicator" data-state="ACTIVE" (click)="nextState($event)" [farfa-tooltip]="{html: 'click me',mode: 'hover'}">
+  <i class="indicator-icon" [farfa-svg]="getIndicatorIcon()"></i>
+</div>

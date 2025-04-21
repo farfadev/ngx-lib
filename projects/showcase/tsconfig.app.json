@@ -17,6 +17,12 @@
       ],
       "@farfadev/ngx-a-tooltip": [
         "../../dist/farfadev/ngx-a-tooltip"
+      ],
+      "@farfadev/ngx-svg/*": [
+        "../../dist/farfadev/ngx-svg/*"
+      ],
+      "@farfadev/ngx-svg": [
+        "../../dist/farfadev/ngx-svg"
       ]
     }    
   },

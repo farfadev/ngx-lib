@@ -55,6 +55,10 @@ export class OESelectComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
   }
 
+  isReadOnly(context: ObjectEditor.Context) {
+    return ObjectEditor.isReadOnly(context);
+  }
+
   select(context: ObjectEditor.Context, key?: string) {
     this.subContext = ObjectEditor.select(context,key);
   }
@@ -67,6 +71,10 @@ export class OESelectComponent implements OnInit, OnDestroy {
       result.push({ key, label: selList[key].label ?? key });
     }
     return result;
+  }
+
+  getSelectionLabel(context: ObjectEditor.Context) {
+    return ObjectEditor.getSelectionLabel(context) ?? 'select';
   }
 
   onclick() {

@@ -43,6 +43,10 @@ export class OEDefaultComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.ui_id + this.context?.key;
   }
 
+  isReadOnly(context: ObjectEditor.Context) {
+    return ObjectEditor.isReadOnly(context);
+  }
+
   isHorizontal() {
     return ObjectEditor.getUIEffects(this.context!)?.['horizontal'] ?? false;
   }

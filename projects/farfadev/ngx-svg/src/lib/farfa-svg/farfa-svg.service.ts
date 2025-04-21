@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 
 @Injectable({ providedIn: 'root' })
-export class FarfaIconService {
+export class FarfaSvgService {
   iconMap = new Map<string, string>();
   subscriptions = new Map<string,Map<number,(svg: string)=>void>>();
   id = 0;
@@ -24,7 +24,7 @@ export class FarfaIconService {
     return true;
   }
 
-  fetchSVGIcon(name: string, input: string|URL|Request): Promise<boolean> {
+  loadSVG(name: string, input: string|URL|Request): Promise<boolean> {
     return new Promise<boolean>((resolve, error) => {
       const res = fetch(input).then((res: Response) => {
         if (res.status >= 200 && res.status < 300) {
@@ -48,7 +48,7 @@ export class FarfaIconService {
     });
   }
 
-  getSVGIcon(name: string,update: (svg: string|undefined)=>void): number {
+  getSVG(name: string,update: (svg: string|undefined)=>void): number {
     let s = this.subscriptions.get(name) ?? new Map<number,()=>void>();
     const id = this.id;
     s.set(id,update);

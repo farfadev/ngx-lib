@@ -1,6 +1,170 @@
- /* Customize the label (the container) */
+//--------- TEST ICON ----------------------
 .test-icon {
-    display:inline-block;
-    height:1em;
-    width:1em;
+  display: inline-block;
+}
+
+.test-icon svg {
+  height: 4em;
+  width: 4em;
+  animation: test-icon-KF 3.5s infinite linear
+}
+
+@keyframes test-icon-KF {
+    0% {
+        transform: rotate(0deg);
+    };
+    100% {
+        transform: rotate(360deg);
+    } 
+}
+
+//--------- TEST ICON BEZIER ANIMATION
+#BezierQ2 {
+  stroke: green;
+  stroke-width: 6px;
+  fill: none;
+  animation: BezierQ2KF 5s linear infinite;
+}
+
+@keyframes BezierQ2KF {
+  0% {
+    d: path("M0,50 Q25,100 50,50 Q75,0 100,50");
+  }
+  50% {
+    d: path("M0,50 Q25,0 50,50 Q75,100 100,50");
+  }
+  100% {
+    d: path("M0,50 Q25,100 50,50 Q75,0 100,50");
+  }
+}
+
+//---- INDICATOR ICON
+
+.indicator {
+  --blue: #0ebeff;
+  --green: #ae63e4;
+  --yellow: #ffdd40;
+  --purple: #47cf73;
+  --red: red;
+  width: fit-content;
+  height: fit-content;
+
+  :hover {
+    cursor: pointer;
+  }
+
+  &[data-state="EMPTY"] {
+    border: solid blue 3px ;
+    border-radius: 10px;
+      .indicator-text {
+      display: none;
+    }
+  }
+  &[data-state="ACTIVE"] {
+    --glow-color: var(--blue);
+    .indicator-icon {
+      animation: logspin 1.5s linear infinite,
+        logglow 1.25s ease infinite alternate;
+      border-radius: 50%;
+      path {
+        stroke-width: 25;
+      }
+      :nth-child(1) {
+        stroke: var(--blue);
+        d: path("M50, 0 Q95, 5 100,50");
+      }
+      :nth-child(2) {
+        stroke: var(--green);
+        d: path("M100, 50 Q95, 95 50,100");
+      }
+      :nth-child(3) {
+        stroke: var(--yellow);
+        d: path("M50,100 Q5, 95 0, 50");
+      }
+      :nth-child(4) {
+        stroke: var(--purple);
+        d: path("M0, 50 Q5, 5 50, 0");
+      }
+    }
+  }
+  &[data-state="SUCCESS"] {
+    .indicator-icon {
+      :nth-child(1) {
+        stroke: #70cc7c;
+        stroke-width: 18;
+        d: path("M25, 60 Q35, 69 62, 98");
+      }
+      :nth-child(2) {
+        stroke: #70cc7c;
+        stroke-width: 18;
+        d: path("M50, 99 Q70, 80 100, 20");
+      }
+      :nth-child(3) {
+        opacity: 0;
+      }
+      :nth-child(4) {
+        opacity: 0;
+      }
+    }
+  }
+  &[data-state="ERROR"] {
+    --glow-color: red;
+
+    .indicator-icon {
+      animation: logglow 1.25s ease infinite alternate;
+      border-radius: 50%;
+      padding: 5px;
+      :nth-child(1) {
+        stroke: red;
+        stroke-width: 14;
+        d: path("M40, 0 Q39, 60 50, 70");
+      }
+      :nth-child(2) {
+        stroke: red;
+        stroke-width: 20;
+        d: path("M33, 0 Q50, 0 67, 0");
+      }
+      :nth-child(3) {
+        stroke: red;
+        stroke-width: 14;
+        d: path("M60, 0 Q59, 60 50, 70");
+      }
+      :nth-child(4) {
+        stroke: red;
+        stroke-width: 24;
+        stroke-linecap: round;
+        d: path("M50, 93 Q50, 95 50, 98");
+      }
+    }
+  }
+}
+
+.indicator-icon svg {
+  width: 24px;
+  height: 24px;
+  overflow: visible;
+  display: inline-block;
+  path {
+    fill: none;
+    stroke-width: 8;
+    stroke: white;
+    transition: 0.4s;
+  }
+}
+
+@keyframes logspin {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+    50% {
+        transform: rotate(180deg) scale(2);
+    }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+@keyframes logglow {
+  100% {
+    box-shadow: 0 0 8px 4px var(--glow-color);
+  }
 }

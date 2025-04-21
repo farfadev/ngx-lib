@@ -20,6 +20,9 @@
       "@farfadev/ngx-object-editor": [
         "./dist/farfadev/ngx-object-editor"
       ],
+      "@farfadev/ngx-svg": [
+        "./dist/farfadev/ngx-svg"
+      ],
     },
     "moduleResolution": "bundler",
     "importHelpers": true,

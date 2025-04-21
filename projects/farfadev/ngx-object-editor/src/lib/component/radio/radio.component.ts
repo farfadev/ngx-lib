@@ -49,6 +49,10 @@ export class OERadioComponent implements OnInit, OnDestroy {
     this.ui_id = window.crypto.randomUUID();
   }
 
+  isReadOnly(context: ObjectEditor.Context) {
+    return ObjectEditor.isReadOnly(context);
+  }
+
   isHorizontal() {
     return ObjectEditor.getUIEffects(this.context!)?.['horizontal'] ?? false;
   }
@@ -61,6 +65,10 @@ export class OERadioComponent implements OnInit, OnDestroy {
 
   select(context: ObjectEditor.Context, key?: string) {
     this.subContext = ObjectEditor.select(context,key);
+  }
+
+  getSelectionLabel(context: ObjectEditor.Context) {
+    return ObjectEditor.getSelectionLabel(context) ?? 'select';
   }
 
   getSelectionKeyLabels(context: ObjectEditor.Context) {
