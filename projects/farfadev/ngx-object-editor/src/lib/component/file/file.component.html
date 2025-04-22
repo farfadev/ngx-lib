@@ -15,7 +15,7 @@
   />
   <button [id]="getId()+'fileSelect'" type="button">Select some files</button>
   @for(f of files; track f) {
-    <p><i class='farfa-icon' [farfa-svg]="{name:'trash-2'}" (click)="trash(f)"></i>&nbsp;&nbsp;&nbsp;<img style="display:inlineblock;height:30px;" [src]="getURL(f)"><a [href]="getURL(f)" target="_blank">&nbsp;&nbsp;{{f.name}}</a></p>
+    <p><i class='farfa-icon' [farfa-svg]="{name:'trash-2'}" (click)="trash(f)"></i>&nbsp;&nbsp;&nbsp;<img style="display:inline-block;height:30px;" [src]="getURL(f)"><a [href]="getURL(f)" target="_blank">&nbsp;&nbsp;{{f.name}}</a></p>
   }
 </div>
 @if(err_msg) {

@@ -31,7 +31,7 @@ export class ShowcaseSimpleArrayComponent {
               return context.value.length > 4 ? 'overflow:scroll; height:300px;' : '';
             }
           },
-          innerSchemeSelectionList: {
+          selectionList: {
             'boolean': {
               uibase: 'checkbox'
             },

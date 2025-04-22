@@ -60,7 +60,7 @@ export class TestComponent implements OnInit {
       uiEffects: {
         toggle: true
       },
-      innerSchemeSelectionList: {
+      selectionList: {
         'test-value': {
           uibase: 'number',
           readonly: true,
@@ -69,7 +69,7 @@ export class TestComponent implements OnInit {
         'test-object-2': {
           uibase: 'object',
           label: 'rantanplan',
-          innerSchemeSelectionList: () => {
+          selectionList: () => {
             return {
               'sub-test-boolean': {
                 uibase: 'checkbox'
@@ -96,7 +96,7 @@ export class TestComponent implements OnInit {
         },
         '2a-number': {
           uibase: 'number',
-          default: 5,
+          default: -17,
           maskOptions: {
             mask: Number,
             thousandsSeparator: '!',
@@ -107,14 +107,14 @@ export class TestComponent implements OnInit {
         },
         '2b-dms': {
           uibase: 'number',
-          default: 5,
+          default: 50.5,
           adjust: adjustDMS({})
           //          maskOptions: dmsMask
         },
         '2-opt number': {
           uibase: 'number',
           optional: true,
-          default: 5,
+          default: 12,
         },
         '3-color': {
           uibase: 'color'
@@ -124,7 +124,6 @@ export class TestComponent implements OnInit {
           label: '4-boolean test-ui-label',
           uiEffects: {
             styleClass: ".mycheckbox",
-            designToken: { background: 'lightgrey', icon: { color: 'red', checked: { color: 'red', hover: { color: 'red' } } }, checked: { hover: { background: 'yellow' }, background: 'yellow', color: 'blue', border: { color: 'yellow' } }, width: '150px' },
             style: "color: red"
           },
           default: true
@@ -154,7 +153,7 @@ export class TestComponent implements OnInit {
               return context.value.length > 4 ? 'overflow:scroll; height:100px;' : '';
             }
           },
-          innerSchemeSelectionList: {
+          selectionList: {
             'checkbox': {
               uibase: 'checkbox'
             },
@@ -268,13 +267,26 @@ export class TestComponent implements OnInit {
               }
             }
           }
-        },
+        }
       }
     }
   }
 
+  /**
+   * keep a native version of the scheme
+   */
+  testScheme = this.mycontext.scheme;
+
   getChimere() {
     const chimere = ObjectEditor.toChimere(this.mycontext);
+  }
+
+  chimereReload() {
+    const chimere = ObjectEditor.toChimere(this.mycontext);
+    const jsonChimere = JSON.stringify(chimere);
+    const nchimere = JSON.parse(jsonChimere);
+    const ncontext = ObjectEditor.fromChimere(nchimere,this.testScheme!);
+    this.mycontext = ncontext;
   }
 
   ngOnInit() {

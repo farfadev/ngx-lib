@@ -1,6 +1,7 @@
 <div>{{err_msg}}</div>
 <i style="display:inline-block;height:20px;width:20px;" [farfa-svg]="{name:'changing-icon'}"></i>
 <i style="display:inline-block;height:20px;width:20px;" [farfa-svg]="testicon"></i>
+<button (click)="chimereReload()">Chimere Reload</button>
 <div>DEBUG <input type="checkbox" [(ngModel)]="debug"/></div>
 <object-editor [context]="mycontext" [debug]="debug"></object-editor>
 <pre><code [innerHTML]="chimereHL"></code></pre>

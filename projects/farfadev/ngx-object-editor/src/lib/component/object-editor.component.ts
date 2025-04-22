@@ -67,7 +67,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     }
   */
   properties: (string | number)[] = [];
-  innerSchemeOptions: (string | number)[] = [];
+  schemeOptions: string[] = [];
   newProperty = {
     property: '',
     schemeKey: ''
@@ -359,7 +359,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
 
   initContext() {
     if (!this.context) return;
-    this.innerSchemeOptions = ObjectEditor.getInnerSchemeSelectionKeys(this.context);
+    this.schemeOptions = ObjectEditor.getSelectionKeys(this.context);
     //    if(!this.context.value) this.context.value = {};
     if (!this.context.scheme) this.context.scheme = { uibase: 'object' };
     ObjectEditor.initContext(this.context);

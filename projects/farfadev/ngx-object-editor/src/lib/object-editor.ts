@@ -11,7 +11,7 @@ export namespace ObjectEditor {
     'date' | 'time' | 'datetime' | 'file' | 'tel' | 'email' | 'url' | 'image'
     | 'object' | 'array' | 'select' | 'from' | 'custom' | 'angular' | 'none';
 
-  export type SelectionList<T = any, U = any> = { [key: number | string]: Scheme<T, U> };
+  export type SelectionList<T = any, U = any> = { [key: string]: Scheme<T, U> };
 
   export type UIEffects = {
     toggle?: boolean;
@@ -107,13 +107,15 @@ export namespace ObjectEditor {
     /** value validation/ adjustment callbacks */
     adjust?: Adjust,
 
-    /** provides a set of selectable schemes when the value can have different types/ schemes  */
+    /**
+     *  provides a set of selectable schemes 
+     * - when the value can have different schemes (select) 
+     * - for additional properties on objects
+     * - for array items possible schemes
+     */
     selectionList?: SelectionList<ValueType, FwdValueType> | ((context: Context) => SelectionList<ValueType, FwdValueType>);
     /** provides the default scheme selection key from the scheme selection list, otherwise the first scheme in the selection list is selected  */
     defaultSelectionKey?: string;
-
-    /** for object/array provides a set of selectable schemes new properties/ items */
-    innerSchemeSelectionList?: SelectionList<ValueType, FwdValueType> | ((context: Context) => SelectionList<ValueType, FwdValueType>);
 
     /** for object/array provides the schemes corresponding to the value properties */
     properties?: { [key: number | string]: Scheme }
@@ -127,7 +129,7 @@ export namespace ObjectEditor {
     /** the parent context (encompassing object, array, select, undefined on the root Context)  */
     pcontext?: Context;
     /** the key in the parent context (object property name, array item number, selection key */
-    key?: string | number; 
+    key?: string | number;
     /** a call back which is called by the editor when the value changes */
     editUpdate?: (self?: boolean) => void;
     /** called by the client application to change the context (value and/ or scheme)
@@ -150,7 +152,7 @@ export namespace ObjectEditor {
     schemeSelected?: Scheme;
 
     /** holds the scheme selection key from the parent object/array scheme selection list */
-    innerSchemeSelectionKey?: number | string;
+    parentSelectionKey?: number | string;
   }
 
   export const isOptional = (context: Context) => {
@@ -180,25 +182,11 @@ export namespace ObjectEditor {
     return opt ?? false;
   }
 
-  export const getSelectionList = (context?: Context): SelectionList<any, any> => {
-    if (!context?.scheme) return {};
-    const selList = context.scheme.selectionList;
-
-    return (typeof selList == 'function' ?
-      selList(context) : selList) ?? {}
-  }
-
-  export const getSelectionKeys = (context?: Context): string[] => {
-    if (!context?.scheme) return [];
-    const list1 = Object.keys(getSelectionList(context));
-    return list1;
-  }
-
   export const getSelectionKey = (context?: Context): string | undefined => {
     return (context?.scheme as IntScheme)?.selectionKey;
   }
 
-  export const getSelectionLabel = (context: Context) : string | undefined => {
+  export const getSelectionLabel = (context: Context): string | undefined => {
     const selectionLabel = getUIEffects(context)?.selectLabel;
     if (typeof selectionLabel == 'function') {
       return selectionLabel(context);
@@ -220,7 +208,7 @@ export namespace ObjectEditor {
 
     context.value = undefined;
 
-    const v = getSelectionList(context)?.[key];
+    const v = getSelectionList(context)?.[key!];
 
     (context.scheme as IntScheme).schemeSelected = cloneDeep(v);
 
@@ -230,26 +218,29 @@ export namespace ObjectEditor {
     return getSubContext(context);
   }
 
-  export const getInnerSchemeSelectionList = (context?: Context, p?: string | number): SelectionList<any, any> => {
+  export const getSelectionList = (context?: Context, p?: string | number): SelectionList<any, any> => {
     if (!context?.scheme) return {};
     const selList = p ?
-      context.scheme.properties?.[p].innerSchemeSelectionList :
-      context.scheme.innerSchemeSelectionList;
+      context.scheme.properties?.[p].selectionList :
+      context.scheme.selectionList;
 
     return (typeof selList == 'function' ?
       selList(context) : selList) ?? {}
   }
 
-  export const getInnerSchemeSelectionKeys = (context?: Context, p?: string | number): (string | number)[] => {
-    const list: (string | number)[] = [];
+  export const getSelectionKeys = (context?: Context, p?: string | number): string[] => {
+    const list: string[] = [];
     if (!context?.scheme || (p && !context?.scheme?.properties?.[p])) return [];
-    list.push(...Object.keys(getInnerSchemeSelectionList(context, p)));
+    list.push(...Object.keys(getSelectionList(context, p)));
     return list;
   }
 
   export const initContext = (context: Context): void => {
     if (!context.scheme) {
       context.scheme = { uibase: 'object' };
+    }
+    if(!context.pcontext) {
+      context.scheme = cloneDeep(context.scheme);
     }
     context.value = initValue(context);
   }
@@ -508,8 +499,8 @@ export namespace ObjectEditor {
     return rsel;
   }
 
-  const isInnerSchemeSelectionKey = (context?: Context, key?: string | number): boolean => {
-    const keys = getInnerSchemeSelectionKeys(context);
+  const isInnerSchemeSelectionKey = (context?: Context, key?: string): boolean => {
+    const keys = getSelectionKeys(context);
     return (keys && key) ? keys.includes(key) : false;
   }
 
@@ -537,10 +528,10 @@ export namespace ObjectEditor {
         context.scheme.properties = {};
       if (context.scheme.properties[newProperty.property] === undefined) {
         if (isInnerSchemeSelectionKey(context, newProperty.schemeKey)) {
-          if (getInnerSchemeSelectionList(context)[newProperty.schemeKey] != undefined) {
+          if (getSelectionList(context)[newProperty.schemeKey] != undefined) {
             context.scheme.properties[newProperty.property] =
-              cloneDeep(getInnerSchemeSelectionList(context)[newProperty.schemeKey]) as Scheme;
-            (context.scheme.properties[newProperty.property] as IntScheme).selectionKey = newProperty.schemeKey;
+              cloneDeep(getSelectionList(context)[newProperty.schemeKey]) as Scheme;
+            (context.scheme.properties[newProperty.property] as IntScheme).parentSelectionKey = newProperty.schemeKey;
             (context.scheme.properties[newProperty.property] as IntScheme).optional = true;
             (context.scheme.properties[newProperty.property] as IntScheme).deletable = true;
             (context.scheme.properties[newProperty.property] as IntScheme).ctime = Date.now();
@@ -807,11 +798,11 @@ export namespace ObjectEditor {
     return _toChimere(context);
   }
   const _toChimere = (context: Context, chimere: Record<string | number, any> = {}): Record<string | number, any> => {
-    if (context.key) chimere['key'] = context.key;
+    if (context.key != undefined) chimere['key'] = context.key;
     if (context.scheme) {
       const scheme: Record<string, any> = context.scheme;
       const sScheme: Record<string, any> = {};
-      for (const key of ['deletable', 'ctime', 'schemeSelectionKey']) {
+      for (const key of ['deletable', 'ctime', 'selectionKey', 'parentSelectionKey']) {
         if (scheme[key] !== undefined) {
           sScheme[key] = scheme[key];
         }
@@ -855,5 +846,41 @@ export namespace ObjectEditor {
     }
     return chimere;
   }
+  export const fromChimere = (chimere: Record<string | number, any>, refScheme: Scheme): Context => {
+    const context: Context = {
+      scheme: cloneDeep(refScheme)
+    }
+    _fromChimere(context, chimere);
+    return context;
+  }
 
+  const _fromChimere = (context: Context, chimere: Record<string | number, any>): void => {
+    context.key = chimere['key'];
+    context.value = chimere['value'];
+    if ((context.key) && (context.scheme == undefined)) context.scheme = context.pcontext?.scheme?.properties?.[context.key];
+    if (chimere['scheme'] != undefined) {
+      if ((context.scheme == undefined) && (chimere['scheme']['parentSelectionKey'] != undefined)) {
+        context.scheme = cloneDeep(ObjectEditor.getSelectionList(context.pcontext)[chimere['scheme']['parentSelectionKey']]);
+      }
+      (context.scheme as IntScheme).deletable = chimere['scheme']['deletable'];
+      (context.scheme as IntScheme).ctime = chimere['scheme']['ctime'];
+      (context.scheme as IntScheme).selectionKey = chimere['scheme']['selectionKey'];
+      (context.scheme as IntScheme).parentSelectionKey = chimere['scheme']['parentSelectionKey'];
+    }
+    if ((context.scheme as IntScheme).selectionKey != undefined) {
+      (context.scheme as IntScheme).schemeSelected = ObjectEditor.getSelectionList(context)[(context.scheme as IntScheme).selectionKey!];
+    }
+    if (context.scheme?.uibase == 'object') context.value = {};
+    if (context.scheme?.uibase == 'array') context.value = [];
+    const props = chimere['sub'];
+    for (const prop of props ?? []) {
+      const key = prop['key'];
+      const nContext: Context = {
+        pcontext: context,
+      }
+      _fromChimere(nContext, prop);
+      context.value[key] = nContext.value;
+      if (context.scheme && nContext.scheme) context.scheme.properties![key] = nContext.scheme;
+    }
+  }
 }

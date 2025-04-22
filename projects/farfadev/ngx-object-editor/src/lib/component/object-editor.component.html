@@ -141,10 +141,10 @@
         </option>
       </select>
     </fieldset>
-    } @if(innerSchemeOptions.length > 0  && !isReadOnly(context)) {
+    } @if((isObject() || isArray()) && schemeOptions.length > 0  && !isReadOnly(context)) {
     <fieldset style="display: inline">
       <legend>
-        {{ isObject() ? "add a new property" : "add a new item" }}
+        {{ isObject() ? "add a new property" : "add a new item"}}
       </legend>
       @if(isObject()) {
       <input
@@ -160,7 +160,7 @@
         style="margin-right: 1rem; border: solid 1px lightgrey"
       >
         <option disabled value="">select</option>
-        <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
+        <option *ngFor="let o of schemeOptions" value="{{ o }}">
           {{ o }}
         </option>
       </select>
@@ -177,7 +177,7 @@
         style="margin-right: 1rem; border: solid 1px lightgrey"
       >
         <option disabled value="">select</option>
-        <option *ngFor="let o of innerSchemeOptions" value="{{ o }}">
+        <option *ngFor="let o of schemeOptions" value="{{ o }}">
           {{ o }}
         </option>
       </select>
