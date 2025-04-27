@@ -20,7 +20,7 @@ export class ShowcaseIconsTooltipComponent implements OnInit {
 
   nextState(event: Event) {
     let element: HTMLElement | null = event.currentTarget as HTMLElement | null;
-    if(!element) return;
+    if (!element) return;
     let currentState = element.dataset?.['state'];
     let nextState = "";
 
@@ -51,6 +51,23 @@ export class ShowcaseIconsTooltipComponent implements OnInit {
     }
   }
 
+  i0 = true;
+  swapChangeIcon() {
+    if (this.i0) {
+      this.svgService.loadSVG('changing-icon', 'assets/world-in-losange.svg')
+        .catch((error) => {
+          this.err_msg = 'Error importing SVG Icon \'assets/world-in-losange.svg\' : ' + error;
+        });
+    }
+    else {
+      this.svgService.loadSVG('changing-icon', 'assets/microphone.svg')
+        .catch((error) => {
+          this.err_msg = 'Error importing SVG Icon \'assets/microphone.svg\' : ' + error;
+        });
+    }
+    this.i0 = !this.i0;
+  }
+
   ngOnInit() {
     this.svgService.loadSVG('world-losange', 'assets/world-in-losange.svg')
       .catch((error) => {
@@ -61,25 +78,22 @@ export class ShowcaseIconsTooltipComponent implements OnInit {
         this.err_msg = 'Error importing SVG Icon \'assets/microphone.svg\' : ' + error;
       });
 
-    let i = true;
+    this.swapChangeIcon();
     setInterval(() => {
-      if (i) {
-        this.svgService.loadSVG('changing-icon', 'assets/world-in-losange.svg')
-          .catch((error) => {
-            this.err_msg = 'Error importing SVG Icon \'assets/world-in-losange.svg\' : ' + error;
-          });
+      this.swapChangeIcon();
+    }, 5000);
+
+    let i1 = true;
+    this.testicon = { name: 'microphone' };
+    setInterval(() => {
+      if (i1) {
         this.testicon = { name: 'world-losange' };
       }
       else {
-        this.svgService.loadSVG('changing-icon', 'assets/microphone.svg')
-          .catch((error) => {
-            this.err_msg = 'Error importing SVG Icon \'assets/microphone.svg\' : ' + error;
-          });
         this.testicon = { name: 'microphone' };
       }
-      i = !i;
-    }, 5000);
+      i1 = !i1;
+    }, 4000);
   }
-
 }
 
