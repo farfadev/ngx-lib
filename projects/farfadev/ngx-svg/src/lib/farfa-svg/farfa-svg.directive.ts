@@ -16,7 +16,7 @@ export class FarfaSvgDirective implements OnInit, OnDestroy {
 
   //observer: MutationObserver;
   svgId?: number;
-  constructor(private elementRef: ElementRef, private iconService: FarfaSvgService) {
+  constructor(private elementRef: ElementRef, private svgService: FarfaSvgService) {
 /*    this.observer = new MutationObserver((mutations)=> {
       for(const mutation of mutations) {
         if((mutation.type === 'attributes')&&(mutation.target == elementRef.nativeElement)) {
@@ -38,7 +38,7 @@ export class FarfaSvgDirective implements OnInit, OnDestroy {
       svgEl.setAttribute('width', '100%');
       svgEl.setAttribute('height', '100%');
       for (const attr of attrs ?? []) {
-        if (!['width','height'].includes(attr)) continue;
+        if (!['width', 'height'].includes(attr)) continue;
         const attrValue = this.elementRef.nativeElement.getAttribute(attr);
         svgEl.setAttribute(attr, attrValue);
       }
@@ -47,24 +47,47 @@ export class FarfaSvgDirective implements OnInit, OnDestroy {
     this.fixEmulatedEncapsulation();
   }
 
+  private isURL(url: string) {
+    try {
+      new URL(url);
+      return true;
+    }
+    catch (e) {
+      return false;
+    }
+  }
+
   private setSVG() {
     if (this.svgId) {
-      this.iconService.remove(this.svgId);
+      this.svgService.remove(this.svgId);
     }
     if (this.properties?.['svg'] && !this.properties?.['name']) {
-      this.elementRef.nativeElement.innerHTML = this.properties?.['svg'];
-      this.updateSVGAttributes();
+      if (this.isURL(this.properties?.['svg']) || (this.properties?.['svg'].startsWith('/'))) {
+        // if it is a correct URL or path format, continue
+        this.svgService.loadSVG(undefined, this.properties?.['svg']).then((svg) => {
+          this.elementRef.nativeElement.innerHTML = svg;
+          this.updateSVGAttributes();
+        }).catch((reason) => {
+          this.elementRef.nativeElement.innerHTML = reason;
+          this.updateSVGAttributes();
+        });
+      }
+      else {
+        // if it is not a valid URL format, it shall be an inline SVGG
+        this.elementRef.nativeElement.innerHTML = this.properties?.['svg'];
+        this.updateSVGAttributes();
+      }
     }
     else if (this.properties?.['name']) {
-      this.svgId = this.iconService.getSVG(this.properties['name'], (svg) => {
+      this.svgId = this.svgService.getSVG(this.properties['name'], (svg) => {
         this.elementRef.nativeElement.innerHTML = svg;
         this.updateSVGAttributes();
       });
     }
     if (this.properties?.['init']) {
       const f = this.properties?.['init'];
-      if(typeof f == 'function') {
-        f(this.properties,this.elementRef.nativeElement);
+      if (typeof f == 'function') {
+        f(this.properties, this.elementRef.nativeElement);
       }
     }
   }
@@ -107,6 +130,6 @@ export class FarfaSvgDirective implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.svgId) this.iconService.remove(this.svgId);
+    if (this.svgId) this.svgService.remove(this.svgId);
   }
 }

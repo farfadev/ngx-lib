@@ -9,6 +9,7 @@ npm i @farfadev/ngx-svg
 
 <h2>configuration</h2>
 
+<h3>pre-load some SVGs</h3>
 In the importing angular module, or the standalone host component:
 
 ```ts
@@ -24,7 +25,7 @@ under the @NgModule or standalone @Component decorator
   ...
 })
 ```
-Inject the FarfaSvgService in the constructor of the host component that will embed SVGs
+Inject the FarfaSvgService in the constructor of the host component that will load SVGs
 
 ```ts
   constructor(private svgService: FarfaSvgService) {
@@ -40,13 +41,29 @@ Under the NgOnInit lifecycle hook of the host component, load some SVGs (either 
       });
   }
 ```
-In the html template of the host component, 
+<h3>reference pre-loaded SVGs</h3>
+You can now reference the loaded SVGs in the html templates of components that import the FarfaSvgModule, 
+<br><br>
+in the typescript file of the component,
+
+```ts
+// component.ts
+@Component({
+  ...
+  imports: [..., FarfaSvgModule, ...],
+  ...
+})
+```
+In the html template of the component, 
 
 ```html
+<!-- component.html -->
+<!-- with inline style -->
 <i style="display: inline-block; height: 1em; width: 1em" [farfa-svg]="{name: 'myicon'}">
+<!-- or with css class -->
 <i class="myicon" [farfa-svg]="{name: 'myicon'}">
 ```
-In the css stylesheet of the host component, 
+In the css stylesheet of the component, 
 
 ```css
 .myicon {
@@ -54,4 +71,16 @@ In the css stylesheet of the host component,
   height: 1em;
   width: 1em;
 }
+```
+
+<h3>embed SVGs for single use</h3>
+If you need to reference the SVG only once, the svg can be directly embeded via the svg attribute of the [farfa-svg] directive
+
+```html
+<!-- embed inline SVG -->
+<i class="myicon" [farfa-svg]="{svg: '<svg viewBox=&quot;0 0 100 100&quot;><path d=&quot;M0, 20 Q50, 20 100, 20&quot;></path></svg>'}">
+
+<!-- embed SVG from URL -->
+<i class="myicon" [farfa-svg]="{svg: '/assets/mySvgFile.svg'}">
+
 ```

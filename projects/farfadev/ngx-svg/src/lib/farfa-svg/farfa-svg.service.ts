@@ -3,40 +3,42 @@ import { Injectable } from "@angular/core";
 @Injectable({ providedIn: 'root' })
 export class FarfaSvgService {
   iconMap = new Map<string, string>();
-  subscriptions = new Map<string,Map<number,(svg: string)=>void>>();
+  subscriptions = new Map<string, Map<number, (svg: string) => void>>();
   id = 0;
 
   constructor() {
   }
 
-  setSVG(name: string, svg: string): true | string {
+  setSVG(name: string|undefined, svg: string): {svg?: string; error?: string} {
     const start = svg.indexOf('<svg');
     const end = svg.lastIndexOf('</svg>');
     svg = svg.slice(start, end + 6);
-    if (start < 0 || end < 0) return ('svg element shall start with <svg and end with </svg>');
-    this.iconMap.set(name, svg);
-    const s = this.subscriptions.get(name);
-    (async () => {
-      for(const ss of s?.keys()??[]) {
-        s?.get(ss)?.(svg);
-      }
-    })();
-    return true;
+    if (start < 0 || end < 0) return ({error:'svg element shall start with <svg and end with </svg>'});
+    if (name) {
+      this.iconMap.set(name, svg);
+      const s = this.subscriptions.get(name);
+      (async () => {
+        for (const ss of s?.keys() ?? []) {
+          s?.get(ss)?.(svg);
+        }
+      })();
+    }
+    return {svg};
   }
 
-  loadSVG(name: string, input: string|URL|Request): Promise<boolean> {
-    return new Promise<boolean>((resolve, error) => {
+  loadSVG(name: string|undefined, input: string | URL | Request): Promise<string> {
+    return new Promise<string>((resolve, error) => {
       const res = fetch(input).then((res: Response) => {
         if (res.status >= 200 && res.status < 300) {
           res.body?.getReader().read().then((value: ReadableStreamReadResult<Uint8Array>) => {
             if (value?.value) {
               const str = utf8ArrayToStr(value.value);
               const res = this.setSVG(name, str);
-              if (res != true) {
-                error(res);
+              if ((res.error != undefined)||(res.svg == undefined)) {
+                error(res.error);
               }
               else {
-                resolve(res);
+                resolve(res.svg);
               }
             }
           });
@@ -48,13 +50,13 @@ export class FarfaSvgService {
     });
   }
 
-  getSVG(name: string,update: (svg: string|undefined)=>void): number {
-    let s = this.subscriptions.get(name) ?? new Map<number,()=>void>();
+  getSVG(name: string, update: (svg: string | undefined) => void): number {
+    let s = this.subscriptions.get(name) ?? new Map<number, () => void>();
     const id = this.id;
-    s.set(id,update);
+    s.set(id, update);
     this.id++;
-    this.subscriptions.set(name,s);
-    update(this.iconMap.get(name)??'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>');
+    this.subscriptions.set(name, s);
+    update(this.iconMap.get(name) ?? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>');
     return id;
   }
 

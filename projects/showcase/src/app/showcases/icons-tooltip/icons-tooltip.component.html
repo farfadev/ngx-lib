@@ -1,28 +1,83 @@
 <div>{{ err_msg }}</div>
-<i
-  style="display: inline-block; height: 2em; width: 2em"
-  [farfa-svg]="{ name: 'changing-icon' }"
-  [farfa-tooltip]="{
-    html: '<div><span style=\'color:blue;\'>HELLO</span></div>',
-    mode: 'hover',
-    style: 'border-radius:15px;background-color:#FAA0A0;'
-  }"
-></i>
-<i
-  class="test-icon"
-  [farfa-svg]="testicon"
-  [farfa-tooltip]="{
-    html: '<div><span style=\'color:zhite;\'>GOOD DAY</span></div>',
-    mode: 'hover',
-    style: 'border-radius:15px;background-color:lightblue;'
-  }"
-></i>
-<i
-  style="display: inline-block; height: 2em; width: 2em"
-  [farfa-svg]="{
-    svg: '<svg viewBox=&quot;0 0 100 100&quot; xmlns=&quot;http:\/\/www.w3.org\/2000\/svg&quot;><path id=&quot;BezierQ2&quot;></path></svg>'
-  }"
-></i>
-<div class="indicator" data-state="ACTIVE" (click)="nextState($event)" [farfa-tooltip]="{html: 'click me',mode: 'hover'}">
-  <i class="indicator-icon" [farfa-svg]="getIndicatorIcon()"></i>
+<div style="border: solid 1px black">
+  <p style="width: 15em;font-size: small;">
+    Display an icon directly loaded from a local URL, with a tooltip
+  </p>
+  <i
+    style="display: inline-block; height: 2em; width: 2em"
+    [farfa-svg]="{svg: '/assets/cloud-sun.svg'}"
+    [farfa-tooltip]="{
+      html: '<div><span style=\'color:blue;font-size:small\'>Here comes the sun</span></div>',
+      mode: 'hover',
+      style: 'border-radius:15px;background-color:#FAA0A0;'
+    }"
+  ></i>
+</div>
+<div style="border: solid 1px black">
+  <p style="width: 15em;font-size: small;">
+    Display an icon which is changed by the application at regular intervals
+    under the same reference name, and a tooltip
+  </p>
+  <i
+    style="display: inline-block; height: 2em; width: 2em"
+    [farfa-svg]="{ name: 'changing-icon' }"
+    [farfa-tooltip]="{
+      html: '<div><span style=\'color:blue;\'>HELLO</span></div>',
+      mode: 'hover',
+      style: 'border-radius:15px;background-color:#FAA0A0;'
+    }"
+  ></i>
+</div>
+<div style="border: solid 1px black">
+  <p style="width: 15em;font-size: small;">
+    Display an icon which is changed by the application at regular intervals by
+    changing the reference name, and a tooltip
+  </p>
+  <i
+    class="test-icon"
+    [farfa-svg]="testicon"
+    [farfa-tooltip]="{
+      html: '<div><span style=\'color:white;\'>GOOD DAY</span></div>',
+      mode: 'hover',
+      style: 'border-radius:15px;background-color:lightblue;'
+    }"
+  ></i>
+</div>
+<div style="border: solid 1px black">
+  <p style="width: 15em;font-size: small;">
+    Display a css animated icon with a tooltip
+  </p>
+  <i
+    style="display: inline-block; height: 2em; width: 2em"
+    [farfa-svg]="{
+      svg: '<svg viewBox=&quot;0 0 100 100&quot; xmlns=&quot;http:\/\/www.w3.org\/2000\/svg&quot;><path id=&quot;BezierQ2&quot;></path></svg>'
+    }"
+    [farfa-tooltip]="{
+      html: '<div><span style=\'color:green;\'>BEZIER ANIMATION</span></div>',
+      mode: 'hover',
+      style: 'border-radius:15px;background-color:lightblue;'
+    }"
+  ></i>
+</div>
+<div style="border: solid 1px black">
+  <p style="width: 15em;font-size: small;">
+    Display a complex 'state driven' css animated icon with a tooltip
+    (<a
+      target="_blank"
+      rel="noopener noreferrer"
+      href="https://css-tricks.com/animate-svg-path-changes-in-css/"
+      >credit</a>)
+  </p>
+  <button
+    class="indicator"
+    data-state="ACTIVE"
+    (click)="nextState($event)"
+    [farfa-tooltip]="{
+      html: '<span>click me</span>',
+      mode: 'hover',
+      offsetX: 0
+    }"
+  >
+    <i class="indicator-icon" [farfa-svg]="getIndicatorIcon()"></i>
+  </button>
 </div>
