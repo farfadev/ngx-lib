@@ -364,9 +364,6 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     if (!this.context.scheme) this.context.scheme = { uibase: 'object' };
     ObjectEditor.initContext(this.context);
     this.setProperties();
-    if (this.context?.scheme?.uibase == 'select' && typeof this.context?.key == 'string') {
-      this.selectScheme(this.context, this.context.key)
-    }
     this.context.contextChange = (context, env?: { [key: string | number]: any }) => {
       //this.ref.detectChanges();
       //this.reloadComponent();

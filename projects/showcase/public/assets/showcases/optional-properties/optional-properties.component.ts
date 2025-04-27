@@ -51,9 +51,10 @@ export class ShowcaseOptionalPropertiesComponent {
           default: true
         },
         simpleRadio: {
-          uibase: 'radio',
+          uibase: 'select',
           optional: true,
           uiEffects: {
+            radio: true,
             horizontal: true
           },
           selectionList: {

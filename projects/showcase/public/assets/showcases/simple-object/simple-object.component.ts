@@ -49,8 +49,9 @@ export class ShowcaseSimpleObjectComponent {
           default: true
         },
         simpleRadio: {
-          uibase: 'radio',
+          uibase: 'select',
           uiEffects: {
+            radio: true,
             horizontal: true
           },
           selectionList: {

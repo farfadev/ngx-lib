@@ -7,19 +7,39 @@ export namespace ObjectEditor {
   /**
    * - [UIBase]({@link ./object-editor.doc.md})
    */
-  export type UIBase = 'text' | 'password' | 'color' | 'number' | 'checkbox' | 'radio' | 'range' |
+  export type UIBase = 'text' | 'password' | 'color' | 'number' | 'checkbox' | 'range' |
     'date' | 'time' | 'datetime' | 'file' | 'tel' | 'email' | 'url' | 'image'
     | 'object' | 'array' | 'select' | 'from' | 'custom' | 'angular' | 'none';
 
   export type SelectionList<T = any, U = any> = { [key: string]: Scheme<T, U> };
 
+  /**
+   * define UI behaviour and styling
+   */
   export type UIEffects = {
+    /**
+     * if the UI element can be toggled
+     */
     toggle?: boolean;
+    /**
+     * if the select element shall be displayed as radio button
+     */
+    radio?: boolean;
+    /**
+     * if element shall be displayed horizontally instead of vertically
+     */
     horizontal?: true;
+    /**
+     * a call back to set the label on select elements
+     */
     selectLabel?: string | ((context: Context) => string);
-    // for html style attribute
+    /**
+     * set the style of the element
+     */
     style?: string | ((context: Context) => string);
-    // for html style attribute of the inner items (object/ array)
+    /**
+     * set element input attributes
+     */
     inputAttributes?: { [key: string]: string } | ((context: Context) => { [key: string]: string });
     innerStyle?: string | ((context: Context) => string);
     // for html class (or primeng styleClass) attribute (need css injection :host::ngdeep)
@@ -29,7 +49,7 @@ export namespace ObjectEditor {
     // TODO doesn't work yet
     innerStyleClass?: string | ((context: Context) => string);
     // for primeng design token styling
-    // TODO doesn't work yet
+    // TODO doesn't work yet (primeng components)
     designToken?: object | ((context: Context) => object);
   }
 
@@ -139,6 +159,9 @@ export namespace ObjectEditor {
     onClick?: (subContext: Context) => void;
   }
 
+  /**
+   * holds internal scheme properties 
+   */
   interface IntScheme<ValueType = any, FwdValueType = any> extends Scheme<ValueType, FwdValueType> {
     _jKKuiI: boolean;
     /** INTERNAL: if scheme can be deleted (and corresponding value) */
@@ -153,6 +176,13 @@ export namespace ObjectEditor {
 
     /** holds the scheme selection key from the parent object/array scheme selection list */
     parentSelectionKey?: number | string;
+  }
+
+  /**
+   * holds internal context properties 
+   */
+  interface IntContext extends Context {
+    fwdValue: any;
   }
 
   export const isOptional = (context: Context) => {
@@ -198,9 +228,12 @@ export namespace ObjectEditor {
 
   export const select = (context: Context, key?: string): Context | undefined => {
     if (key === undefined) {
-      key = context.scheme?.defaultSelectionKey;
+      const keys = getSelectionKeys(context);
+      if (context.scheme?.defaultSelectionKey != undefined && keys?.includes(context.scheme?.defaultSelectionKey)) {
+        key = context.scheme?.defaultSelectionKey;
+      }
       if (key === undefined) {
-        key = getSelectionKeys(context)?.[0];
+        key = keys?.[0];
       }
     }
     (context.scheme as IntScheme).selectionKey = key;
@@ -239,7 +272,7 @@ export namespace ObjectEditor {
     if (!context.scheme) {
       context.scheme = { uibase: 'object' };
     }
-    if(!context.pcontext) {
+    if (!context.pcontext) {
       context.scheme = cloneDeep(context.scheme);
     }
     context.value = initValue(context);
@@ -248,28 +281,24 @@ export namespace ObjectEditor {
   const initValue = (context: Context): any => {
     let { value, scheme } = context;
     if (!scheme) return undefined;
+    if (value == undefined && scheme.default != undefined) {
+      value = cloneDeep(scheme.default);
+    }
+    if (scheme.transform) {
+      value = scheme.transform.forward(value);
+    }
     switch (scheme.uibase) {
       case 'object':
-        if (value == undefined && scheme.default != undefined) {
-          value = cloneDeep(scheme.default);
-        }
-        else {
-          if (value == undefined) {
-            value = {};
-          }
-          const keys = Object.keys(scheme?.properties ?? {});
-          for (const key of keys) {
-            if (!scheme?.properties?.[key].optional && scheme.properties?.[key]) {
-              value![key] = value![key] ?? initValue({ value: value[key], scheme: scheme.properties?.[key] });
-            }
-          }
-          if (scheme.transform?.backward) {
-            value = scheme.transform.backward(value);
+        if (value == undefined) value = {};
+        const keys = Object.keys(scheme?.properties ?? {});
+        for (const key of keys) {
+          if (!scheme?.properties?.[key].optional && scheme.properties?.[key]) {
+            value![key] = value![key] ?? initValue({ value: value[key], scheme: scheme.properties?.[key] });
           }
         }
         break;
       case 'array':
-        if (!value) value = cloneDeep(scheme.default) ?? [];
+        if (value == undefined) value = [];
         if (!(value instanceof Array)) {
           throw Error('Invalid value type, expecting Array');
         }
@@ -285,147 +314,77 @@ export namespace ObjectEditor {
           }
         }
         break;
-      case 'radio':
       case 'select': {
         select(context);
         value = context.value;
       }
         break;
       case 'checkbox':
-        if (value == undefined && scheme.default != undefined) {
-          value = cloneDeep(scheme.default);
-        }
-        else if (value == undefined) {
+        if (value == undefined) {
           value = false;
-          if (scheme.transform) {
-            value = scheme.transform.backward(value);
-          }
         }
         break;
       case 'color':
-        if (value == undefined && scheme.default != undefined) {
-          value = cloneDeep(scheme.default);
-        }
-        else if (value == undefined) {
+        if (value == undefined) {
           value = '#ffffff';
-          if (scheme.transform) {
-            value = scheme.transform.backward(value);
-          }
         }
         break;
       case 'date':
-        if (value == undefined && scheme.default != undefined) {
-          value = cloneDeep(scheme.default);
-        }
-        else if (value == undefined) {
+        if (value == undefined) {
           value = new Date().toISOString().substring(0, 10);
-          if (scheme.transform) {
-            value = scheme.transform.backward(value);
-          }
         }
         break;
       case 'datetime':
-        if (value == undefined && scheme.default != undefined) {
-          value = cloneDeep(scheme.default);
-        }
-        else if (value == undefined) {
+        if (value == undefined) {
           value = new Date().toISOString().substring(0, 16);
-          if (scheme.transform) {
-            value = scheme.transform.backward(value);
-          }
         }
         break;
       case 'email':
-        if (value == undefined && scheme.default != undefined) {
-          value = cloneDeep(scheme.default);
-        }
-        else if (value == undefined) {
+        if (value == undefined) {
           value = '';
-          if (scheme.transform) {
-            value = scheme.transform.backward(value);
-          }
         }
         break;
       case 'file':
-        if (value == undefined && scheme.default != undefined) {
-          value = cloneDeep(scheme.default);
-        }
-        else if (value == undefined) {
-          value = '';
-          if (scheme.transform) {
-            value = scheme.transform.backward(value);
-          }
+        if (value == undefined) {
+          value = [];
         }
         break;
       case 'from':
         break;
       case 'image':
-        if (value == undefined && scheme.default != undefined) {
-          value = cloneDeep(scheme.default);
-        }
-        else if (value == undefined) {
+        if (value == undefined) {
           value = '';
-          if (scheme.transform) {
-            value = scheme.transform.backward(value);
-          }
         }
         break;
       case 'number':
-        if (value == undefined && scheme.default != undefined) {
-          value = cloneDeep(scheme.default);
-        }
-        else if (value == undefined) {
+        if (value == undefined) {
           value = 0;
-          if (scheme.transform) {
-            value = scheme.transform.backward(value);
-          }
         }
         break;
       case 'text':
-        if (value == undefined && scheme.default != undefined) {
-          value = cloneDeep(scheme.default);
-        }
-        else if (value == undefined) {
+        if (value == undefined) {
           value = '';
-          if (scheme.transform) {
-            value = scheme.transform.backward(value);
-          }
         }
         break
       case 'time':
-        if (value == undefined && scheme.default != undefined) {
-          value = cloneDeep(scheme.default);
-        }
-        else if (value == undefined) {
+        if (value == undefined) {
           value = new Date().toISOString().substring(11, 16);
-          if (scheme.transform) {
-            value = scheme.transform.backward(value);
-          }
         }
         break;
       case 'url':
-        if (value == undefined && scheme.default != undefined) {
-          value = cloneDeep(scheme.default);
-        }
-        else if (value == undefined) {
+        if (value == undefined) {
           value = '';
-          if (scheme.transform) {
-            value = scheme.transform.backward(value);
-          }
         }
         break;
       case 'none':
       case 'custom':
       case 'angular':
-        if (value == undefined && scheme.default != undefined) {
-          value = cloneDeep(scheme.default);
-        }
-        else if (value == undefined) {
-          if (scheme.transform) {
-            value = scheme.transform.backward(value);
-          }
+        if (value == undefined) {
         }
         break;
+    }
+    if (scheme.transform) {
+      value = scheme.transform.backward(value);
     }
     return value;
   }
@@ -565,7 +524,7 @@ export namespace ObjectEditor {
 
   export const canReset = (context: Context): boolean => {
     return context.scheme?.default
-      || (context.scheme?.defaultSelectionKey && (['select', 'radio'].includes(context.scheme?.uibase)))
+      || (context.scheme?.defaultSelectionKey && (context.scheme?.uibase == 'select'))
       ;
   }
 
@@ -713,15 +672,20 @@ export namespace ObjectEditor {
   }
 
   export const getSubContext = (context: Context, p?: string | number): Context | undefined => {
+    const transform = context.scheme?.transform;
+    const iContext = (context as IntContext);
+    if ((transform != undefined) && (iContext.fwdValue == undefined)) {
+      iContext.fwdValue = transform.forward(context.value);
+    }
+
     if (context.scheme?.uibase == 'none') return undefined;
     if (['object', 'array', 'custom', 'angular'].includes(context.scheme?.uibase ?? '')) {
       if (p === undefined) {
         return undefined;
       }
-      const transform = context.scheme?.properties?.[p]?.transform;
       const subContext = {
         scheme: context.scheme?.properties?.[p],
-        value: transform?.forward ? transform.forward(context.value[p]) : context.value[p],
+        value: iContext.fwdValue ? iContext.fwdValue[p] : context.value[p],
         pcontext: context,
         key: p,
         editUpdate: () => {
@@ -731,6 +695,7 @@ export namespace ObjectEditor {
             else if (subContext.scheme?.optional)
               delete context.value[subContext.key];
           }
+          delete iContext.fwdValue;
           context.editUpdate?.();
         },
         contextChange: context.contextChange,
@@ -740,13 +705,13 @@ export namespace ObjectEditor {
       }
       return subContext;
     }
-    else if (context.scheme?.uibase == 'select') {
+    else if ('select' == context.scheme?.uibase) {
       if ((context.scheme as IntScheme)?.schemeSelected) {
         const transform = (context.scheme as IntScheme).schemeSelected!.transform;
         const subContext = {
           scheme: (context.scheme as IntScheme).schemeSelected,
           pcontext: context,
-          value: context.value,
+          value: iContext.fwdValue ? iContext.fwdValue : context.value,
           editUpdate: () => {
             context.value = transform?.backward ? transform.backward(subContext.value) : subContext.value;
             context.editUpdate?.();
@@ -795,9 +760,11 @@ export namespace ObjectEditor {
    * @description Returns a <b>mixing</b> (chimere) of scheme and value for streaming data (transmission/ storage) and later reconstructing a context from the streamed (received/ stored) data
    */
   export const toChimere = (context: Context): Record<string | number, any> => {
-    return _toChimere(context);
+    return _toChimere(context) ?? {};
   }
-  const _toChimere = (context: Context, chimere: Record<string | number, any> = {}): Record<string | number, any> => {
+  const _toChimere = (context: Context, forwarded?: boolean): Record<string | number, any> | null => {
+    let chimere: Record<string | number, any> = {};
+    const nFwd = (forwarded == true) || (context.scheme?.transform != undefined);
     if (context.key != undefined) chimere['key'] = context.key;
     if (context.scheme) {
       const scheme: Record<string, any> = context.scheme;
@@ -807,43 +774,51 @@ export namespace ObjectEditor {
           sScheme[key] = scheme[key];
         }
       }
-      chimere['scheme'] = sScheme;
+      if (Object.keys(sScheme).length > 0) chimere['scheme'] = sScheme;
     }
 
     switch (context.scheme?.uibase) {
-      case 'object':
+      case 'object': {
+        const sub: any[] = [];
         const keys = getProperties(context);
-        if (keys.length > 0) chimere['sub'] = [];
         for (const key of keys) {
           const subContext = getSubContext(context, key);
           if (subContext) {
-            const rchimere = _toChimere(subContext);
-            chimere['sub'].push(rchimere);
+            const rchimere = _toChimere(subContext, nFwd);
+            if (rchimere != null) sub.push(rchimere);
           }
         }
+        if (sub.length > 0) chimere['sub'] = sub;
+      }
         break;
-      case 'array':
-        chimere['sub'] = [];
+      case 'array': {
+        const sub: any[] = [];
         for (let i = 0; i < context.value.length; i++) {
           const subContext = getSubContext(context, i);
           if (subContext) {
-            const rchimere = _toChimere(subContext);
-            chimere['sub'].push(rchimere);
+            const rchimere = _toChimere(subContext, nFwd);
+            if (rchimere != null) sub.push(rchimere);
           }
         }
+        if (sub.length > 0) chimere['sub'] = sub;
+      }
         break;
       case 'select':
-        chimere['sub'] = [];
         const subContext = getSubContext(context, (context.scheme as IntScheme).selectionKey);
         if (subContext) {
-          const rchimere = _toChimere(subContext);
-          chimere['sub'].push(rchimere);
+          const rchimere = _toChimere(subContext, nFwd);
+          if (rchimere != null) chimere['selected'] = rchimere;
         }
         break;
       default:
-        chimere['value'] = context.scheme?.transform?.backward ? context.scheme?.transform?.backward(context.value) : context.value;
+        if (!forwarded)
+          chimere['value'] = context.value;
         break;
     }
+    if (context.scheme!.transform && !forwarded) {
+      chimere['value'] = context.value;
+    }
+    const chimereKeys = Object.keys(chimere);
     return chimere;
   }
   export const fromChimere = (chimere: Record<string | number, any>, refScheme: Scheme): Context => {
@@ -855,32 +830,144 @@ export namespace ObjectEditor {
   }
 
   const _fromChimere = (context: Context, chimere: Record<string | number, any>): void => {
-    context.key = chimere['key'];
-    context.value = chimere['value'];
+    if (chimere['key'] != undefined) context.key = chimere['key'];
+    if (chimere['value'] != undefined) context.value = chimere['value'];
     if ((context.key) && (context.scheme == undefined)) context.scheme = context.pcontext?.scheme?.properties?.[context.key];
+    if (((context.pcontext?.scheme as IntScheme)?.schemeSelected) && (context.scheme == undefined)) context.scheme = cloneDeep((context.pcontext?.scheme as IntScheme)?.schemeSelected);
     if (chimere['scheme'] != undefined) {
       if ((context.scheme == undefined) && (chimere['scheme']['parentSelectionKey'] != undefined)) {
         context.scheme = cloneDeep(ObjectEditor.getSelectionList(context.pcontext)[chimere['scheme']['parentSelectionKey']]);
       }
-      (context.scheme as IntScheme).deletable = chimere['scheme']['deletable'];
-      (context.scheme as IntScheme).ctime = chimere['scheme']['ctime'];
-      (context.scheme as IntScheme).selectionKey = chimere['scheme']['selectionKey'];
-      (context.scheme as IntScheme).parentSelectionKey = chimere['scheme']['parentSelectionKey'];
+      if (chimere['scheme']['deletable'] != undefined) (context.scheme as IntScheme).deletable = chimere['scheme']['deletable'];
+      if (chimere['scheme']['ctime'] != undefined) (context.scheme as IntScheme).ctime = chimere['scheme']['ctime'];
+      if (chimere['scheme']['selectionKey'] != undefined) (context.scheme as IntScheme).selectionKey = chimere['scheme']['selectionKey'];
+      if (chimere['scheme']['parentSelectionKey'] != undefined) (context.scheme as IntScheme).parentSelectionKey = chimere['scheme']['parentSelectionKey'];
+      if ((context.scheme as IntScheme).deletable == true)
+        context.scheme!.optional = true;
     }
     if ((context.scheme as IntScheme).selectionKey != undefined) {
       (context.scheme as IntScheme).schemeSelected = ObjectEditor.getSelectionList(context)[(context.scheme as IntScheme).selectionKey!];
     }
-    if (context.scheme?.uibase == 'object') context.value = {};
-    if (context.scheme?.uibase == 'array') context.value = [];
+    if (context.scheme?.transform == undefined) {
+      if (context.scheme?.uibase == 'object') context.value = {};
+      if (context.scheme?.uibase == 'array') context.value = [];
+    }
     const props = chimere['sub'];
     for (const prop of props ?? []) {
-      const key = prop['key'];
       const nContext: Context = {
         pcontext: context,
       }
       _fromChimere(nContext, prop);
-      context.value[key] = nContext.value;
-      if (context.scheme && nContext.scheme) context.scheme.properties![key] = nContext.scheme;
+      if (nContext.key != undefined) {
+        if (context.scheme?.transform == undefined) {
+          context.value[nContext.key] = nContext.value;
+        }
+        if (context.scheme && nContext.scheme) {
+          if(context.scheme.properties == undefined) {
+            context.scheme.properties = {};
+          }
+          context.scheme.properties![nContext.key] = nContext.scheme;
+        }
+      }
+    }
+    const selected = chimere['selected'];
+    if (context.scheme!.uibase == 'select' && selected != undefined) {
+      const nContext: Context = {
+        pcontext: context,
+      }
+      _fromChimere(nContext, selected);
+      if (context.value == undefined)
+        context.value = nContext.value;
     }
   }
+  /**
+   * find all differences between 2 contexes (check toChimere/ fromChimere)
+   * @param context1 the initial context
+   * @param context2 the context resulting from fromChimere
+   */
+  export const compare = (context1: Context, context2: Context) => {
+    return deepDiffMapper().map(context1, context2);
+  }
+  const deepDiffMapper = () => {
+    // https://stackoverflow.com/questions/8572826/generic-deep-diff-between-two-objects
+    return {
+      VALUE_CREATED: 'created',
+      VALUE_UPDATED: 'updated',
+      VALUE_DELETED: 'deleted',
+      VALUE_UNCHANGED: 'unchanged',
+      map: function (obj1: any, obj2: any) {
+        if (this.isFunction(obj1) || this.isFunction(obj2)) {
+          throw 'Invalid argument. Function given, object expected.';
+        }
+        if (this.isValue(obj1) || this.isValue(obj2)) {
+          const type = this.compareValues(obj1, obj2);
+          if (type != this.VALUE_UNCHANGED) {
+            return {
+              type,
+              data: obj1 === undefined ? obj2 : obj1
+            };
+          }
+          else return null;
+        }
+
+        var diff: any = {};
+        const obj1_keys: (string | number)[] = [];
+        for (var key in obj1) {
+          if (this.isFunction(obj1[key])) {
+            continue;
+          }
+          obj1_keys.push(key);
+          var value2 = undefined;
+          if (obj2[key] !== undefined) {
+            value2 = obj2[key];
+          }
+          const sdiff = this.map(obj1[key], value2);
+          if (sdiff != null)
+            diff[key] = sdiff;
+        }
+        for (var key in obj2) {
+          if (this.isFunction(obj2[key]) || obj1_keys.includes(key)) {
+            continue;
+          }
+
+          const sdiff = this.map(obj1[key], value2);
+          if (sdiff != null)
+            diff[key] = sdiff;
+        }
+
+        return Object.keys(diff).length > 0 ? diff : null;
+
+      },
+      compareValues: function (value1: any, value2: any) {
+        if (value1 === value2) {
+          return this.VALUE_UNCHANGED;
+        }
+        if (this.isDate(value1) && this.isDate(value2) && value1.getTime() === value2.getTime()) {
+          return this.VALUE_UNCHANGED;
+        }
+        if (value1 === undefined) {
+          return this.VALUE_CREATED;
+        }
+        if (value2 === undefined) {
+          return this.VALUE_DELETED;
+        }
+        return this.VALUE_UPDATED;
+      },
+      isFunction: function (x: any) {
+        return Object.prototype.toString.call(x) === '[object Function]';
+      },
+      isArray: function (x: any) {
+        return Object.prototype.toString.call(x) === '[object Array]';
+      },
+      isDate: function (x: any) {
+        return Object.prototype.toString.call(x) === '[object Date]';
+      },
+      isObject: function (x: any) {
+        return Object.prototype.toString.call(x) === '[object Object]';
+      },
+      isValue: function (x: any) {
+        return !this.isObject(x) && !this.isArray(x);
+      }
+    }
+  };
 }

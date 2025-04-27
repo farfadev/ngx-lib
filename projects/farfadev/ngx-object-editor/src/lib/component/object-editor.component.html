@@ -76,8 +76,6 @@
     ></ng-container>
     } @case('select') {
     <oe-select [debug]="debug" [context]="subContext"></oe-select>
-    } @case('radio') {
-    <oe-radio [debug]="debug" [context]="subContext"></oe-radio>
     } @case('none') {
     <!-- no display -->
     } @case('text') { @if(hasMask(subContext)) {

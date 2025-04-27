@@ -59,6 +59,14 @@ export class OESelectComponent implements OnInit, OnDestroy {
     return ObjectEditor.isReadOnly(context);
   }
 
+  isHorizontal() {
+    return ObjectEditor.getUIEffects(this.context!)?.['horizontal'] ?? false;
+  }
+  
+  isRadio() {
+    return ObjectEditor.getUIEffects(this.context!)?.['radio'] ?? false;
+  }
+  
   select(context: ObjectEditor.Context, key?: string) {
     this.subContext = ObjectEditor.select(context,key);
   }

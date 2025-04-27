@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { InputSocket, ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
@@ -23,7 +23,7 @@ type Coordinates = {
   styleUrls: ['./test.component.scss'],
   imports: [CommonModule, FormsModule, RouterModule, ObjectEditorModule, FarfaSvgModule],
 })
-export class TestComponent implements OnInit {
+export class TestComponent implements OnInit, AfterViewInit {
 
   err_msg: string = '';
   @Input()
@@ -31,28 +31,34 @@ export class TestComponent implements OnInit {
 
   testicon = { name: 'test' };
 
-  chimereHL?: string;
+  viewInitialized = new Promise<boolean>(resolve=>resolve(true));
+  chimereHL: string = '';
+
+  reload_error = '';
 
   constructor(private svgService: FarfaSvgService) {
     hljs.registerLanguage('json', json);
   }
 
-  value2scheme(uibase: ObjectEditor.UIBase,value: any,label?: string) {
-    const scheme: ObjectEditor.Scheme = {uibase: uibase,default: value,label,readonly:true};
+  value2scheme(uibase: ObjectEditor.UIBase, value: any, label?: string) {
+    const scheme: ObjectEditor.Scheme = { uibase: uibase, default: value, label, readonly: true };
     return scheme;
   }
 
   mycontext: ObjectEditor.Context = {
     editUpdate: () => {
-      const chimere = ObjectEditor.toChimere(this.mycontext);
-      const chimereJSON = JSON.stringify(chimere);
-      this.chimereHL = hljs.highlightAuto(chimereJSON).value;
+      (async () => {
+        await (this.viewInitialized);
+        const chimere = ObjectEditor.toChimere(this.mycontext);
+        const chimereJSON = JSON.stringify(chimere);
+        this.chimereHL = hljs.highlightAuto(chimereJSON).value;
+      })();
     },
     value: {
-      p1: 'coucou',
-      p3: '#ffffff',
-      p4: false,
-      p6: [32, 67]
+      '1-text': 'coucou',
+      '3-color': '#ffffff',
+      '4-boolean': false,
+      '6-forward-object': [32, 67]
     },
     scheme: {
       uibase: 'object',
@@ -181,9 +187,8 @@ export class TestComponent implements OnInit {
             }
           }
         },
-        '6-object': {
+        '6-forward-object': {
           uibase: 'object',
-          restricted: true,
           properties: {
             lat: {
               uibase: 'number'
@@ -198,14 +203,15 @@ export class TestComponent implements OnInit {
           }
         } as ObjectEditor.Scheme<number[], Coordinates>,
         '7-radio': {
-          uibase: 'radio',
+          uibase: 'select',
           uiEffects: {
+            radio: true,
             horizontal: true
           },
           selectionList: {
-            sel1: this.value2scheme('none','coucou'),
-            sel2: this.value2scheme('none',0),
-            sel3: this.value2scheme('none',{ a: 1, b: 'zebu' })
+            sel1: this.value2scheme('none', 'coucou'),
+            sel2: this.value2scheme('none', 0),
+            sel3: this.value2scheme('none', { a: 1, b: 'zebu' })
           }
         },
         '8-date': {
@@ -281,12 +287,23 @@ export class TestComponent implements OnInit {
     const chimere = ObjectEditor.toChimere(this.mycontext);
   }
 
+  reloadCount = 0;
   chimereReload() {
+    this.reloadCount ++;
     const chimere = ObjectEditor.toChimere(this.mycontext);
     const jsonChimere = JSON.stringify(chimere);
     const nchimere = JSON.parse(jsonChimere);
-    const ncontext = ObjectEditor.fromChimere(nchimere,this.testScheme!);
-    this.mycontext = ncontext;
+    const ncontext = ObjectEditor.fromChimere(nchimere, this.testScheme!);
+    const res = ObjectEditor.compare(this.mycontext, ncontext);
+    if (res != null) {
+      this.reload_error = 'Reload Mismatch';
+    }
+    else {
+      ncontext.editUpdate = this.mycontext.editUpdate;
+      ncontext.value['1-text'] = 'changed '+this.reloadCount;
+      this.mycontext = ncontext;
+      this.reload_error = '';
+    }
   }
 
   ngOnInit() {
@@ -319,5 +336,8 @@ export class TestComponent implements OnInit {
     }, 5000);
   }
 
+  ngAfterViewInit(): void {
+    this.viewInitialized = Promise.resolve(true);
+  }
 }
 

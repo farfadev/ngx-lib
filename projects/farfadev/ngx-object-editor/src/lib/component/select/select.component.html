@@ -1,11 +1,32 @@
-@if(context) {
+@if(context) { @if(isRadio()) {
 <fieldset>
-  <legend>{{getSelectionLabel(context)}}</legend>
+  <legend>{{ getSelectionLabel(context) }}</legend>
+  @for(p of getSelectionKeyLabels(context);track p.key) {
+  <div [style]="{ display: isHorizontal() ? 'inline' : 'block' }">
+    <input
+      type="radio"
+      [id]="p.key"
+      [name]="context.key + 'radio'"
+      [value]="p.key"
+      [disabled]="isReadOnly(context)"
+      [(ngModel)]="selectionKey"
+      (ngModelChange)="select(context, p.key)"
+      (click)="onclick()"
+    />
+    <label [for]="p.key">{{ p.label }}</label>
+  </div>
+  } @if(subContext) {
+  <object-editor [debug]="debug" [context]="subContext"></object-editor>
+  }
+</fieldset>
+} @else {
+<fieldset>
+  <legend>{{ getSelectionLabel(context) }}</legend>
   <select
     [(ngModel)]="selectionKey"
     [disabled]="isReadOnly(context)"
     (ngModelChange)="select(context, selectionKey)"
-    style="margin-bottom:0.5em;"
+    style="margin-bottom: 0.5em"
   >
     <option disabled value="">select</option>
     <option
@@ -19,4 +40,4 @@
   <object-editor [debug]="debug" [context]="subContext"></object-editor>
   }
 </fieldset>
-}
+} }
