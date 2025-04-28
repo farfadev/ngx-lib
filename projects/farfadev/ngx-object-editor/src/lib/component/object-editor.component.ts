@@ -16,8 +16,8 @@ import { ObjectEditor } from '../object-editor';
 import { _farfa_oe_marker } from './markers';
 
 type KeyLabel = {
-  key: string | number;
-  label: string | number;
+  key: string;
+  label: string;
 }
 @Component({
   standalone: false,
@@ -40,7 +40,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   @Input()
   debug = false;
 
-  @Output() 
+  @Output()
   propertyListChange = new EventEmitter<ObjectEditor.Context>();
 
   ui_id;
@@ -48,32 +48,16 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   // binding to toggle the root fieldset
   root_fieldset_expanded = true;
 
-  // bindings to select the scheme on 'select' schemes
-  schemeSelectionKey: string = '';
-  selectionObj?: KeyLabel;
+  // for the select uibase
+  selectionKey?: string;
+  subContext?: ObjectEditor.Context;
 
-  // holds the selected scheme when a 'select' scheme has been selected
-  selectedSubContext?: ObjectEditor.Context;
-
-  /*  set selectionKey(o: { key: string, label: string }) {
-      if (this.editing) {
-        this._selectionKey = o;
-        ObjectEditor.selectScheme(this.editing, o.key);
-      }
-    }
-  
-    get selectionKey(): { key: string, label: string } | undefined {
-      return this._selectionKey;
-    }
-  */
   properties: (string | number)[] = [];
   schemeOptions: string[] = [];
   newProperty = {
     property: '',
     schemeKey: ''
   };
-
-  selectedEnumKey?: string;
 
   canAddObjectProperty(): boolean {
     return (this.context?.scheme?.uibase == 'object'
@@ -98,7 +82,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
 
   constructor(@Host() elementRef: ElementRef) {
     this.ui_id = window.crypto.randomUUID();
-    elementRef.nativeElement.setAttribute(_farfa_oe_marker,'');
+    elementRef.nativeElement.setAttribute(_farfa_oe_marker, '');
   }
 
   getNumber(arg0: any): number {
@@ -106,11 +90,11 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   canArrayItemUp(context: ObjectEditor.Context) {
-    return !(context?.pcontext == undefined 
+    return !(context?.pcontext == undefined
       || !ObjectEditor.isArray(context?.pcontext)
-      || context?.key === undefined 
+      || context?.key === undefined
       || context.pcontext?.scheme?.properties === undefined)
-      && this.getNumber(context.key)>0;
+      && this.getNumber(context.key) > 0;
   }
 
   arrayItemUp(context: ObjectEditor.Context) {
@@ -131,11 +115,11 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   canArrayItemDown(context: ObjectEditor.Context) {
-    const res = !(context?.pcontext == undefined 
+    const res = !(context?.pcontext == undefined
       || !ObjectEditor.isArray(context?.pcontext)
-      || context?.key === undefined 
+      || context?.key === undefined
       || context.pcontext?.scheme?.properties === undefined)
-      && this.getNumber(context.key)<context.pcontext.value.length-1;
+      && this.getNumber(context.key) < context.pcontext.value.length - 1;
     return res;
   }
 
@@ -209,16 +193,6 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     return ObjectEditor.getMaskOptions(context) != undefined;
   }
 
-  selectScheme(context: ObjectEditor.Context, schemeKey?: string) {
-    this.selectedSubContext = ObjectEditor.select(context, schemeKey);
-    //TODO async replaced by setTimeout to workaround source map problem  
-    /*    (async () => {
-          this.schemeSelectionKey = '';
-        })();
-    */
-    setTimeout(() => this.schemeSelectionKey = '', 10);
-  }
-
   getLabel(subContext: ObjectEditor.Context) {
     return ObjectEditor.getLabel(subContext);
   }
@@ -234,7 +208,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
   isediting(subContext: ObjectEditor.Context) {
     return (subContext == this.editing);
-//    return (this.editing != undefined)&&((context == this.editing) || (this.subContextList?.[this.editing?.key ?? ''] == this.editing));
+    //    return (this.editing != undefined)&&((context == this.editing) || (this.subContextList?.[this.editing?.key ?? ''] == this.editing));
   }
 
   isReadOnly(context: ObjectEditor.Context): boolean {
@@ -243,6 +217,36 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
 
   isOptional(context: ObjectEditor.Context): boolean {
     return ObjectEditor.isOptional(context);
+  }
+
+  isHorizontal(context: ObjectEditor.Context) {
+    return ObjectEditor.getUIEffects(context!)?.['horizontal'] ?? false;
+  }
+
+  isRadio(context: ObjectEditor.Context) {
+    return ObjectEditor.getUIEffects(context!)?.['radio'] ?? false;
+  }
+
+  schemeSelect(context: ObjectEditor.Context, key?: string) {
+    this.subContext = ObjectEditor.select(context, key);
+  }
+
+  getSelectionKeyLabels(context: ObjectEditor.Context) {
+    const result: KeyLabel[] = [];
+    const selList = ObjectEditor.getSelectionList(context);
+    const keys = Object.keys(selList);
+    for (let key of keys) {
+      result.push({ key, label: selList[key].label ?? key });
+    }
+    return result;
+  }
+
+  getSelectionLabel(context: ObjectEditor.Context) {
+    return ObjectEditor.getSelectionLabel(context) ?? 'select';
+  }
+
+  selectOnclick() {
+    this._context?.onClick?.(this.context!);
   }
 
   getUIBase(context: ObjectEditor.Context) {
@@ -290,6 +294,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     if (this.editing != context) {
       this.edittoggle(context);
     }
+    this._context?.onClick?.(this.context!);
     /*    else {
           if (this.getHtmlType(context) == 'checkbox') {
             if (typeof this.context.value[p] != 'boolean') this.context.value[p] = ObjectEditor.convert(
@@ -309,9 +314,6 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
   }
 
   updatePropertyList(subContext: ObjectEditor.Context) {
-    if(this.context != undefined && this.selectedSubContext === subContext) {
-      this.selectScheme(this.context);
-    }
     this.setProperties();
   }
 
@@ -359,21 +361,31 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
 
   initContext() {
     if (!this.context) return;
-    this.schemeOptions = ObjectEditor.getSelectionKeys(this.context);
-    //    if(!this.context.value) this.context.value = {};
-    if (!this.context.scheme) this.context.scheme = { uibase: 'object' };
-    ObjectEditor.initContext(this.context);
-    this.setProperties();
-    this.context.contextChange = (context, env?: { [key: string | number]: any }) => {
-      //this.ref.detectChanges();
-      //this.reloadComponent();
-      this.context = context;
-      //this.setProperties();
-      if (env?.['key'] != undefined) {
-        this.propertyClickEvent = true;
-        this.editing = this.getSubContext(env?.['key']);
+    if (this.context.scheme?.uibase == 'select') {
+      const editUpdate = this.context.editUpdate;
+      this.context.editUpdate = () => {
+        this.selectionKey = ObjectEditor.getSelectionKey(this.context);
+        editUpdate?.(true);
       }
-    };
+      this.selectionKey = ObjectEditor.getSelectionKey(this.context);
+    }
+    else {
+      this.schemeOptions = ObjectEditor.getSelectionKeys(this.context);
+      //    if(!this.context.value) this.context.value = {};
+      if (!this.context.scheme) this.context.scheme = { uibase: 'object' };
+      ObjectEditor.initContext(this.context);
+      this.setProperties();
+      this.context.contextChange = (context, env?: { [key: string | number]: any }) => {
+        //this.ref.detectChanges();
+        //this.reloadComponent();
+        this.context = context;
+        //this.setProperties();
+        if (env?.['key'] != undefined) {
+          this.propertyClickEvent = true;
+          this.editing = this.getSubContext(env?.['key']);
+        }
+      };
+    }
   }
 
   ngOnDestroy(): void {

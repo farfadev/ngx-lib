@@ -11,6 +11,51 @@
     (click)="onclick(lcontext, $event)"
   />
 </ng-template>
+<ng-template #select let-lcontext="lcontext">
+  @if(isRadio(lcontext)) {
+    <fieldset>
+      <legend>{{ getSelectionLabel(lcontext) }}</legend>
+      @for(p of getSelectionKeyLabels(lcontext);track p.key) {
+      <div [style]="{ display: isHorizontal(lcontext) ? 'inline' : 'block' }">
+        <input
+          type="radio"
+          [id]="p.key"
+          [name]="context.key + 'radio'"
+          [value]="p.key"
+          [disabled]="isReadOnly(lcontext)"
+          [(ngModel)]="selectionKey"
+          (ngModelChange)="schemeSelect(lcontext, p.key)"
+          (click)="selectOnclick()"
+        />
+        <label [for]="p.key">{{ p.label }}</label>
+      </div>
+      } @if(subContext) {
+      <object-editor [debug]="debug" [context]="subContext"></object-editor>
+      }
+    </fieldset>
+    } @else {
+    <fieldset>
+      <legend>{{ getSelectionLabel(lcontext) }}</legend>
+      <select
+        [(ngModel)]="selectionKey"
+        [disabled]="isReadOnly(lcontext)"
+        (ngModelChange)="schemeSelect(lcontext, selectionKey)"
+        style="margin-bottom: 0.5em"
+      >
+        <option disabled value="">select</option>
+        <option
+          *ngFor="let o of getSelectionKeyLabels(lcontext)"
+          value="{{ o.key }}"
+        >
+          {{ o.label }}({{ o.key }})
+        </option>
+      </select>
+      @if(subContext) {
+      <object-editor [debug]="debug" [context]="subContext"></object-editor>
+      }
+    </fieldset>
+    }   
+</ng-template>
 <ng-template #preIcons let-lcontext="lcontext">
   <span>&nbsp;&nbsp;&nbsp;</span>
   @if(canReset(lcontext)) {
@@ -75,7 +120,7 @@
       *ngTemplateOutlet="color; context: { lcontext: subContext }"
     ></ng-container>
     } @case('select') {
-    <oe-select [debug]="debug" [context]="subContext"></oe-select>
+      <ng-container *ngTemplateOutlet="select; context: { lcontext: subContext }"></ng-container>
     } @case('none') {
     <!-- no display -->
     } @case('text') { @if(hasMask(subContext)) {
