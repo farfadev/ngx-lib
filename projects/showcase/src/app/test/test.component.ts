@@ -8,6 +8,7 @@ import { FarfaSvgModule, FarfaSvgService } from '@farfadev/ngx-svg';
 import hljs from 'highlight.js/lib/core';
 import json from 'highlight.js/lib/languages/json';
 import 'highlight.js/styles/github.css';
+import { test_init } from './test_init/test_init';
 
 // https://github.com/nerdstep/react-coordinate-input/blob/master/README.md
 // https://imask.js.org/guide.html#getting-started
@@ -38,6 +39,7 @@ export class TestComponent implements OnInit, AfterViewInit {
 
   constructor(private svgService: FarfaSvgService) {
     hljs.registerLanguage('json', json);
+    const errors = test_init();
   }
 
   value2scheme(uibase: ObjectEditor.UIBase, value: any, label?: string) {

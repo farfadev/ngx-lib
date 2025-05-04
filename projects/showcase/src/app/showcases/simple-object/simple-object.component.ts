@@ -24,7 +24,7 @@ export class ShowcaseSimpleObjectComponent {
     value: {
       simpleText: 'hello',
       simpleNumber: 3,
-      simpleColor: '#ffffff',
+      simpleColor: 'green',
       simpleBoolean: false,
       simpleRadio: undefined
     },
@@ -42,7 +42,7 @@ export class ShowcaseSimpleObjectComponent {
         },
         simpleColor: {
           uibase: 'color',
-          default: '#FF00FF'
+          default: 'blue'
         },
         simpleBoolean: {
           uibase: 'checkbox',

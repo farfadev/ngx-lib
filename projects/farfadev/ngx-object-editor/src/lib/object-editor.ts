@@ -1,5 +1,7 @@
 //import cloneDeep from "lodash.clonedeep";
-import { cloneDeep } from "lodash-es";
+import { cloneDeep, isEqual, isMatch } from "lodash-es";
+
+import { FarfaOEValueCheck } from "./utils/verifyvalues";
 
 export namespace ObjectEditor {
 
@@ -90,10 +92,12 @@ export namespace ObjectEditor {
     /** //TODO a call-back to set the Scheme dynamically depending on a runtime context */
     dynamic?: (context?: Context) => Scheme<ValueType, FwdValueType>;
     /** //TODO when the value depends on other values (properties) and shall be recalculated (callback f) when one of these values changes */
-    dependsOn?: { properties: (string | number)[]; f: (value?: any) => ValueType }
+    dependsOn?: { properties: (string | number)[]; f: (context?: Context) => ValueType }
     /** if value is optional - may depend on the outer value (value of the encompassing object) */
     optional?: boolean | ((context?: Context) => boolean);
-    /** //TODO if value is view/read only frontend user cannot edit the value */
+    /** optionaly can deactivate display - triggered on sibling properties updates */
+    display?: { properties?: (string | number)[]; f: (context?: Context) => boolean; };
+    /** if value is view/read only frontend user cannot edit the value */
     readonly?: boolean;
     /** provides a default value to use when no value is provided */
     default?: ValueType;
@@ -136,6 +140,13 @@ export namespace ObjectEditor {
     selectionList?: SelectionList<ValueType, FwdValueType> | ((context: Context) => SelectionList<ValueType, FwdValueType>);
     /** provides the default scheme selection key from the scheme selection list, otherwise the first scheme in the selection list is selected  */
     defaultSelectionKey?: string;
+    /**
+     * custom callback to identify a scheme selection key from a value 
+     * during initialisation from sheer value (without chimere context)
+     * shall return the scheme selection key or undefined if not found
+     * if not provided or return undefined, the internal algorithm is used
+    */
+    detectScheme?: (context: Context, value: any) => string | undefined;
 
     /** for object/array provides the schemes corresponding to the value properties */
     properties?: { [key: number | string]: Scheme }
@@ -163,20 +174,24 @@ export namespace ObjectEditor {
    * holds internal scheme properties 
    */
   interface IntScheme<ValueType = any, FwdValueType = any> extends Scheme<ValueType, FwdValueType> {
-    _jKKuiI: boolean;
+
     /** INTERNAL: if scheme can be deleted (and corresponding value) */
     deletable?: boolean;
+
     // scheme creation time (for dynamically created properties)
     ctime?: number;
 
+    // holds the selected scheme selection key from the scheme selection list
+    selectedKey?: string;
     // holds the scheme selection key from the scheme selection list
-    selectionKey?: string;
-    // holds the scheme selection key from the scheme selection list
-    schemeSelected?: Scheme;
+    selectedScheme?: Scheme;
 
     /** holds the scheme selection key from the parent object/array scheme selection list */
-    parentSelectionKey?: number | string;
+    parentSelectedKey?: string;
   }
+  const intS = (scheme: Scheme|undefined): IntScheme|undefined => {
+    return (scheme != undefined ? scheme as IntScheme : undefined);
+  } 
 
   /**
    * holds internal context properties 
@@ -213,7 +228,7 @@ export namespace ObjectEditor {
   }
 
   export const getSelectionKey = (context?: Context): string | undefined => {
-    return (context?.scheme as IntScheme)?.selectionKey;
+    return intS(context?.scheme)?.selectedKey;
   }
 
   export const getSelectionLabel = (context: Context): string | undefined => {
@@ -225,7 +240,11 @@ export namespace ObjectEditor {
       return selectionLabel;
     }
   }
-
+  const setSelectedScheme = (context: Context, key: string) => {
+    intS(context.scheme)!.selectedKey = key;
+    const v = getSelectionList(context)?.[key!];
+    intS(context.scheme)!.selectedScheme = cloneDeep(v);
+  }
   export const select = (context: Context, key?: string): Context | undefined => {
     if (key === undefined) {
       const keys = getSelectionKeys(context);
@@ -236,16 +255,10 @@ export namespace ObjectEditor {
         key = keys?.[0];
       }
     }
-    (context.scheme as IntScheme).selectionKey = key;
-    (context.scheme as IntScheme).schemeSelected = undefined;
 
-    context.value = undefined;
+    setSelectedScheme(context, key);
 
-    const v = getSelectionList(context)?.[key!];
-
-    (context.scheme as IntScheme).schemeSelected = cloneDeep(v);
-
-    context.value = initValue({ value: undefined, scheme: (context.scheme as IntScheme).schemeSelected! });
+    context.value = initValue({ value: undefined, scheme: intS(context.scheme)!.selectedScheme! });
 
     context.editUpdate?.();
     return getSubContext(context);
@@ -261,6 +274,21 @@ export namespace ObjectEditor {
       selList(context) : selList) ?? {}
   }
 
+  const setPropertyScheme = (context: Context, property: string | number, schemeKey: string, scheme?: Scheme): void => {
+    if (context.scheme!.properties == undefined) {
+      context.scheme!.properties = {};
+    }
+    if (isSchemeSelectionKey(context, schemeKey)) {
+      context.scheme!.properties[property] = (scheme == undefined) ?
+        cloneDeep(getSelectionList(context)[schemeKey]) as Scheme :
+        scheme;
+      intS(context.scheme!.properties[property])!.parentSelectedKey = schemeKey;
+      intS(context.scheme!.properties[property])!.optional = true;
+      intS(context.scheme!.properties[property])!.deletable = true;
+      intS(context.scheme!.properties[property])!.ctime = Date.now();
+    }
+  }
+
   export const getSelectionKeys = (context?: Context, p?: string | number): string[] => {
     const list: string[] = [];
     if (!context?.scheme || (p && !context?.scheme?.properties?.[p])) return [];
@@ -274,6 +302,7 @@ export namespace ObjectEditor {
     }
     if (!context.pcontext) {
       context.scheme = cloneDeep(context.scheme);
+      const result = initScheme(context);
     }
     context.value = initValue(context);
   }
@@ -389,6 +418,177 @@ export namespace ObjectEditor {
     return value;
   }
 
+  const initScheme = (context: Context): number => {
+    let match: number = 0;
+    let count = 0;
+    const forward = context.scheme?.transform?.forward;
+    const value = (typeof forward == 'function') ? forward(context.value) : context.value;
+    
+    if(value == undefined) return 0;
+
+    const selectionList = ObjectEditor.getSelectionList(context);
+
+    switch (context.scheme?.uibase) {
+      case 'object':
+      case 'array':
+        for (const p of Object.keys(value)) {
+          let pmatch = 0;
+          if (context.scheme.properties?.[p] != undefined) {
+            const subContext = {
+              scheme: context.scheme.properties?.[p],
+              pcontext: context,
+              value: value[p],
+              key: p
+            }
+            pmatch = initScheme(subContext);
+          }
+          if (pmatch == 0 && selectionList != undefined) {
+            if (context.scheme.detectScheme != undefined) {
+              const selKey = context.scheme.detectScheme(context, value);
+              if (selKey != undefined && Object.keys(selectionList).includes(selKey)) {
+                const subContext = {
+                  scheme: cloneDeep(selectionList[selKey]),
+                  pcontext: context,
+                  value: value[p],
+                  key: p
+                }
+                const smatch = initScheme(subContext);
+                if (smatch == 1) {
+                  setPropertyScheme(context, p, selKey, subContext.scheme);
+                  pmatch += smatch;
+                }
+              }
+            }
+            if (pmatch == 0) {
+              for (const selKey of Object.keys(selectionList)) {
+                const subContext = {
+                  scheme: cloneDeep(selectionList[selKey]),
+                  pcontext: context,
+                  value: value[p],
+                  key: p
+                }
+                const smatch = initScheme(subContext);
+                if (smatch == 1) {
+                  setPropertyScheme(context, p, selKey,subContext.scheme);
+                  pmatch += smatch;
+                  break;
+                }
+              }
+            }
+          }
+          match += pmatch;
+          count++;
+        }
+        break;
+      case 'select':
+        if (selectionList != undefined) {
+          if (context.scheme.detectScheme != undefined) {
+            const selKey = context.scheme.detectScheme(context, value);
+            if (selKey != undefined && Object.keys(selectionList).includes(selKey)) {
+              const subContext = {
+                scheme: cloneDeep(selectionList[selKey]),
+                pcontext: context,
+                value
+              }
+              const smatch = initScheme(subContext);
+              if (smatch == 1) {
+                setSelectedScheme(context, selKey);
+                match = smatch;
+                count = 1;
+              }
+            }
+          }
+          if (match == 0) {
+            for (const selKey of Object.keys(selectionList)) {
+              const subContext = {
+                scheme: cloneDeep(selectionList[selKey]),
+                pcontext: context,
+                value: value
+              }
+              const smatch = initScheme(subContext);
+              if (smatch == 1) {
+                setSelectedScheme(context, selKey);
+                match = smatch;
+                count = 1;
+                break;
+              }
+            }
+          }
+        }
+        break;
+      case 'none':
+        match = isEqual(value, context.scheme.default) ? 1 : 0;
+        count = 1;
+        break;
+      case 'checkbox':
+        match = (typeof value == 'boolean') ? 1 : 0;
+        count = 1;
+        break;
+      case 'number':
+        match = (typeof value == 'number') ? 1 : 0;
+        count = 1;
+        break;
+      case 'color':
+        match = FarfaOEValueCheck.isStringColor(value) ? 1 : 0;
+        count = 1;
+        break;
+      case 'date':
+      case 'datetime':
+      case 'time':
+        //todo differentiate between date , time and datetime
+        match = FarfaOEValueCheck.isAnyDateTime(value) ? 1 : 0;
+        count = 1;
+        break;
+      default:
+        match = typeof value == 'string' ? 1 : 0;
+        count = 1;
+    }
+    return (count != 0 ? match / count : 0);
+  }
+
+  export const checkScheme = (value: any, scheme: Scheme, baseScheme: Scheme, select?: boolean) => {
+
+    let badcheckcount = 0;
+    const check = (test: boolean) => {
+      if (!test) badcheckcount++
+    }
+    const _checkScheme = (value: any, scheme: IntScheme, baseScheme: Scheme, select?: boolean) => {
+      check(isMatch(scheme, baseScheme));
+      switch (baseScheme.uibase) {
+        case 'select':
+          check(value != undefined ? intS(scheme)!.selectedKey != undefined : intS(scheme)!.selectedKey == undefined);
+          check(value != undefined ? intS(scheme)!.selectedScheme != undefined : intS(scheme)!.selectedScheme == undefined);
+          if(intS(scheme)?.selectedKey != undefined) {
+            _checkScheme(value,intS(scheme)!.selectedScheme!,getSelectionList({scheme: baseScheme})[intS(scheme)!.selectedKey!]);
+          }
+          break;
+        case 'object':
+        case 'array':
+          for(const p of Object.keys(value)) {
+            const subScheme = scheme.properties?.[p];
+            check(subScheme != undefined);
+            let baseSubScheme = baseScheme.properties?.[p];
+            if(baseSubScheme == undefined) {
+              check(intS(subScheme)!.parentSelectedKey != undefined); 
+              if(intS(subScheme)?.parentSelectedKey) {
+                check(isSchemeSelectionKey({scheme},intS(subScheme)!.parentSelectedKey));
+                baseSubScheme = getSelectionList({scheme: baseScheme})[intS(subScheme)?.parentSelectedKey!]
+                check(intS(subScheme)!.ctime != undefined)
+                check(intS(subScheme)!.optional == true)
+                check(intS(subScheme)!.deletable == true)
+              }
+            }
+            check(baseSubScheme != undefined);
+            if(subScheme != undefined && baseSubScheme != undefined)
+              _checkScheme(value[p],subScheme,baseSubScheme);
+          }
+          break;
+      }
+    }
+    _checkScheme(value,scheme,baseScheme);
+    return badcheckcount;
+}
+
   export const getProperties = (context: Context) => {
     let properties: (string | number)[] = [];
     const value = context.scheme?.transform?.forward ?
@@ -396,13 +596,13 @@ export namespace ObjectEditor {
       context.value;
     const schemeKeys = Object.keys(context.scheme?.properties ?? {});
     for (const sp of schemeKeys) {
-      if ((value?.[sp] != undefined) || !(context.scheme?.properties?.[sp] as IntScheme).optional) {
+      if ((value?.[sp] != undefined) || !intS(context.scheme?.properties?.[sp])?.optional) {
         properties.push(sp);
       }
     }
     properties = (context.scheme?.uibase === 'object') ? properties.sort((a, b) => {
-      const a_ct = (context.scheme?.properties?.[a] as IntScheme).ctime ?? 0;
-      const b_ct = (context.scheme?.properties?.[b] as IntScheme).ctime ?? 0;
+      const a_ct = intS(context.scheme?.properties?.[a])?.ctime ?? 0;
+      const b_ct = intS(context.scheme?.properties?.[b])?.ctime ?? 0;
       if (a_ct == b_ct) {
         if ((typeof a == 'string') && (typeof b == 'string'))
           return schemeKeys.indexOf(a) - schemeKeys.indexOf(b);
@@ -458,7 +658,7 @@ export namespace ObjectEditor {
     return rsel;
   }
 
-  const isInnerSchemeSelectionKey = (context?: Context, key?: string): boolean => {
+  const isSchemeSelectionKey = (context?: Context, key?: string): boolean => {
     const keys = getSelectionKeys(context);
     return (keys && key) ? keys.includes(key) : false;
   }
@@ -480,22 +680,13 @@ export namespace ObjectEditor {
       // cannot replace existing property
       context.value[newProperty.property] === undefined &&
       // sanity check on newproperty type
-      (isInnerSchemeSelectionKey(context, newProperty.schemeKey) ||
+      (isSchemeSelectionKey(context, newProperty.schemeKey) ||
         getOptionalPropertyList(context).includes(String(newProperty.property)))
     ) {
       if (!context.scheme.properties)
         context.scheme.properties = {};
       if (context.scheme.properties[newProperty.property] === undefined) {
-        if (isInnerSchemeSelectionKey(context, newProperty.schemeKey)) {
-          if (getSelectionList(context)[newProperty.schemeKey] != undefined) {
-            context.scheme.properties[newProperty.property] =
-              cloneDeep(getSelectionList(context)[newProperty.schemeKey]) as Scheme;
-            (context.scheme.properties[newProperty.property] as IntScheme).parentSelectionKey = newProperty.schemeKey;
-            (context.scheme.properties[newProperty.property] as IntScheme).optional = true;
-            (context.scheme.properties[newProperty.property] as IntScheme).deletable = true;
-            (context.scheme.properties[newProperty.property] as IntScheme).ctime = Date.now();
-          }
-        }
+        setPropertyScheme(context, newProperty.property, newProperty.schemeKey);
       }
       switch (context.scheme.uibase) {
         case 'object': {
@@ -545,7 +736,7 @@ export namespace ObjectEditor {
 
   export const canDeleteProperty = (context: Context): boolean => {
     if (context.pcontext?.scheme?.uibase === 'object') {
-      if ((context.scheme?.optional || (context.scheme as IntScheme)?.deletable) && context.key !== undefined) {
+      if ((context.scheme?.optional || intS(context.scheme)?.deletable) && context.key !== undefined) {
         return true;
       }
     }
@@ -557,14 +748,14 @@ export namespace ObjectEditor {
 
   export const deleteProperty = (context: Context) => {
     if (context.pcontext?.scheme?.uibase === 'object') {
-      if ((context.scheme?.optional || (context.scheme as IntScheme)?.deletable) && context.key !== undefined) {
+      if ((context.scheme?.optional || intS(context.scheme)?.deletable) && context.key !== undefined) {
         delete context?.pcontext?.value[context.key];
         context.value = undefined;
       }
-      if ((context.scheme as IntScheme)?.deletable && context.key !== undefined) {
+      if (intS(context.scheme)?.deletable && context.key !== undefined) {
         delete context.pcontext?.scheme?.properties?.[context.key];
       }
-      if (context.scheme && (!context.scheme.optional && !(context.scheme as IntScheme).deletable) && context.key !== undefined) {
+      if (context.scheme && (!context.scheme.optional && !intS(context.scheme)?.deletable) && context.key !== undefined) {
         context.value = initValue({ value: undefined, scheme: context.scheme });
         if (context.pcontext?.value !== undefined) {
           context.pcontext.value[context.key] = context.value;
@@ -672,6 +863,16 @@ export namespace ObjectEditor {
   }
 
   export const getSubContext = (context: Context, p?: string | number): Context | undefined => {
+    const dynamic = (p == undefined) ? context.scheme?.dynamic : context.scheme?.properties?.[p].dynamic;
+    if (typeof dynamic == 'function') {
+      const subContext = {
+        scheme: cloneDeep(dynamic(context)),
+        value: (p == undefined) ? context.value : context.value?.[p],
+        pcontext: context,
+        key: p,
+      }
+      return subContext;
+    }
     const transform = context.scheme?.transform;
     const iContext = (context as IntContext);
     if ((transform != undefined) && (iContext.fwdValue == undefined)) {
@@ -706,10 +907,10 @@ export namespace ObjectEditor {
       return subContext;
     }
     else if ('select' == context.scheme?.uibase) {
-      if ((context.scheme as IntScheme)?.schemeSelected) {
-        const transform = (context.scheme as IntScheme).schemeSelected!.transform;
+      if (intS(context.scheme)?.selectedScheme) {
+        const transform = intS(context.scheme)!.selectedScheme!.transform;
         const subContext = {
-          scheme: (context.scheme as IntScheme).schemeSelected,
+          scheme: intS(context.scheme)!.selectedScheme,
           pcontext: context,
           value: iContext.fwdValue ? iContext.fwdValue : context.value,
           editUpdate: () => {
@@ -728,7 +929,7 @@ export namespace ObjectEditor {
   }
 
   export const getLabel = (context: Context) => {
-    return context.scheme?.label ?? context.key ?? (context.pcontext?.scheme as IntScheme)?.selectionKey;
+    return context.scheme?.label ?? context.key ?? intS(context.pcontext?.scheme)?.selectedKey;
   }
 
   export const getDescription = (context: Context): string | undefined => {
@@ -753,6 +954,17 @@ export namespace ObjectEditor {
     const chimere = _toChimere(context);
     return chimere;
   }
+  const cc = {
+    key: 'key',
+    deletable: 'deletable',
+    ctime: 'ctime',
+    selectedKey: 'selectedKey',
+    parentSelectedKey: 'parentSelectedKey',
+    scheme: 'scheme',
+    sub: 'sub',
+    selected: 'selected',
+    value: 'value',
+  }
   /**
    * @function toChimere
    * @param {Context} context 
@@ -765,16 +977,16 @@ export namespace ObjectEditor {
   const _toChimere = (context: Context, forwarded?: boolean): Record<string | number, any> | null => {
     let chimere: Record<string | number, any> = {};
     const nFwd = (forwarded == true) || (context.scheme?.transform != undefined);
-    if (context.key != undefined) chimere['key'] = context.key;
+    if (context.key != undefined) chimere[cc.key] = context.key;
     if (context.scheme) {
       const scheme: Record<string, any> = context.scheme;
       const sScheme: Record<string, any> = {};
-      for (const key of ['deletable', 'ctime', 'selectionKey', 'parentSelectionKey']) {
+      for (const key of [cc.deletable, cc.ctime, cc.selectedKey, cc.parentSelectedKey]) {
         if (scheme[key] !== undefined) {
           sScheme[key] = scheme[key];
         }
       }
-      if (Object.keys(sScheme).length > 0) chimere['scheme'] = sScheme;
+      if (Object.keys(sScheme).length > 0) chimere[cc.scheme] = sScheme;
     }
 
     switch (context.scheme?.uibase) {
@@ -788,7 +1000,7 @@ export namespace ObjectEditor {
             if (rchimere != null) sub.push(rchimere);
           }
         }
-        if (sub.length > 0) chimere['sub'] = sub;
+        if (sub.length > 0) chimere[cc.sub] = sub;
       }
         break;
       case 'array': {
@@ -800,23 +1012,23 @@ export namespace ObjectEditor {
             if (rchimere != null) sub.push(rchimere);
           }
         }
-        if (sub.length > 0) chimere['sub'] = sub;
+        if (sub.length > 0) chimere[cc.sub] = sub;
       }
         break;
       case 'select':
-        const subContext = getSubContext(context, (context.scheme as IntScheme).selectionKey);
+        const subContext = getSubContext(context, intS(context.scheme)?.selectedKey);
         if (subContext) {
           const rchimere = _toChimere(subContext, nFwd);
-          if (rchimere != null) chimere['selected'] = rchimere;
+          if (rchimere != null) chimere[cc.selected] = rchimere;
         }
         break;
       default:
         if (!forwarded)
-          chimere['value'] = context.value;
+          chimere[cc.value] = context.value;
         break;
     }
     if (context.scheme!.transform && !forwarded) {
-      chimere['value'] = context.value;
+      chimere[cc.value] = context.value;
     }
     const chimereKeys = Object.keys(chimere);
     return chimere;
@@ -833,20 +1045,20 @@ export namespace ObjectEditor {
     if (chimere['key'] != undefined) context.key = chimere['key'];
     if (chimere['value'] != undefined) context.value = chimere['value'];
     if ((context.key) && (context.scheme == undefined)) context.scheme = context.pcontext?.scheme?.properties?.[context.key];
-    if (((context.pcontext?.scheme as IntScheme)?.schemeSelected) && (context.scheme == undefined)) context.scheme = cloneDeep((context.pcontext?.scheme as IntScheme)?.schemeSelected);
+    if ((intS(context.pcontext?.scheme)?.selectedScheme) && (context.scheme == undefined)) context.scheme = cloneDeep(intS(context.pcontext?.scheme)?.selectedScheme);
     if (chimere['scheme'] != undefined) {
-      if ((context.scheme == undefined) && (chimere['scheme']['parentSelectionKey'] != undefined)) {
-        context.scheme = cloneDeep(ObjectEditor.getSelectionList(context.pcontext)[chimere['scheme']['parentSelectionKey']]);
+      if ((context.scheme == undefined) && (chimere['scheme']['parentSelectedKey'] != undefined)) {
+        context.scheme = cloneDeep(ObjectEditor.getSelectionList(context.pcontext)[chimere['scheme']['parentSelectedKey']]);
       }
-      if (chimere['scheme']['deletable'] != undefined) (context.scheme as IntScheme).deletable = chimere['scheme']['deletable'];
-      if (chimere['scheme']['ctime'] != undefined) (context.scheme as IntScheme).ctime = chimere['scheme']['ctime'];
-      if (chimere['scheme']['selectionKey'] != undefined) (context.scheme as IntScheme).selectionKey = chimere['scheme']['selectionKey'];
-      if (chimere['scheme']['parentSelectionKey'] != undefined) (context.scheme as IntScheme).parentSelectionKey = chimere['scheme']['parentSelectionKey'];
-      if ((context.scheme as IntScheme).deletable == true)
+      if (chimere['scheme']['deletable'] != undefined) intS(context.scheme)!.deletable = chimere['scheme']['deletable'];
+      if (chimere['scheme']['ctime'] != undefined) intS(context.scheme)!.ctime = chimere['scheme']['ctime'];
+      if (chimere['scheme']['selectedKey'] != undefined) intS(context.scheme)!.selectedKey = chimere['scheme']['selectedKey'];
+      if (chimere['scheme']['parentSelectedKey'] != undefined) intS(context.scheme)!.parentSelectedKey = chimere['scheme']['parentSelectedKey'];
+      if (intS(context.scheme)?.deletable == true)
         context.scheme!.optional = true;
     }
-    if ((context.scheme as IntScheme).selectionKey != undefined) {
-      (context.scheme as IntScheme).schemeSelected = ObjectEditor.getSelectionList(context)[(context.scheme as IntScheme).selectionKey!];
+    if (intS(context.scheme)?.selectedKey != undefined) {
+      setSelectedScheme(context, intS(context.scheme)!.selectedKey!);
     }
     if (context.scheme?.transform == undefined) {
       if (context.scheme?.uibase == 'object') context.value = {};
@@ -863,7 +1075,7 @@ export namespace ObjectEditor {
           context.value[nContext.key] = nContext.value;
         }
         if (context.scheme && nContext.scheme) {
-          if(context.scheme.properties == undefined) {
+          if (context.scheme.properties == undefined) {
             context.scheme.properties = {};
           }
           context.scheme.properties![nContext.key] = nContext.scheme;

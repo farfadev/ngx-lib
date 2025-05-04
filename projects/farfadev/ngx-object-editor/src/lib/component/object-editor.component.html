@@ -116,9 +116,7 @@
     } @else {
     <oe-number [context]="subContext" />
     }} @case('color') {
-    <ng-container
-      *ngTemplateOutlet="color; context: { lcontext: subContext }"
-    ></ng-container>
+      <oe-color [context]="subContext"></oe-color>
     } @case('select') {
       <ng-container *ngTemplateOutlet="select; context: { lcontext: subContext }"></ng-container>
     } @case('none') {

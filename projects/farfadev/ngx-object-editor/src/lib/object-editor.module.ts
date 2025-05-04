@@ -11,11 +11,13 @@ import { OEAngularComponent } from './component/angular/angular.component';
 import { OECheckboxComponent } from './component/checkbox/checkbox.component';
 import { OEDefaultComponent } from './component/default/default.component';
 import { FarfaSvgModule, FarfaSvgService } from '@farfadev/ngx-svg';
+import { OEColorComponent } from './component/color/color.component';
 @NgModule({
   declarations: [
     OEMaskedComponent,
     OECheckboxComponent,
     OENumberComponent,
+    OEColorComponent,
     OEFileComponent,
     OECustomComponent,
     OEAngularComponent,

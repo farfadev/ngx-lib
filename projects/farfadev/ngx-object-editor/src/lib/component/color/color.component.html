@@ -1,0 +1,26 @@
+@if(context) {
+  <div>
+  <input
+    [id]="getId()"
+    type="color"
+    [disabled]="isReadOnly(context)"
+    [(ngModel)]="colorPick"
+    (ngModelChange)="context.editUpdate?.()"
+    [class]="getStyleClass(context)"
+    [style]="getStyle(context)"
+    (click)="onclick()"
+  />
+  <select
+    [(ngModel)]="colorName"
+    (ngModelChange)="context.editUpdate?.()"
+    >
+    <option disabled value="">select</option>
+    <option
+      *ngFor="let o of getColorNames()"
+      value="{{ o }}"
+    >
+      {{ o }}
+    </option>
+</select>
+</div>
+}
