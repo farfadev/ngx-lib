@@ -6,7 +6,7 @@ const scheme1: ObjectEditor.Scheme = {
   uibase: 'object',
   selectionList: {
     scheme1: {
-      uibase: 'checkbox',
+      uibase: 'boolean',
     },
     scheme2: {
       uibase: 'number'
@@ -29,7 +29,7 @@ const scheme1: ObjectEditor.Scheme = {
               uibase: 'object',
               properties: {
                 toto: {
-                  uibase: 'checkbox'
+                  uibase: 'boolean'
                 },
                 tila: {
                   uibase: 'object',
@@ -61,7 +61,7 @@ const scheme1: ObjectEditor.Scheme = {
               uibase: 'object',
               properties: {
                 toto: {
-                  uibase: 'checkbox'
+                  uibase: 'boolean'
                 },
                 tila: {
                   uibase: 'object',
@@ -83,7 +83,7 @@ const scheme1: ObjectEditor.Scheme = {
   },
   properties: {
     p1: {
-      uibase: 'checkbox',
+      uibase: 'boolean',
     },
     p2: {
       uibase: 'number',

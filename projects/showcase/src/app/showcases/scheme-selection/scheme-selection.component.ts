@@ -36,7 +36,7 @@ export class ShowcaseSchemeSelectionComponent {
               default: 'default'
             },
             boolean: {
-              uibase: 'checkbox',
+              uibase: 'boolean',
               label: 'myboolean'
             },
 

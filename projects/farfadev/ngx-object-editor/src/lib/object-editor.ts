@@ -9,7 +9,7 @@ export namespace ObjectEditor {
   /**
    * - [UIBase]({@link ./object-editor.doc.md})
    */
-  export type UIBase = 'text' | 'password' | 'color' | 'number' | 'checkbox' | 'range' |
+  export type UIBase = 'text' | 'password' | 'color' | 'number' | 'boolean' | 'range' |
     'date' | 'time' | 'datetime' | 'file' | 'tel' | 'email' | 'url' | 'image'
     | 'object' | 'array' | 'select' | 'from' | 'custom' | 'angular' | 'none';
 
@@ -76,6 +76,10 @@ export namespace ObjectEditor {
     // called on key down, to accept or not the event (return true/ falls)
     accept?: (context: Context, key: KeyboardEvent, inputValue: string, cursorPosition: number) => boolean
   }
+
+  export const signal = (key: string) => Symbol.for(key);
+  export type Signal = typeof signal;
+
   /**
    * describes a data scheme for the display and manupulation of the data
    * 
@@ -91,12 +95,17 @@ export namespace ObjectEditor {
     description?: string | ((context: Context) => string);
     /** //TODO a call-back to set the Scheme dynamically depending on a runtime context */
     dynamic?: (context?: Context) => Scheme<ValueType, FwdValueType>;
-    /** //TODO when the value depends on other values (properties) and shall be recalculated (callback f) when one of these values changes */
-    dependsOn?: { properties: (string | number)[]; f: (context?: Context) => ValueType }
+    /** array of signals fired when value changes*/
+    fireSignals?: Signal[],
+    subscribeSignals?: {signals: Signal[]; f: (context: Context, signal: Signal) => {
+      value?: ValueType, 
+      key?: string | number, 
+      display?: 'on' | 'off',
+      readonly?: boolean,
+      optional?: boolean
+    }}[];
     /** if value is optional - may depend on the outer value (value of the encompassing object) */
     optional?: boolean | ((context?: Context) => boolean);
-    /** optionaly can deactivate display - triggered on sibling properties updates */
-    display?: { properties?: (string | number)[]; f: (context?: Context) => boolean; };
     /** if value is view/read only frontend user cannot edit the value */
     readonly?: boolean;
     /** provides a default value to use when no value is provided */
@@ -348,7 +357,7 @@ export namespace ObjectEditor {
         value = context.value;
       }
         break;
-      case 'checkbox':
+      case 'boolean':
         if (value == undefined) {
           value = false;
         }
@@ -520,7 +529,7 @@ export namespace ObjectEditor {
         match = isEqual(value, context.scheme.default) ? 1 : 0;
         count = 1;
         break;
-      case 'checkbox':
+      case 'boolean':
         match = (typeof value == 'boolean') ? 1 : 0;
         count = 1;
         break;
@@ -623,7 +632,7 @@ export namespace ObjectEditor {
       return value;
     }
     if (['number', 'range'].includes(scheme.uibase)) return (Number(value));
-    if (['checkbox'].includes(scheme.uibase)) return (Boolean(value));
+    if (['boolean'].includes(scheme.uibase)) return (Boolean(value));
     if (['text', 'password', 'color', 'date', 'datetime', 'time', 'email', 'image', 'url'].includes(scheme.uibase)) return (String(value));
   }
 

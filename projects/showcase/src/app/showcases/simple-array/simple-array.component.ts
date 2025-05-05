@@ -33,7 +33,7 @@ export class ShowcaseSimpleArrayComponent {
           },
           selectionList: {
             'boolean': {
-              uibase: 'checkbox'
+              uibase: 'boolean'
             },
             'number': {
               uibase: 'number'
@@ -44,7 +44,7 @@ export class ShowcaseSimpleArrayComponent {
               uibase: 'number'
             },
             1: {
-              uibase: 'checkbox'
+              uibase: 'boolean'
             },
             2: {
               uibase: 'number'

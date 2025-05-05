@@ -45,7 +45,7 @@ export class ShowcaseSimpleObjectComponent {
           default: 'blue'
         },
         simpleBoolean: {
-          uibase: 'checkbox',
+          uibase: 'boolean',
           default: true
         },
         simpleRadio: {

@@ -80,7 +80,7 @@ export class TestComponent implements OnInit, AfterViewInit {
           selectionList: () => {
             return {
               'sub-test-boolean': {
-                uibase: 'checkbox'
+                uibase: 'boolean'
               }
             }
           }
@@ -128,7 +128,7 @@ export class TestComponent implements OnInit, AfterViewInit {
           uibase: 'color'
         },
         '4-boolean': {
-          uibase: 'checkbox',
+          uibase: 'boolean',
           label: '4-boolean test-ui-label',
           uiEffects: {
             styleClass: ".mycheckbox",
@@ -145,7 +145,7 @@ export class TestComponent implements OnInit, AfterViewInit {
               default: '#ff004e'
             },
             boolean: {
-              uibase: 'checkbox',
+              uibase: 'boolean',
               label: 'myboolean'
             },
             number: {
@@ -163,7 +163,7 @@ export class TestComponent implements OnInit, AfterViewInit {
           },
           selectionList: {
             'checkbox': {
-              uibase: 'checkbox'
+              uibase: 'boolean'
             },
             'number': {
               uibase: 'number'
@@ -180,7 +180,7 @@ export class TestComponent implements OnInit, AfterViewInit {
               default: '#ff004e'
             },
             boolean: {
-              uibase: 'checkbox',
+              uibase: 'boolean',
               label: 'myboolean'
             },
             number: {

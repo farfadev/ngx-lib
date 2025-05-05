@@ -47,7 +47,7 @@ export class ShowcaseOptionalPropertiesComponent {
           default: '#008000'
         },
         simpleBoolean: {
-          uibase: 'checkbox',
+          uibase: 'boolean',
           default: true
         },
         simpleRadio: {

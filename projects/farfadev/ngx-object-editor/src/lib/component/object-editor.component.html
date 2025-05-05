@@ -109,7 +109,7 @@
     <oe-angular [debug]="debug" [context]="subContext" />
     } @case('custom') {
     <oe-custom [context]="subContext" />
-    } @case('checkbox') {
+    } @case('boolean') {
     <oe-checkbox [context]="subContext" />
     } @case('number') { @if(hasMask(subContext)) {
     <oe-masked [context]="subContext" />
