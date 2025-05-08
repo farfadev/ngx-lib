@@ -104,8 +104,8 @@
     /** //TODO a call-back to set the Scheme dynamically depending on a runtime context */
     dynamic?: (context?: Context) => Scheme<ValueType, FwdValueType>;
     /** array of signals fired when value changes*/
-    fireSignals?: (context: Context) => Signal[],
-    onSignals?: {signals: Signal[]; call: (context: Context, source: Context, signal: Signal) => void}[];
+    fireSignals?: (context: Context) => {signal: Signal; data: any} [],
+    onSignals?: {signals: Signal[]; call: (context: Context, source: Context, signal: {signal: Signal; data?: any}) => void}[];
     /** if value is optional - may depend on the context */
     optional?: boolean | ((context?: Context) => boolean);
     /** if value is view/read only frontend user cannot edit the value - may depend on the context */

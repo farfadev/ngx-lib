@@ -28,12 +28,12 @@ const fireSignals = (sourceContext: Context) => {
   if(sourceContext.scheme?.fireSignals != undefined) {
     const signals = sourceContext.scheme?.fireSignals(sourceContext);
     for (const signal of signals) {
-      const targetContexts = signalsMap.get(signal);
+      const targetContexts = signalsMap.get(signal.signal);
       if(targetContexts != undefined) {
         for(const targetContext of targetContexts) {
           if(targetContext.scheme?.onSignals) {
             for (const ssg of targetContext.scheme?.onSignals) {
-              if(ssg.signals.includes(signal)) {
+              if(ssg.signals.includes(signal.signal)) {
                 const actions = ssg.call(targetContext,sourceContext,signal);
               }
             }

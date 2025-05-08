@@ -35,28 +35,26 @@ export class ShowcaseSimpleSignalsComponent {
       properties: {
         simpleText: {
           uibase: 'text',
-          default: 'test'
+          default: 'test',
+          onSignals: [
+            {
+              signals: [ObjectEditor.signal('simpleText')],
+              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal, data?: any }) => {
+                context.value = signal.data;
+              }
+            }
+          ]
         },
         simpleNumber: {
           uibase: 'number',
           default: 5,
           onSignals: [
             {
-              signals: [ObjectEditor.signal('simpleNumber:12'), ObjectEditor.signal('simpleNumber:-1'), ObjectEditor.signal('simpleNumber:6')],
-              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: ObjectEditor.Signal) => {
-                switch (signal) {
-                  case ObjectEditor.signal('simpleNumber:12'):
-                    context.value = 12;
-                    break;
-                  case ObjectEditor.signal('simpleNumber:-1'):
-                    context.value = -1;
-                    break;
-                  case ObjectEditor.signal('simpleNumber:6'):
-                    context.value = 6;
-                    break;
-                }
+              signals: [ObjectEditor.signal('simpleNumber')],
+              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal, data?: any }) => {
+                context.value = signal.data;
               }
-            },
+            }
           ]
         },
         simpleColor: {
@@ -64,19 +62,9 @@ export class ShowcaseSimpleSignalsComponent {
           default: 'blue',
           onSignals: [
             {
-              signals: [ObjectEditor.signal('simpleColor:red'), ObjectEditor.signal('simpleColor:green'), ObjectEditor.signal('simpleColor:yellow')],
-              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: ObjectEditor.Signal) => {
-                switch (signal) {
-                  case ObjectEditor.signal('simpleColor:red'):
-                    context.value = 'red';
-                    break;
-                  case ObjectEditor.signal('simpleColor:green'):
-                    context.value = 'green';
-                    break;
-                  case ObjectEditor.signal('simpleColor:yellow'):
-                    context.value = 'yellow';
-                    break;
-                }
+              signals: [ObjectEditor.signal('simpleColor')],
+              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal; data?: any }) => {
+                context.value = signal.data;
               }
             },
           ]
@@ -86,9 +74,9 @@ export class ShowcaseSimpleSignalsComponent {
           default: true,
           onSignals: [
             {
-              signals: [ObjectEditor.signal('simpleBoolean:true'), ObjectEditor.signal('simpleBoolean:false')],
-              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: ObjectEditor.Signal) => {
-                context.value = signal === ObjectEditor.signal('simpleBoolean:true') ? true : false;
+              signals: [ObjectEditor.signal('simpleBoolean')],
+              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal; data?: any }) => {
+                context.value = signal.data;
               }
             }
           ]
@@ -108,23 +96,26 @@ export class ShowcaseSimpleSignalsComponent {
           fireSignals: (context: ObjectEditor.Context) => {
             if (context.value == 'coucou') {
               return [
-                ObjectEditor.signal("simpleBoolean:true"),
-                ObjectEditor.signal('simpleColor:green'),
-                ObjectEditor.signal('simpleNumber:12'),
+                { signal: ObjectEditor.signal("simpleBoolean"), data: true },
+                { signal: ObjectEditor.signal('simpleColor'), data: 'green' },
+                { signal: ObjectEditor.signal('simpleNumber'), data: 12 },
+                { signal: ObjectEditor.signal('simpleText'), data: 'Selection 1 selected' },
               ]
             }
             else if (context.value == 0) {
               return [
-                ObjectEditor.signal("simpleBoolean:false"),
-                ObjectEditor.signal('simpleColor:red'),
-                ObjectEditor.signal('simpleNumber:-1'),
+                { signal: ObjectEditor.signal("simpleBoolean"), data: false },
+                { signal: ObjectEditor.signal('simpleColor'), data: 'red' },
+                { signal: ObjectEditor.signal('simpleNumber'), data: -1 },
+                { signal: ObjectEditor.signal('simpleText'), data: 'Selection 2 selected' },
               ]
             }
             else if (isEqual(context.value, { a: 1, b: 'zebu' })) {
               return [
-                ObjectEditor.signal("simpleBoolean:false"),
-                ObjectEditor.signal('simpleColor:yellow'),
-                ObjectEditor.signal('simpleNumber:6'),
+                { signal: ObjectEditor.signal("simpleBoolean"), data: false },
+                { signal: ObjectEditor.signal('simpleColor'), data: 'yellow' },
+                { signal: ObjectEditor.signal('simpleNumber'), data: 6 },
+                { signal: ObjectEditor.signal('simpleText'), data: 'Selection 3 selected' },
               ]
             }
             return [];
