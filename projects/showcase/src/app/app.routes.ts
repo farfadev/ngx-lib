@@ -96,5 +96,13 @@ export const routes: Routes = [
       component: () => import('./showcases/dynamic-styling/dynamic-styling.component').then((m) => m.ShowcaseDynamicStylingComponent),
       sources: getSources('./showcases/dynamic-styling/dynamic-styling.component'),
     }
-  }
+  },
+  {
+    path: 'simple-signals',
+    loadComponent: () => import('./showcases/container/container.component').then((m) => m.ShowcasesContainerComponent),
+    data: {
+      component: () => import('./showcases/simple-signals/simple-signals.component').then((m) => m.ShowcaseSimpleSignalsComponent),
+      sources: getSources('./showcases/simple-signals/simple-signals.component'),
+    }
+  },
 ];

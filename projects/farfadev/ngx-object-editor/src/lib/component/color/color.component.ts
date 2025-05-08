@@ -30,10 +30,10 @@ export class OEColorComponent implements OnInit, OnDestroy, AfterViewInit {
     return this._context;
   }
   @Input()
-  set context(value: ObjectEditor.Context) {
-    this._context = value;
-    this._colorPick = getColorHex(value.value) ?? '#ffffff';
-    this._colorName = getColorName(value.value) ?? '';
+  set context(context: ObjectEditor.Context) {
+    this._context = context;
+    this._colorPick = getColorHex(context.value) ?? '#ffffff';
+    this._colorName = getColorName(context.value) ?? '';
     this.initContext();
   }
 
@@ -86,6 +86,7 @@ export class OEColorComponent implements OnInit, OnDestroy, AfterViewInit {
         customElement.setAttribute(key,attributes[key]);
       }
     }
+    ObjectEditorInt.uiinitialized(this.context!);
   }
 
   ngOnDestroy(): void {
@@ -102,6 +103,12 @@ export class OEColorComponent implements OnInit, OnDestroy, AfterViewInit {
 
   initContext() {
     if (!this.context) return;
+    const peditUpdate = this.context.editUpdate;
+    this.context.editUpdate = (self?: boolean) => {
+      this._colorPick = getColorHex(this.context?.value) ?? '#ffffff';
+      this._colorName = getColorName(this.context?.value) ?? '';  
+      peditUpdate?.(self);
+    }
   }
 
   getHtmlType(context: ObjectEditor.Context) {

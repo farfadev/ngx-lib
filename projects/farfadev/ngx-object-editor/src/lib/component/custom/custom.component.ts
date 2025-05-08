@@ -107,6 +107,7 @@ export class OECustomComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
     this.fixEmulatedEncapsulation();
+    ObjectEditorInt.uiinitialized(this.context!);
   }
 
   ngOnDestroy(): void {

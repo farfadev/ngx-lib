@@ -1,6 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable @typescript-eslint/member-ordering */
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   Input,
@@ -19,7 +20,7 @@ import * as ObjectEditorInt from '../../object-editor-int';
   styleUrls: ['./checkbox.component.scss'],
   encapsulation: ViewEncapsulation.Emulated
 })
-export class OECheckboxComponent implements OnInit, OnDestroy {
+export class OECheckboxComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('objectcontainer')
   private objectContainer!: ElementRef<HTMLElement>;
 
@@ -52,6 +53,9 @@ export class OECheckboxComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+  }
+  ngAfterViewInit(): void {
+    ObjectEditorInt.uiinitialized(this.context!);
   }
 
   ngOnDestroy(): void {

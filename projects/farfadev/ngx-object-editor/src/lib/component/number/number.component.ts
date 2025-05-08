@@ -73,6 +73,7 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
     this.inputElement = document.getElementById(this.getId()) as HTMLInputElement;
     this.setAdjustSocket();
+    ObjectEditorInt.uiinitialized(this.context!);
   }
 
   ngOnDestroy(): void {

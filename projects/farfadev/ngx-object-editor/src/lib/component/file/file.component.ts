@@ -104,7 +104,7 @@ export class OEFileComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         false,
       );
-
+      ObjectEditorInt.uiinitialized(this.context!);
   }
 
   ngOnDestroy(): void {

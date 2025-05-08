@@ -104,14 +104,8 @@
     /** //TODO a call-back to set the Scheme dynamically depending on a runtime context */
     dynamic?: (context?: Context) => Scheme<ValueType, FwdValueType>;
     /** array of signals fired when value changes*/
-    fireSignals?: Signal[],
-    subscribeSignals?: {signals: Signal[]; f: (context: Context, source: Context, signal: Signal) => {
-      value?: ValueType, 
-      key?: string | number, 
-      display?: 'on' | 'off',
-      readonly?: boolean,
-      mandatory?: boolean
-    }}[];
+    fireSignals?: (context: Context) => Signal[],
+    onSignals?: {signals: Signal[]; call: (context: Context, source: Context, signal: Signal) => void}[];
     /** if value is optional - may depend on the context */
     optional?: boolean | ((context?: Context) => boolean);
     /** if value is view/read only frontend user cannot edit the value - may depend on the context */
@@ -185,6 +179,9 @@
     contextChange?: (context: Context, env?: { [key: string | number]: any }) => void;
     /** a call back which is called when the ui is clicked, internal use only */
     onClick?: (subContext: Context) => void;
+    setDisplay?: (display: 'on'|'off') => void;
+    setMandatory?: (mandatory: boolean) => void;
+    setReadOnly?: (readonly: boolean) => void;
   }
   
 /**

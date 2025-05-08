@@ -1,6 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable @typescript-eslint/member-ordering */
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -27,7 +28,7 @@ type KeyLabel = {
   styleUrls: ['./object-editor.component.scss'],
   encapsulation: ViewEncapsulation.Emulated
 })
-export class ObjectEditorComponent implements OnInit, OnDestroy {
+export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   _context?: ObjectEditor.Context;
   get context(): ObjectEditor.Context | undefined {
@@ -362,6 +363,7 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
 
   initContext() {
     if (!this.context) return;
+    ObjectEditorInt.initContext(this.context);
     if (this.context.scheme?.uibase == 'select') {
       const editUpdate = this.context.editUpdate;
       this.context.editUpdate = () => {
@@ -373,8 +375,6 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     else {
       this.schemeOptions = ObjectEditorInt.getSelectionKeys(this.context);
       //    if(!this.context.value) this.context.value = {};
-      if (!this.context.scheme) this.context.scheme = { uibase: 'object' };
-      ObjectEditorInt.initContext(this.context);
       this.setProperties();
       this.context.contextChange = (context, env?: { [key: string | number]: any }) => {
         //this.ref.detectChanges();
@@ -389,6 +389,10 @@ export class ObjectEditorComponent implements OnInit, OnDestroy {
     }
   }
 
+    ngAfterViewInit(): void {
+      ObjectEditorInt.uiinitialized(this.context!);
+    }
+  
   ngOnDestroy(): void {
     window.removeEventListener('click', this.windowClickListener);
     ObjectEditorInt.uidestroyed(this.context!);

@@ -64,6 +64,7 @@ export class OEDefaultComponent implements OnInit, OnDestroy, AfterViewInit {
         customElement.setAttribute(key,attributes[key]);
       }
     }
+    ObjectEditorInt.uiinitialized(this.context!);
   }
 
   ngOnDestroy(): void {

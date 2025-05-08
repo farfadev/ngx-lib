@@ -6,59 +6,54 @@ import { FarfaOEValueCheck } from "./utils/verifyvalues";
 import { isOptional, isSchemeSelectionKey } from "./object-editor-is";
 
 const signalsMap = new Map<Signal,Set<Context>>();
-
-const initSignalling = (context: Context) => {
-  if(context.scheme?.subscribeSignals != undefined) {
-    for (const ss of context.scheme?.subscribeSignals) {
+// TODO detect loops
+export const initSignalling = (context: Context) => {
+  if(context.scheme?.onSignals != undefined) {
+    for (const ss of context.scheme?.onSignals) {
       for (const s of ss.signals) {
         const scontexts = signalsMap.get(s) ?? new Set<Context>();
         scontexts.add(context);
+        signalsMap.set(s,scontexts);
       }
     }
+  }
+  const peditUpdate = context.editUpdate;
+  context.editUpdate = (self?: boolean) => {
+    fireSignals(context);
+    peditUpdate?.(self);
   }
 }
 
 const fireSignals = (sourceContext: Context) => {
   if(sourceContext.scheme?.fireSignals != undefined) {
-    for (const s of sourceContext.scheme?.fireSignals) {
-      const targetContexts = signalsMap.get(s);
+    const signals = sourceContext.scheme?.fireSignals(sourceContext);
+    for (const signal of signals) {
+      const targetContexts = signalsMap.get(signal);
       if(targetContexts != undefined) {
         for(const targetContext of targetContexts) {
-          if(targetContext.scheme?.subscribeSignals) {
-            for (const ssg of targetContext.scheme?.subscribeSignals) {
-              if(ssg.signals.includes(s)) {
-                const actions = ssg.f(targetContext,sourceContext,s);
-                if(Object.keys(actions).includes('value')) {
-                  if(actions.key) {
-                    
-                  }
-                  else {
-                    targetContext.value = actions.value;
-                  }
-                }
-                if(actions.display != undefined) {
-                  (targetContext as IntContext).display = actions.display;
-                }
-                if(actions.mandatory) {
-                  (targetContext as IntContext).mandatory = actions.mandatory;
-                }
-                if(actions.readonly) {
-                  (targetContext as IntContext).readonly = actions.readonly;
-                }
+          if(targetContext.scheme?.onSignals) {
+            for (const ssg of targetContext.scheme?.onSignals) {
+              if(ssg.signals.includes(signal)) {
+                const actions = ssg.call(targetContext,sourceContext,signal);
               }
-              (async () => targetContext.editUpdate?.())();
             }
+            (async () => targetContext.editUpdate?.())();
           }
         }
-        }
+      }
       //todo  + selfSignal if target context equal source context
     }
   }
 }
 
+
+export const uiinitialized = (context: Context) => {
+  initSignalling(context);
+}
+
 export const uidestroyed = (context: Context) => {
-  if(context.scheme?.subscribeSignals != undefined) {
-    for (const ss of context.scheme?.subscribeSignals) {
+  if(context.scheme?.onSignals != undefined) {
+    for (const ss of context.scheme?.onSignals) {
       for (const s of ss.signals) {
         const scontexts = signalsMap.get(s) ?? new Set<Context>();
         scontexts.delete(context);
@@ -74,9 +69,8 @@ export const initContext = (context: Context): void => {
   if (!context.pcontext) {
     context.scheme = cloneDeep(context.scheme);
     const result = initScheme(context);
+    context.value = initValue(context);
   }
-  context.value = initValue(context);
-  initSignalling(context);
 }
 
 export const initValue = (context: Context): any => {

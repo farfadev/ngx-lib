@@ -65,6 +65,7 @@ export class OEMaskedComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
     this.inputElement = document.getElementById(this.getId()) as HTMLInputElement;
     this.initMask();
+    ObjectEditorInt.uiinitialized(this.context!);
   }
 
   ngOnDestroy(): void {
