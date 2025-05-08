@@ -10,7 +10,8 @@ import {
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
-import { ObjectEditor } from '../../object-editor';
+import * as ObjectEditor from '../../object-editor';
+import * as ObjectEditorInt from '../../object-editor-int';
 import { adjustNumber } from '../../adjust/adjust-number';
 import { InputSocket } from '../../input/input-socket';
 
@@ -50,7 +51,7 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   isReadOnly(context: ObjectEditor.Context) {
-    return ObjectEditor.isReadOnly(context);
+    return ObjectEditorInt.isReadOnly(context);
   }
 
   setAdjustSocket() {
@@ -75,21 +76,22 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
+    ObjectEditorInt.uidestroyed(this.context!);
   }
 
   getStyle(context: ObjectEditor.Context) {
     const stylePlus = this.err_msg != '' ? 'color:red' : '';
-    const rstyle = ObjectEditor.getStyle(context);
+    const rstyle = ObjectEditorInt.getStyle(context);
 
     return rstyle ? rstyle + ';' + stylePlus : stylePlus;
   }
 
   getStyleClass(context: ObjectEditor.Context) {
-    return ObjectEditor.getStyleClass(context);
+    return ObjectEditorInt.getStyleClass(context);
   }
 
   getLabel(subContext: ObjectEditor.Context) {
-    return ObjectEditor.getLabel(subContext);
+    return ObjectEditorInt.getLabel(subContext);
   }
 }
 

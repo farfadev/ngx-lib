@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, Host, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { InputSocket, ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
+import * as ObjectEditor from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
 
 type Coordinates = {
@@ -53,7 +53,7 @@ export class ShowcasesCustomFrontendComponent {
                 if (c.tagName == 'INPUT') {
                   const subContext = ObjectEditor.getSubContext(context, c.id);
                   if (subContext) {
-                    new InputSocket(c as HTMLInputElement, adjustDMS({}), subContext, (context: ObjectEditor.Context, err_msg: string) => {
+                    new ObjectEditor.InputSocket(c as HTMLInputElement, ObjectEditor.adjustDMS({}), subContext, (context: ObjectEditor.Context, err_msg: string) => {
                       err(err_msg);
                       context.editUpdate?.();
                     });

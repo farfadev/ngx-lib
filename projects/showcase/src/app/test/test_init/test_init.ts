@@ -1,5 +1,5 @@
 
-import { ObjectEditor } from "@farfadev/ngx-object-editor"
+import * as ObjectEditor from "@farfadev/ngx-object-editor"
 import { cloneDeep, isEqual, isMatch } from "lodash-es";
 
 const scheme1: ObjectEditor.Scheme = {

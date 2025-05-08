@@ -2,7 +2,8 @@
 // https://dev.to/railsstudent/render-dynamic-components-in-angular-using-viewcontainerref-160h
 
 import { ChangeDetectorRef, Component, Injector, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild, ViewContainerRef, inject } from '@angular/core';
-import { ObjectEditor } from '../../object-editor';
+import * as ObjectEditor from '../../object-editor';
+import * as ObjectEditorInt from '../../object-editor-int';
 
 @Component({
   standalone: false,
@@ -62,6 +63,7 @@ export class OEAngularComponent implements OnInit, OnDestroy, OnChanges {
   ngOnDestroy(): void {
     this.componentRef?.destroy();
     this.componentRef = undefined;
+    ObjectEditorInt.uidestroyed(this.context!);
   }
   ngOnChanges(changes: SimpleChanges): void {
 

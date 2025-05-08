@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { InputSocket, ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
+import * as ObjectEditor from '@farfadev/ngx-object-editor';
 
 type Coordinates = {
   lat: number;
@@ -40,14 +40,14 @@ export class ShowcasesAngularComponentCoords implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     const subContextLat = ObjectEditor.getSubContext(this.context!, 'lat');
     if (subContextLat && this.latEl) {
-      new InputSocket(this.latEl.nativeElement, adjustDMS({}), subContextLat, (context: ObjectEditor.Context, err_msg: string) => {
+      new ObjectEditor.InputSocket(this.latEl.nativeElement, ObjectEditor.adjustDMS({}), subContextLat, (context: ObjectEditor.Context, err_msg: string) => {
         this.err_msg_lat = err_msg;
         context.editUpdate?.();
       });
     }
     const subContextLon = ObjectEditor.getSubContext(this.context!, 'lon');
     if (subContextLon && this.lonEl) {
-      new InputSocket(this.lonEl.nativeElement, adjustDMS({}), subContextLon, (context: ObjectEditor.Context, err_msg: string) => {
+      new ObjectEditor.InputSocket(this.lonEl.nativeElement, ObjectEditor.adjustDMS({}), subContextLon, (context: ObjectEditor.Context, err_msg: string) => {
         this.err_msg_lon = err_msg;
         context.editUpdate?.();
       });

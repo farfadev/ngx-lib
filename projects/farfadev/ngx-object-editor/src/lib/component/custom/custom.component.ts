@@ -9,7 +9,8 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
-import { ObjectEditor } from '../../object-editor';
+import * as ObjectEditor from '../../object-editor';
+import * as ObjectEditorInt from '../../object-editor-int';
 import { _farfa_oe_marker } from '../markers';
 
 @Component({
@@ -109,6 +110,7 @@ export class OECustomComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
+    ObjectEditorInt.uidestroyed(this.context!);
   }
 
 }

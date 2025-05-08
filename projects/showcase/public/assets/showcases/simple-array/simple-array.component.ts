@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ObjectEditor } from '@farfadev/ngx-object-editor';
+import * as ObjectEditor from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
 
 @Component({
@@ -33,7 +33,7 @@ export class ShowcaseSimpleArrayComponent {
           },
           selectionList: {
             'boolean': {
-              uibase: 'checkbox'
+              uibase: 'boolean'
             },
             'number': {
               uibase: 'number'
@@ -44,7 +44,7 @@ export class ShowcaseSimpleArrayComponent {
               uibase: 'number'
             },
             1: {
-              uibase: 'checkbox'
+              uibase: 'boolean'
             },
             2: {
               uibase: 'number'

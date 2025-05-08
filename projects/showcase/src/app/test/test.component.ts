@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { InputSocket, ObjectEditor, adjustDMS } from '@farfadev/ngx-object-editor';
+import * as ObjectEditor from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule, adjustNumber, dmsMask } from "@farfadev/ngx-object-editor";
 import { FarfaSvgModule, FarfaSvgService } from '@farfadev/ngx-svg';
 import hljs from 'highlight.js/lib/core';
@@ -116,7 +116,7 @@ export class TestComponent implements OnInit, AfterViewInit {
         '2b-dms': {
           uibase: 'number',
           default: 50.5,
-          adjust: adjustDMS({})
+          adjust: ObjectEditor.adjustDMS({})
           //          maskOptions: dmsMask
         },
         '2-opt number': {
@@ -266,7 +266,7 @@ export class TestComponent implements OnInit, AfterViewInit {
                 if (c.tagName == 'INPUT') {
                   const subContext = ObjectEditor.getSubContext(context, c.id);
                   if (subContext) {
-                    new InputSocket(c as HTMLInputElement, adjustDMS({}), subContext, (context: ObjectEditor.Context, err_msg: string) => {
+                    new ObjectEditor.InputSocket(c as HTMLInputElement, ObjectEditor.adjustDMS({}), subContext, (context: ObjectEditor.Context, err_msg: string) => {
                       err(err_msg);
                       context.editUpdate?.();
                     });

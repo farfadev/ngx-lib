@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ObjectEditor } from '@farfadev/ngx-object-editor';
+import * as ObjectEditor from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
 
 @Component({
@@ -47,7 +47,7 @@ export class ShowcaseOptionalPropertiesComponent {
           default: '#008000'
         },
         simpleBoolean: {
-          uibase: 'checkbox',
+          uibase: 'boolean',
           default: true
         },
         simpleRadio: {

@@ -1,4 +1,4 @@
-import { ObjectEditor } from "../object-editor";
+import * as ObjectEditor from "../object-editor";
 
 export class InputSocket {
   constructor(private inputElement: HTMLInputElement, private adjust: ObjectEditor.Adjust, private context: ObjectEditor.Context, private update: (context: any, err_msg: string) => void) {

@@ -1,4 +1,4 @@
-import { ObjectEditor } from "../object-editor";
+import * as ObjectEditor from "../object-editor";
 import Decimal from 'decimal.js';
 
 type AdjustDMSOptions = {

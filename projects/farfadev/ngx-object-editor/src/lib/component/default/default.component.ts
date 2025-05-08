@@ -10,7 +10,8 @@ import {
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
-import { ObjectEditor } from '../../object-editor';
+import * as ObjectEditor from '../../object-editor';
+import * as ObjectEditorInt from '../../object-editor-int';
 
 @Component({
   standalone: false,
@@ -44,11 +45,11 @@ export class OEDefaultComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   isReadOnly(context: ObjectEditor.Context) {
-    return ObjectEditor.isReadOnly(context);
+    return ObjectEditorInt.isReadOnly(context);
   }
 
   isHorizontal() {
-    return ObjectEditor.getUIEffects(this.context!)?.['horizontal'] ?? false;
+    return ObjectEditorInt.getUIEffects(this.context!)?.['horizontal'] ?? false;
   }
 
   ngOnInit(): void {
@@ -57,7 +58,7 @@ export class OEDefaultComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
 
     const customElement = document.getElementById(this.getId()) as HTMLInputElement;
-    const attributes = ObjectEditor.getInputAttributes(this.context!);
+    const attributes = ObjectEditorInt.getInputAttributes(this.context!);
     if(attributes != undefined) {
       for (const key of Object.keys(attributes)) {
         customElement.setAttribute(key,attributes[key]);
@@ -66,10 +67,11 @@ export class OEDefaultComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
+    ObjectEditorInt.uidestroyed(this.context!);
   }
 
   getLabel(subContext: ObjectEditor.Context) {
-    return ObjectEditor.getLabel(subContext);
+    return ObjectEditorInt.getLabel(subContext);
   }
 
   onclick() {
@@ -85,12 +87,12 @@ export class OEDefaultComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getStyle(context: ObjectEditor.Context) {
-    const rstyle = ObjectEditor.getStyle(context);
+    const rstyle = ObjectEditorInt.getStyle(context);
     return rstyle;
   }
 
   getStyleClass(context: ObjectEditor.Context) {
-    return ObjectEditor.getStyleClass(context);
+    return ObjectEditorInt.getStyleClass(context);
   }
 
 }

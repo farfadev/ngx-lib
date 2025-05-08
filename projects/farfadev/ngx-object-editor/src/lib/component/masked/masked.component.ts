@@ -11,7 +11,8 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 
-import { ObjectEditor } from '../../object-editor';
+import * as ObjectEditor from '../../object-editor';
+import * as ObjectEditorInt from '../../object-editor-int';
 
 import IMask, { InputMask } from 'imask';
 
@@ -51,7 +52,7 @@ export class OEMaskedComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   isReadOnly(context: ObjectEditor.Context) {
-    return ObjectEditor.isReadOnly(context);
+    return ObjectEditorInt.isReadOnly(context);
   }
 
   getId() {
@@ -68,21 +69,22 @@ export class OEMaskedComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnDestroy(): void {
     this.mask?.destroy();
+    ObjectEditorInt.uidestroyed(this.context!);
   }
 
   getStyle(context: ObjectEditor.Context) {
     const stylePlus = this.err_msg != '' ? 'color:red' : '';
-    const rstyle = ObjectEditor.getStyle(context);
+    const rstyle = ObjectEditorInt.getStyle(context);
 
     return rstyle ? rstyle + ';' + stylePlus : stylePlus;
   }
 
   getStyleClass(context: ObjectEditor.Context) {
-    return ObjectEditor.getStyleClass(context);
+    return ObjectEditorInt.getStyleClass(context);
   }
 
   getLabel(subContext: ObjectEditor.Context) {
-    return ObjectEditor.getLabel(subContext);
+    return ObjectEditorInt.getLabel(subContext);
   }
 
   onclick() {
@@ -101,7 +103,7 @@ export class OEMaskedComponent implements OnInit, OnDestroy, AfterViewInit {
 
   initMask() {
     if (this.context !== undefined && this.inputElement !== undefined) {
-      const options = ObjectEditor.getMaskOptions(this.context);
+      const options = ObjectEditorInt.getMaskOptions(this.context);
       if (options !== undefined) {
         options['commit'] = (value: any, masked: any) => {
           if (this.context) {
