@@ -21,6 +21,15 @@ export class ShowcaseSimpleSignalsComponent {
     return scheme;
   }
 
+  // define the signals
+  simpleBoolean = ObjectEditor.signal("simpleBoolean");
+  simpleColor = ObjectEditor.signal('simpleColor');
+  simpleNumber = ObjectEditor.signal('simpleNumber');
+  simpleText = ObjectEditor.signal('simpleText');
+  addOptionalText = ObjectEditor.signal('addOptionalText');
+  deleteOptionalText = ObjectEditor.signal('deleteOptionalText');
+
+  // define the context (value and scheme)
   mycontext: ObjectEditor.Context = {
     value: {
       simpleText: 'hello',
@@ -31,56 +40,20 @@ export class ShowcaseSimpleSignalsComponent {
     },
     scheme: {
       uibase: 'object',
-      label: 'showcase simple object',
+      label: 'showcase simple signals',
+      onSignals: [
+        {
+          signals: [this.addOptionalText], call: (context: ObjectEditor.Context) => {
+            context.add?.('optionalText');
+          }
+        },
+        {
+          signals: [this.deleteOptionalText], call: (context: ObjectEditor.Context) => {
+            context.delete?.('optionalText');
+          }
+        }
+      ],
       properties: {
-        simpleText: {
-          uibase: 'text',
-          default: 'test',
-          onSignals: [
-            {
-              signals: [ObjectEditor.signal('simpleText')],
-              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal, data?: any }) => {
-                context.value = signal.data;
-              }
-            }
-          ]
-        },
-        simpleNumber: {
-          uibase: 'number',
-          default: 5,
-          onSignals: [
-            {
-              signals: [ObjectEditor.signal('simpleNumber')],
-              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal, data?: any }) => {
-                context.value = signal.data;
-              }
-            }
-          ]
-        },
-        simpleColor: {
-          uibase: 'color',
-          default: 'blue',
-          onSignals: [
-            {
-              signals: [ObjectEditor.signal('simpleColor')],
-              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal; data?: any }) => {
-                context.value = signal.data;
-              }
-            },
-          ]
-        },
-        simpleBoolean: {
-          uibase: 'boolean',
-          default: true,
-          onSignals: [
-            {
-              signals: [ObjectEditor.signal('simpleBoolean')],
-              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal; data?: any }) => {
-                context.value = signal.data;
-              }
-            }
-          ]
-        },
         simpleSignals: {
           uibase: 'select',
           uiEffects: {
@@ -96,31 +69,87 @@ export class ShowcaseSimpleSignalsComponent {
           fireSignals: (context: ObjectEditor.Context) => {
             if (context.value == 'coucou') {
               return [
-                { signal: ObjectEditor.signal("simpleBoolean"), data: true },
-                { signal: ObjectEditor.signal('simpleColor'), data: 'green' },
-                { signal: ObjectEditor.signal('simpleNumber'), data: 12 },
-                { signal: ObjectEditor.signal('simpleText'), data: 'Selection 1 selected' },
+                { signal: this.simpleBoolean, data: true },
+                { signal: this.simpleColor, data: 'green' },
+                { signal: this.simpleNumber, data: 12 },
+                { signal: this.simpleText, data: 'Selection 1 selected' },
+                { signal: this.addOptionalText}
               ]
             }
             else if (context.value == 0) {
               return [
-                { signal: ObjectEditor.signal("simpleBoolean"), data: false },
-                { signal: ObjectEditor.signal('simpleColor'), data: 'red' },
-                { signal: ObjectEditor.signal('simpleNumber'), data: -1 },
-                { signal: ObjectEditor.signal('simpleText'), data: 'Selection 2 selected' },
+                { signal: this.simpleBoolean, data: false },
+                { signal: this.simpleColor, data: 'red' },
+                { signal: this.simpleNumber, data: -1 },
+                { signal: this.simpleText, data: 'Selection 2 selected' },
+                { signal: this.deleteOptionalText}
               ]
             }
             else if (isEqual(context.value, { a: 1, b: 'zebu' })) {
               return [
-                { signal: ObjectEditor.signal("simpleBoolean"), data: false },
-                { signal: ObjectEditor.signal('simpleColor'), data: 'yellow' },
-                { signal: ObjectEditor.signal('simpleNumber'), data: 6 },
-                { signal: ObjectEditor.signal('simpleText'), data: 'Selection 3 selected' },
+                { signal: this.simpleBoolean, data: false },
+                { signal: this.simpleColor, data: 'yellow' },
+                { signal: this.simpleNumber, data: 6 },
+                { signal: this.simpleText, data: 'Selection 3 selected' },
+                { signal: this.deleteOptionalText}
               ]
             }
             return [];
           }
         },
+        simpleText: {
+          uibase: 'text',
+          default: 'test',
+          onSignals: [
+            {
+              signals: [this.simpleText],
+              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal, data?: any }) => {
+                context.value = signal.data;
+              }
+            }
+          ]
+        },
+        simpleNumber: {
+          uibase: 'number',
+          default: 5,
+          onSignals: [
+            {
+              signals: [this.simpleNumber],
+              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal, data?: any }) => {
+                context.value = signal.data;
+              }
+            }
+          ]
+        },
+        simpleColor: {
+          uibase: 'color',
+          default: 'blue',
+          onSignals: [
+            {
+              signals: [this.simpleColor],
+              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal; data?: any }) => {
+                context.value = signal.data;
+              }
+            },
+          ]
+        },
+        simpleBoolean: {
+          uibase: 'boolean',
+          default: true,
+          onSignals: [
+            {
+              signals: [this.simpleBoolean],
+              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal; data?: any }) => {
+                context.value = signal.data;
+              }
+            }
+          ]
+        },
+        optionalText: {
+          uibase: 'text',
+          optional: 'signal',
+          default: 'optional text that can be added/ removed by signals on the containing object',
+        }
       }
     }
   }

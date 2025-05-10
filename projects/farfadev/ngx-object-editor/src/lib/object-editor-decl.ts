@@ -16,6 +16,15 @@
      */
     toggle?: boolean;
     /**
+     * group the properties in one block
+     * // TODO
+     */
+    // TODO
+    uiGroups?: {
+      properties: string[];
+      toggle?: boolean;
+    }[];
+    /**
      * if the select element shall be displayed as radio button
      */
     radio?: boolean;
@@ -104,10 +113,10 @@
     /** //TODO a call-back to set the Scheme dynamically depending on a runtime context */
     dynamic?: (context?: Context) => Scheme<ValueType, FwdValueType>;
     /** array of signals fired when value changes*/
-    fireSignals?: (context: Context) => {signal: Signal; data: any} [],
+    fireSignals?: (context: Context) => {signal: Signal; data?: any} [],
     onSignals?: {signals: Signal[]; call: (context: Context, source: Context, signal: {signal: Signal; data?: any}) => void}[];
     /** if value is optional - may depend on the context */
-    optional?: boolean | ((context?: Context) => boolean);
+    optional?: boolean | 'signal' | ((context?: Context) => boolean |  'signal');
     /** if value is view/read only frontend user cannot edit the value - may depend on the context */
     readonly?: boolean | ((context?: Context) => boolean);
     /** provides a default value to use when no value is provided */
@@ -179,9 +188,21 @@
     contextChange?: (context: Context, env?: { [key: string | number]: any }) => void;
     /** a call back which is called when the ui is clicked, internal use only */
     onClick?: (subContext: Context) => void;
-    setDisplay?: (display: 'on'|'off') => void;
-    setMandatory?: (mandatory: boolean) => void;
-    setReadOnly?: (readonly: boolean) => void;
+
+    /** set the display on/off of an element contained in an object or an array */
+    setDisplay?: (display: 'on'|'off',key: string|number) => void;
+    /** set/ unset an optional element contained in an object as readonly */
+    setReadOnly?: (readonly: boolean,key?: string|number) => void;
+    /** 
+     * set/ unset an optional element contained in an object as mandatory 
+     */
+    add?: (key: string|number,scheme?: string) => void;
+    /** 
+     * delete an element contained in an object or an array.
+     * 
+     * if within an object, the element shall be optional
+     */
+    delete?: (key: string|number) => void;
   }
   
 /**
@@ -212,9 +233,12 @@ export const intS = (scheme: Scheme | undefined): IntScheme | undefined => {
  * holds internal context properties 
  */
 export interface IntContext extends Context {
-  fwdValue: any;
+  init?: true;
+  sigInit?: true;
+  fwdValue?: any;
   display?: 'on' | 'off', // as set by signals
   readonly?: true, // as set by signals
-  mandatory?: true // as set by signals
+  subContext?: IntContext;
+  subContexts?: Record<string|number,IntContext>;
 }
 

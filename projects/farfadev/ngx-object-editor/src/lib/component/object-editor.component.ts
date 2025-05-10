@@ -149,7 +149,7 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   getOptionalPropertyKeyLabelList(): KeyLabel[] {
     if (!this.context) return [];
     const keyLabelList: KeyLabel[] = [];
-    const keyList = ObjectEditorInt.getOptionalPropertyList(this.context);
+    const keyList = ObjectEditorInt.getOptionalPropertyList(this.context,'ui');
     for (const key of keyList) {
       keyLabelList.push({ key, label: this.context.scheme?.properties?.[key]?.label ?? key });
     }
@@ -215,10 +215,6 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   isReadOnly(context: ObjectEditor.Context): boolean {
     return ObjectEditorInt.isReadOnly(context);
-  }
-
-  isOptional(context: ObjectEditor.Context): boolean {
-    return ObjectEditorInt.isOptional(context);
   }
 
   isHorizontal(context: ObjectEditor.Context) {
@@ -389,38 +385,14 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-    ngAfterViewInit(): void {
+  ngAfterViewInit(): void {
+    if (this.isObject() || this.isArray() || this.isSelect())
       ObjectEditorInt.uiinitialized(this.context!);
-    }
-  
+  }
+
   ngOnDestroy(): void {
     window.removeEventListener('click', this.windowClickListener);
     ObjectEditorInt.uidestroyed(this.context!);
-  }
-
-  invertColor(hex: string) {
-    if (hex.indexOf('#') === 0) {
-      hex = hex.slice(1);
-    }
-    // convert 3-digit hex to 6-digits.
-    if (hex.length === 3) {
-      hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
-    }
-    if (hex.length !== 6) {
-      throw new Error('Invalid HEX color.');
-    }
-    // invert color components
-    var r = (255 - parseInt(hex.slice(0, 2), 16)).toString(16),
-      g = (255 - parseInt(hex.slice(2, 4), 16)).toString(16),
-      b = (255 - parseInt(hex.slice(4, 6), 16)).toString(16);
-    // pad each with zeros and return
-    return '#' + this.padZero(r) + this.padZero(g) + this.padZero(b);
-  }
-
-  padZero(str: string, len?: number) {
-    len = len || 2;
-    var zeros = new Array(len).join('0');
-    return (zeros + str).slice(-len);
   }
 
 }

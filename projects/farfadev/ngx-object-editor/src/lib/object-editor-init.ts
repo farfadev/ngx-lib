@@ -1,40 +1,47 @@
 import { cloneDeep, isEqual, isMatch } from "lodash-es";
 import { Context, intS, Scheme, IntScheme, Signal, IntContext } from "./object-editor-decl";
-import { getSelectionList } from './object-editor-get';
-import { select, setPropertyScheme, setSelectedScheme } from "./object-editor"
+import { getLabel, getSelectionList } from './object-editor-get';
+import { addProperty, deleteProperty, select, setPropertyScheme, setSelectedScheme } from "./object-editor"
 import { FarfaOEValueCheck } from "./utils/verifyvalues";
-import { isOptional, isSchemeSelectionKey } from "./object-editor-is";
+import { isOptional, isSchemeSelectionKey, isUptodate } from "./object-editor-is";
 
-const signalsMap = new Map<Signal,Set<Context>>();
+const signalsMap = new Map<Signal, Set<Context>>();
 // TODO detect loops
 export const initSignalling = (context: Context) => {
-  if(context.scheme?.onSignals != undefined) {
+  console.log('init Signals context: ', getLabel(context))
+  if (!isUptodate(context)) return;
+  if (context.scheme?.onSignals != undefined) {
     for (const ss of context.scheme?.onSignals) {
       for (const s of ss.signals) {
         const scontexts = signalsMap.get(s) ?? new Set<Context>();
         scontexts.add(context);
-        signalsMap.set(s,scontexts);
+        signalsMap.set(s, scontexts);
       }
     }
   }
-  const peditUpdate = context.editUpdate;
-  context.editUpdate = (self?: boolean) => {
-    fireSignals(context);
-    peditUpdate?.(self);
+  if ((context as IntContext).sigInit != true) {
+    (context as IntContext).sigInit = true;
+    const peditUpdate = context.editUpdate;
+    context.editUpdate = (self?: boolean) => {
+      if (!isUptodate(context)) return;
+      fireSignals(context);
+      peditUpdate?.(self);
+    }
   }
 }
 
 const fireSignals = (sourceContext: Context) => {
-  if(sourceContext.scheme?.fireSignals != undefined) {
+  console.log('fire Signals context: ', getLabel(sourceContext))
+  if (sourceContext.scheme?.fireSignals != undefined) {
     const signals = sourceContext.scheme?.fireSignals(sourceContext);
     for (const signal of signals) {
       const targetContexts = signalsMap.get(signal.signal);
-      if(targetContexts != undefined) {
-        for(const targetContext of targetContexts) {
-          if(targetContext.scheme?.onSignals) {
+      if (targetContexts != undefined) {
+        for (const targetContext of targetContexts) {
+          if (targetContext.scheme?.onSignals) {
             for (const ssg of targetContext.scheme?.onSignals) {
-              if(ssg.signals.includes(signal.signal)) {
-                const actions = ssg.call(targetContext,sourceContext,signal);
+              if (ssg.signals.includes(signal.signal)) {
+                const actions = ssg.call(targetContext, sourceContext, signal);
               }
             }
             (async () => targetContext.editUpdate?.())();
@@ -48,11 +55,12 @@ const fireSignals = (sourceContext: Context) => {
 
 
 export const uiinitialized = (context: Context) => {
+  initUserFunctions(context);
   initSignalling(context);
 }
 
 export const uidestroyed = (context: Context) => {
-  if(context.scheme?.onSignals != undefined) {
+  if (context.scheme?.onSignals != undefined) {
     for (const ss of context.scheme?.onSignals) {
       for (const s of ss.signals) {
         const scontexts = signalsMap.get(s) ?? new Set<Context>();
@@ -66,10 +74,11 @@ export const initContext = (context: Context): void => {
   if (!context.scheme) {
     context.scheme = { uibase: 'object' };
   }
-  if (!context.pcontext) {
+  if (!context.pcontext && (context as IntContext).init != true) {
     context.scheme = cloneDeep(context.scheme);
     const result = initScheme(context);
     context.value = initValue(context);
+    (context as IntContext).init = true;
   }
 }
 
@@ -355,3 +364,51 @@ export const checkScheme = (value: any, scheme: Scheme, baseScheme: Scheme, sele
   return badcheckcount;
 }
 
+const initUserFunctions = (context: IntContext) => {
+  // set stubs
+  context.add = () => { }
+  context.delete = () => { }
+  // set those which make sense 
+  if (['object', 'array'].includes(context.scheme?.uibase ?? '')) {
+    context.add = (key: string | number, scheme?: string) => {
+      addProperty(context, { property: key, schemeKey: scheme ?? '' });
+      (async () => context.contextChange?.(context, { key }))();
+    }
+  }
+  if (['object', 'array'].includes(context.scheme?.uibase ?? '')) {
+    context.delete = (key: string | number) => {
+      deleteProperty(context, key);
+      (async () => context.contextChange?.(context, { key }))();
+    }
+  }
+  context.setReadOnly = (flag: boolean, key?: string | number) => {
+    if (key != undefined) {
+      const subContext = context.subContexts?.[key];
+      if (subContext != undefined) {
+        if (flag) subContext.readonly = true;
+        else delete subContext.readonly;
+        subContext.editUpdate?.();
+      }
+      else {
+        if (flag) context.readonly = true;
+        else delete context.readonly;
+        context.editUpdate?.();
+      }
+    }
+  }
+  context.setDisplay = (flag: 'on' | 'off', key: string | number) => {
+    if (key != undefined) {
+      const subContext = context.subContexts?.[key];
+      if (subContext != undefined) {
+        if (flag) subContext.readonly = true;
+        else delete subContext.readonly;
+        subContext.editUpdate?.();
+      }
+      else {
+        if (flag) context.readonly = true;
+        else delete context.readonly;
+        context.editUpdate?.();
+      }
+    }
+  }
+}

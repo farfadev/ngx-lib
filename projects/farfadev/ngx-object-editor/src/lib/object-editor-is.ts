@@ -2,16 +2,11 @@
 
 import { getSelectionKeys } from "./object-editor-int";
 import { Context, IntContext } from "./object-editor-decl";
+import { getOptional } from "./object-editor-get";
 
-export const isOptional = (context: Context) => {
-  const opt = context.scheme?.optional;
-  const mandatory = (context as IntContext).mandatory ?? false;
-  if (typeof opt == 'function') {
-    return opt(context) && !mandatory;
-  }
-  else {
-    return (opt ?? false) && !mandatory;
-  }
+export const isOptional = (context: Context, key?: string | number): boolean => {
+  const opt = getOptional(context, key);
+  return opt == true || opt == 'signal';
 }
 
 export const isArray = (context: Context) => {
@@ -40,5 +35,13 @@ export const isReadOnly = (context: Context) => {
 export const isSchemeSelectionKey = (context?: Context, key?: string): boolean => {
   const keys = getSelectionKeys(context);
   return (keys && key) ? keys.includes(key) : false;
+}
+
+export const isUptodate = (context?: Context): boolean => {
+  if(context == undefined) return false;
+  if (context.pcontext == undefined) return true;
+  if (context.key && (context.pcontext as IntContext).subContexts?.[context.key] === context)
+    return true;
+  return ((context.pcontext as IntContext).subContext == context);
 }
 

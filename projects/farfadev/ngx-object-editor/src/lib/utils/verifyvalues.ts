@@ -1,4 +1,4 @@
-import { validateColor } from "./colors";
+import { validateColor } from "../color-utils/colors";
 
 export namespace FarfaOEValueCheck {
 

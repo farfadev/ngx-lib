@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import * as ObjectEditor from '../../object-editor';
 import * as ObjectEditorInt from '../../object-editor-int';
-import { colorNames, getColorHex, getColorName } from '../../utils/color-table';
+import { colorNames, getColorHex, getColorName } from '../../color-utils/color-table';
 
 @Component({
   standalone: false,

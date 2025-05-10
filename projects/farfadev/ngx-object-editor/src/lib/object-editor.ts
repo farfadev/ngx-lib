@@ -1,9 +1,9 @@
 //import cloneDeep from "lodash.clonedeep";
 import { cloneDeep } from "lodash-es";
-import { Scheme , Context, SelectionList, UIEffects, IntContext, intS, Adjusted, Adjust} from "./object-editor-decl";
-import { isArray, isSchemeSelectionKey } from "./object-editor-is";
+import { Scheme, Context, SelectionList, UIEffects, IntContext, intS, Adjusted, Adjust } from "./object-editor-decl";
+import { isOptional, isSchemeSelectionKey } from "./object-editor-is";
 import { initSignalling, initValue } from "./object-editor-init";
-import { getInputAttributes, getLabel, getMaskOptions, getOptionalPropertyList, getSelectionKeys, getSelectionList, getStyle, getStyleClass, getUIEffects } from "./object-editor-get";
+import { getOptionalPropertyList, getSelectionKeys, getSelectionList } from "./object-editor-get";
 
 export type { Scheme, Context, SelectionList, UIEffects, Adjust, Adjusted };
 
@@ -141,7 +141,7 @@ export const reset = (context: Context) => {
 
 export const canDeleteProperty = (context: Context): boolean => {
   if (context.pcontext?.scheme?.uibase === 'object') {
-    if ((context.scheme?.optional || intS(context.scheme)?.deletable) && context.key !== undefined) {
+    if ((isOptional(context) || intS(context.scheme)?.deletable) && context.key !== undefined) {
       return true;
     }
   }
@@ -151,16 +151,22 @@ export const canDeleteProperty = (context: Context): boolean => {
   return false;
 }
 
-export const deleteProperty = (context: Context) => {
+export const deleteProperty = (context: Context, key?: string | number) => {
+
+  if (key != undefined) {
+    const subContext = (context as IntContext).subContexts?.[key];
+    if (subContext == undefined) return;
+    context = subContext;
+  }
   if (context.pcontext?.scheme?.uibase === 'object') {
-    if ((context.scheme?.optional || intS(context.scheme)?.deletable) && context.key !== undefined) {
+    if ((isOptional(context) || intS(context.scheme)?.deletable) && context.key !== undefined) {
       delete context?.pcontext?.value[context.key];
       context.value = undefined;
     }
     if (intS(context.scheme)?.deletable && context.key !== undefined) {
       delete context.pcontext?.scheme?.properties?.[context.key];
     }
-    if (context.scheme && (!context.scheme.optional && !intS(context.scheme)?.deletable) && context.key !== undefined) {
+    if (context.scheme && (!isOptional(context) && !intS(context.scheme)?.deletable) && context.key !== undefined) {
       context.value = initValue({ value: undefined, scheme: context.scheme });
       if (context.pcontext?.value !== undefined) {
         context.pcontext.value[context.key] = context.value;
@@ -189,7 +195,6 @@ export const deleteProperty = (context: Context) => {
   }
 }
 
-
 export const getSubContext = (context: Context, p?: string | number): Context | undefined => {
   const dynamic = (p == undefined) ? context.scheme?.dynamic : context.scheme?.properties?.[p].dynamic;
   if (typeof dynamic == 'function') {
@@ -199,6 +204,12 @@ export const getSubContext = (context: Context, p?: string | number): Context | 
       pcontext: context,
       key: p,
     }
+    if (p == undefined) (context as IntContext).subContext = subContext;
+    else {
+      if ((context as IntContext).subContexts == undefined) (context as IntContext).subContexts = {};
+      (context as IntContext).subContexts![p] = subContext;
+    }
+    initSignalling(subContext);
     return subContext;
   }
   const transform = context.scheme?.transform;
@@ -221,7 +232,7 @@ export const getSubContext = (context: Context, p?: string | number): Context | 
         if (subContext.key !== undefined) {
           if (subContext.value !== undefined)
             context.value[subContext.key] = transform?.backward ? transform.backward(subContext.value) : subContext.value;
-          else if (subContext.scheme?.optional)
+          else if (isOptional(subContext))
             delete context.value[subContext.key];
         }
         delete iContext.fwdValue;
@@ -232,6 +243,12 @@ export const getSubContext = (context: Context, p?: string | number): Context | 
 
       }
     }
+    if (p == undefined) (context as IntContext).subContext = subContext;
+    else {
+      if ((context as IntContext).subContexts == undefined) (context as IntContext).subContexts = {};
+      (context as IntContext).subContexts![p] = subContext;
+    }
+    initSignalling(subContext);
     return subContext;
   }
   else if ('select' == context.scheme?.uibase) {
@@ -247,6 +264,12 @@ export const getSubContext = (context: Context, p?: string | number): Context | 
         },
         contextChange: context.contextChange
       }
+      if (p == undefined) (context as IntContext).subContext = subContext;
+      else {
+        if ((context as IntContext).subContexts == undefined) (context as IntContext).subContexts = {};
+        (context as IntContext).subContexts![p] = subContext;
+      }
+      initSignalling(subContext);
       return subContext;
     }
     else {

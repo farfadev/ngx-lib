@@ -1,4 +1,5 @@
 import { Context, intS, SelectionList, UIEffects } from "./object-editor-decl";
+import { isOptional } from "./object-editor-int";
 
 export const getSelectionKey = (context?: Context): string | undefined => {
   return intS(context?.scheme)?.selectedKey;
@@ -105,23 +106,33 @@ export const getLabel = (context: Context) => {
     }
   }
 
+  export const getOptional = (context: Context, key?: string|number): boolean | 'signal' | undefined => {
+    const scheme = key == undefined ? context.scheme : context.scheme?.properties?.[key];
+    if (typeof scheme?.optional == 'function') {
+      return scheme.optional(context);
+    }
+    else {
+      return scheme?.optional;
+    }
+  }
+
   
-  export const getOptionalPropertyList = (context: Context): string[] => {
+  export const getOptionalPropertyList = (context: Context,mode?:'ui'): string[] => {
     if (!(context.scheme?.uibase == 'object') || !context.scheme?.properties) {
       return [];
     }
     const isel = Object.keys(context.scheme?.properties);
     const rsel: string[] = [];
-    isel.forEach((s) => {
+    for (const s of isel) {
       const value = context.value == undefined ?
         undefined
         : context.scheme?.transform?.forward ?
           context.scheme?.transform?.forward(context.value)
           : context.value;
-      if (!value?.hasOwnProperty(s)) {
+      if (!value?.hasOwnProperty(s) && (!(getOptional(context,s) == 'signal') || mode != 'ui')) {
         rsel.push(s);
       }
-    });
+    };
     return rsel;
   }
   
@@ -149,7 +160,7 @@ export const getSelectionList = (context?: Context, p?: string | number): Select
       context.value;
     const schemeKeys = Object.keys(context.scheme?.properties ?? {});
     for (const sp of schemeKeys) {
-      if ((value?.[sp] != undefined) || !intS(context.scheme?.properties?.[sp])?.optional) {
+      if ((value?.[sp] != undefined) || !isOptional(context,sp)) {
         properties.push(sp);
       }
     }
