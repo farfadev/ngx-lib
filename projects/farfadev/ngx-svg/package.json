@@ -16,7 +16,7 @@
     "svg",
     "icons"
   ],
-  "licence": "MIT",
+  "license": "MIT",
   "private": false,
   "peerDependencies": {
     "@angular/common": "^19.2.0",

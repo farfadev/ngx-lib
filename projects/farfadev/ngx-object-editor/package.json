@@ -1,6 +1,6 @@
 {
   "name": "@farfadev/ngx-object-editor",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "An angular component to edit typecript/ javascript objects",
   "author": "farfadev",
   "repository": {
@@ -15,7 +15,7 @@
     "angular",
     "editor"
   ],
-  "licence": "MIT",
+  "license": "MIT",
   "private": false,
   "scripts": {
     "ng": "ng",

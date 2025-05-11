@@ -15,7 +15,7 @@
     "angular",
     "tooltip"
   ],
-  "licence": "MIT",
+  "license": "MIT",
   "private": false,
   "peerDependencies": {
     "@angular/common": "^19.1.0",
