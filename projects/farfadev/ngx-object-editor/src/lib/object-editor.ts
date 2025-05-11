@@ -119,16 +119,16 @@ export const addProperty = (context: Context, newProperty: { property: string | 
 }
 
 export const canReset = (context: Context): boolean => {
-  return context.scheme?.default
-    || (context.scheme?.defaultSelectionKey && (context.scheme?.uibase == 'select'))
+  return ((context.scheme?.default != undefined)
+    || ((context.scheme?.defaultSelectionKey != undefined) && (context.scheme?.uibase == 'select')))
     ;
 }
 
 export const reset = (context: Context) => {
-  if (context.scheme?.default) {
+  if (context.scheme?.default != undefined) {
     context.value = context.scheme?.default;
   }
-  if (context.scheme?.defaultSelectionKey) {
+  if (context.scheme?.defaultSelectionKey != undefined) {
     select(context, context.scheme?.defaultSelectionKey);
   }
   if (context.editUpdate) {

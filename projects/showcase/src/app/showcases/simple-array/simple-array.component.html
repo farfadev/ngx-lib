@@ -1,3 +1,19 @@
-DEBUG <input type="checkbox" [(ngModel)]="debug"/>
-<object-editor [context]="mycontext" [debug]="debug"></object-editor>
+<article style="width: 25em">
+  <div style="margin-bottom: 0.5em">Showcase a simple array.</div>
+  <div style="margin-bottom: 0.5em">
+    Array items can be added via the 'add new item' selection box.
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Uses the <code>selectionList</code> scheme property.
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Array items show a trash can and can be deleted.
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Click on the debug checkbox to see the resulting value.
+  </div>
+</article>
+<br />
 
+DEBUG <input type="checkbox" [(ngModel)]="debug" />
+<object-editor [context]="mycontext" [debug]="debug"></object-editor>

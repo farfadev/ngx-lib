@@ -22,7 +22,6 @@ export class ShowcaseOptionalPropertiesComponent {
 
   mycontext: ObjectEditor.Context = {
     value: {
-      simpleText: 'hello',
       simpleNumber: 3,
       simpleColor: '#0000ff',
       simpleBoolean: false,

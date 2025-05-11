@@ -1,3 +1,16 @@
-DEBUG <input type="checkbox" [(ngModel)]="debug"/>
+<article style="width: 25em">
+  <div style="margin-bottom: 0.5em">
+    Showcase components which schemes are selectable from a list
+    (selectionList).
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Useful when a value can have different types or when the value is selected
+    from of list of values.
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Click on the debug checkbox to see the resulting value.
+  </div>
+</article>
+<br />
+DEBUG <input type="checkbox" [(ngModel)]="debug" />
 <object-editor [context]="mycontext" [debug]="debug"></object-editor>
-

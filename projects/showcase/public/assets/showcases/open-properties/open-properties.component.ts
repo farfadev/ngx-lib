@@ -5,12 +5,12 @@ import * as ObjectEditor from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
 
 @Component({
-  selector: 'showcases-scheme-selection',
-  templateUrl: './scheme-selection.component.html',
-  styleUrls: ['./scheme-selection.component.scss'],
+  selector: 'showcases-optional-properties',
+  templateUrl: './open-properties.component.html',
+  styleUrls: ['./open-properties.component.scss'],
   imports: [CommonModule, FormsModule, ObjectEditorModule],
 })
-export class ShowcaseSchemeSelectionComponent {
+export class ShowcaseOpenPropertiesComponent {
 
   @Input()
   debug: boolean = false;
@@ -21,38 +21,37 @@ export class ShowcaseSchemeSelectionComponent {
   }
 
   mycontext: ObjectEditor.Context = {
+    value: {
+      simpleNumber: 3,
+      simpleColor: '#0000ff',
+      simpleBoolean: false,
+      simpleRadio: undefined
+    },
     scheme: {
       uibase: 'object',
-      label: 'showcase scheme selection',
+      label: 'showcase optional properties',
       properties: {
-        'scheme-selection': {
-          uibase: 'select',
-          defaultSelectionKey: 'value',
-          selectionList: {
-            color: {
-              uibase: 'color',
-              label: 'mycolor',
-              default: '#ff004e'
-            },
-            value: {
-              uibase:'none',
-              label: 'default value',
-              readonly: true,
-              default: 'default'
-            },
-            boolean: {
-              uibase: 'boolean',
-              label: 'myboolean'
-            },
-
-            number: {
-              uibase: 'number',
-              default: 3,
-            }
-          }
+        simpleText: {
+          uibase: 'text',
+          optional: true,
+          default: 'test'
+        },
+        simpleNumber: {
+          uibase: 'number',
+          default: 5
+        },
+        simpleColor: {
+          uibase: 'color',
+          optional: true,
+          default: '#008000'
+        },
+        simpleBoolean: {
+          uibase: 'boolean',
+          default: true
         },
         simpleRadio: {
           uibase: 'select',
+          optional: true,
           uiEffects: {
             radio: true,
             horizontal: true
@@ -63,7 +62,18 @@ export class ShowcaseSchemeSelectionComponent {
             sel3: this.value2scheme({ a: 1, b: 'zebu' })
           }
         },
-      }
+      },
+      selectionList: {
+        'boolean': {
+          uibase: 'boolean'
+        },
+        'number': {
+          uibase: 'number'
+        },
+        'text': {
+          uibase: 'text'
+        }
+      },
     }
   }
 }

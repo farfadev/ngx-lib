@@ -9,10 +9,22 @@
   padding-right: 0;
 }
 
+.fieldset-optional {
+  @extend .fieldset-main;
+}
+
+.fieldset-optional > select {
+  border: solid lightgrey 1px;
+  min-width: 10rem;
+}
+
+.fieldset-new {
+  @extend .fieldset-optional;
+}
+
 .pre-icons {
   display: inline-block;
   width: 0.75em;
   height: 0.75em;
   margin-left: 0.5em;
 }
-

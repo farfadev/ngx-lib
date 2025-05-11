@@ -1,3 +1,17 @@
-DEBUG <input type="checkbox" [(ngModel)]="debug"/>
-<object-editor [context]="mycontext" [debug]="debug"></object-editor>
+<article style="width: 25em">
+  <div style="margin-bottom: 0.5em">Showcase a simple object.</div>
+  <div style="margin-bottom: 0.5em">
+    Values can be reset to a predefined default value by clicking on the reset
+    icon
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Uses the <code>default</code> scheme property
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Click on the debug checkbox to see the resulting value.
+  </div>
+</article>
+<br />
 
+DEBUG <input type="checkbox" [(ngModel)]="debug" />
+<object-editor [context]="mycontext" [debug]="debug"></object-editor>

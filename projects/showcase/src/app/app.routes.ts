@@ -47,6 +47,14 @@ export const routes: Routes = [
     }
   },
   {
+    path: 'open-properties',
+    loadComponent: () => import('./showcases/container/container.component').then((m) => m.ShowcasesContainerComponent),
+    data: {
+      component: () => import('./showcases/open-properties/open-properties.component').then((m) => m.ShowcaseOpenPropertiesComponent),
+      sources: getSources('./showcases/open-properties/open-properties.component'),
+    }
+  },
+  {
     path: 'simple-array',
     loadComponent: () => import('./showcases/container/container.component').then((m) => m.ShowcasesContainerComponent),
     data: {

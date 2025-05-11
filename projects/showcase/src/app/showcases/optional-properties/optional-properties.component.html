@@ -1,3 +1,18 @@
-DEBUG <input type="checkbox" [(ngModel)]="debug"/>
-<object-editor [context]="mycontext" [debug]="debug"></object-editor>
+<article style="width: 25em">
+  <div style="margin-bottom: 0.5em">
+    Showcase a simple object with optional properties.
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Uses the <code>optional</code> scheme property
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Optional properties show a trash can and can be deleted.
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Click on the debug checkbox to see the resulting value.
+  </div>
+</article>
+<br />
 
+DEBUG <input type="checkbox" [(ngModel)]="debug" />
+<object-editor [context]="mycontext" [debug]="debug"></object-editor>

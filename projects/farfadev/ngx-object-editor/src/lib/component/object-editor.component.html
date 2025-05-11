@@ -163,15 +163,14 @@
   <div
     #objectcontainer
     [hidden]="!root_fieldset_expanded"
-    style="margin-left: 2rem"
+    style="margin-left: 2em"
   >
     @if(hasOptionalProperties()) {
-    <fieldset style="display: inline">
+    <fieldset class="fieldset-optional">
       <legend>add an optional property</legend>
       <select
         [(ngModel)]="optionalPropertySel"
         (ngModelChange)="optionalPropertySet()"
-        style="border: solid lightgrey 1px; min-width: 10rem"
       >
         <option selected value="">optional property</option>
         <option
@@ -183,7 +182,7 @@
       </select>
     </fieldset>
     } @if((isObject() || isArray()) && schemeOptions.length > 0  && !isReadOnly(context)) {
-    <fieldset style="display: inline">
+    <fieldset class="fieldset-new">
       <legend>
         {{ isObject() ? "add a new property" : "add a new item"}}
       </legend>
@@ -194,11 +193,12 @@
         pattern="[a-zA-Z]{1}[a-zA-Z0-9_]*"
         placeholder="enter property name"
         [(ngModel)]="newProperty.property"
-        style="margin-right: 1rem; border: solid 1px lightgrey"
+        style="margin-right: 1em; border: solid 1px lightgrey"
       />
       <select
         [(ngModel)]="newProperty.schemeKey"
-        style="margin-right: 1rem; border: solid 1px lightgrey"
+        style="margin-right: 1em; border: solid 1px lightgrey"
+        [style.display]="newProperty.property != '' ? '' : 'none'"
       >
         <option disabled value="">select</option>
         <option *ngFor="let o of schemeOptions" value="{{ o }}">
@@ -215,7 +215,7 @@
       } @if(isArray()) {
       <select
         [(ngModel)]="newProperty.schemeKey"
-        style="margin-right: 1rem; border: solid 1px lightgrey"
+        style="margin-right: 1em; border: solid 1px lightgrey"
       >
         <option disabled value="">select</option>
         <option *ngFor="let o of schemeOptions" value="{{ o }}">
@@ -252,7 +252,7 @@
   </div>
   <span>
     @if(debug) {
-    <p [style]="getStyle(context, 'font-size: 0.5rem')">
+    <p [style]="getStyle(context, 'font-size: 0.5em')">
       type={{typeof context.value}} value={{
         getTextValue(context.value)
       }}

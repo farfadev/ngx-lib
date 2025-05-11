@@ -163,7 +163,8 @@ export const getColorName = (value: string): string | undefined => {
     return undefined;
 }
 
-export const getColorHex = (value: string): string | undefined => {
+export const getColorHex = (value: string | undefined): string | undefined => {
+    if(value == undefined) return undefined;
     if (value.startsWith('#')) {
         return value;
     }

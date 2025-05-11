@@ -1,0 +1,13 @@
+<article style="width: 25em;">
+Showcase a simple object with open properties. One can add any additional property based on one of the schemes of the selectionList. 
+<br>
+Added properties are like optional properties, they show a trash can and can be deleted.
+<br>
+Click on the debug checkbox to see the resulting value.
+</article>
+<br>
+    
+
+DEBUG <input type="checkbox" [(ngModel)]="debug"/>
+<object-editor [context]="mycontext" [debug]="debug"></object-editor>
+

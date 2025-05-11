@@ -37,6 +37,9 @@ export class ShowcaseSimpleArrayComponent {
             },
             'number': {
               uibase: 'number'
+            },
+            'text': {
+              uibase: 'text'
             }
           },
           properties: {
