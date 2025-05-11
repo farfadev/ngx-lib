@@ -8,7 +8,6 @@ import { isOptional, isSchemeSelectionKey, isUptodate } from "./object-editor-is
 const signalsMap = new Map<Signal, Set<Context>>();
 // TODO detect loops
 export const initSignalling = (context: Context) => {
-  console.log('init Signals context: ', getLabel(context))
   if (!isUptodate(context)) return;
   if (context.scheme?.onSignals != undefined) {
     for (const ss of context.scheme?.onSignals) {
@@ -31,7 +30,6 @@ export const initSignalling = (context: Context) => {
 }
 
 const fireSignals = (sourceContext: Context) => {
-  console.log('fire Signals context: ', getLabel(sourceContext))
   if (sourceContext.scheme?.fireSignals != undefined) {
     const signals = sourceContext.scheme?.fireSignals(sourceContext);
     for (const signal of signals) {
