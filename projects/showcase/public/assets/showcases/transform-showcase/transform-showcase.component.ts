@@ -42,7 +42,7 @@ export class ShowcaseTransformComponent {
             }
           },
           transform: {
-            forward: (t: number[]) => {latitude: t?.[1] ?? 0; longitude: t?.[0] ?? 0},
+            forward: (t: number[]) => {return {latitude: t?.[1] ?? 0, longitude: t?.[0] ?? 0}},
             backward: (v: {latitude: number; longitude: number}) => [v.longitude,v.latitude]
           }
         },
