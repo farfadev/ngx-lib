@@ -1,2 +1,15 @@
-<div>DEBUG <input type="checkbox" [(ngModel)]="debug"/></div>
+<article style="width: 25em">
+  <div style="margin-bottom: 0.5em">
+    Showcase a custom front end by mean of an Angular component
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Uses the <code>'angular'</code> uibase value, the <code>'transform'</code> and <code>'angularFrontEnd'</code>
+    scheme properties.
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Click on the debug checkbox to see the resulting value.
+  </div>
+</article>
+<br />
+<div>DEBUG <input type="checkbox" [(ngModel)]="debug" /></div>
 <object-editor [context]="mycontext" [debug]="debug"></object-editor>

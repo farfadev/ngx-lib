@@ -1,3 +1,17 @@
-DEBUG <input type="checkbox" [(ngModel)]="debug"/>
+<article style="width: 25em; white-space: pre-wrap">
+  <div style="margin-bottom: 0.5em">
+    Showcase an object where some values are changed when another value changes.
+    In this case the selection box 'simpleSignals' changes, adds or deletes the
+    other properties' value.
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Uses the <code>onSignals</code> and <code>fireSignals</code> scheme
+    properties.
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Click on the debug checkbox to see the resulting value.
+  </div>
+</article>
+<br />
+DEBUG <input type="checkbox" [(ngModel)]="debug" />
 <object-editor [context]="mycontext" [debug]="debug"></object-editor>
-

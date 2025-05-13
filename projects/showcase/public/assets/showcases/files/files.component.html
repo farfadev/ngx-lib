@@ -1,3 +1,19 @@
-DEBUG <input type="checkbox" [(ngModel)]="debug"/>
-<object-editor [context]="mycontext" [debug]="debug"></object-editor>
+<article style="width: 25em; white-space: pre-wrap">
+  <div style="margin-bottom: 0.5em">Showcase a file selection component.</div>
+  <div style="margin-bottom: 0.5em">Uses the <code>uibase</code> <code>'file'</code> scheme property value</div>
+  <div style="margin-bottom: 0.5em">
+    Files can be added by drag and drop on the 'drop area' or by the file
+    selection button.
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Added files show a minified icon and can be deleted by clicking on the trash
+    can icon
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Click on the debug checkbox to see the resulting value.
+  </div>
+</article>
+<br />
 
+DEBUG <input type="checkbox" [(ngModel)]="debug" />
+<object-editor [context]="mycontext" [debug]="debug"></object-editor>

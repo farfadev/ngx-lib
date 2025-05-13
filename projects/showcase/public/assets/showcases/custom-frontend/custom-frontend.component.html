@@ -1,2 +1,17 @@
-<div>DEBUG <input type="checkbox" [(ngModel)]="debug"/></div>
+<article style="width: 25em">
+  <div style="margin-bottom: 0.5em">
+    Showcase a custom front end where a geographic coordinates value in the form
+    of an array of numbers is presented as a latitude and a longitude on the
+    front end.
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Uses the <code>'custom'</code> uibase value, the <code>customFrontEnd</code> and the <code>transform</code>
+    scheme properties.
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Click on the debug checkbox to see the resulting value.
+  </div>
+</article>
+<br />
+<div>DEBUG <input type="checkbox" [(ngModel)]="debug" /></div>
 <object-editor [context]="mycontext1" [debug]="debug"></object-editor>

@@ -94,48 +94,48 @@ export const getUIEffects = (context: Context): UIEffects | undefined => {
 }
 
 export const getLabel = (context: Context) => {
-    return context.scheme?.label ?? context.key ?? intS(context.pcontext?.scheme)?.selectedKey;
-  }
-  
-  export const getDescription = (context: Context): string | undefined => {
-    if (typeof context.scheme?.description == 'function') {
-      return context.scheme.description(context);
-    }
-    else {
-      return context.scheme?.description;
-    }
-  }
+  return context.scheme?.label ?? context.key ?? intS(context.pcontext?.scheme)?.selectedKey;
+}
 
-  export const getOptional = (context: Context, key?: string|number): boolean | 'signal' | undefined => {
-    const scheme = key == undefined ? context.scheme : context.scheme?.properties?.[key];
-    if (typeof scheme?.optional == 'function') {
-      return scheme.optional(context);
-    }
-    else {
-      return scheme?.optional;
-    }
+export const getDescription = (context: Context): string | undefined => {
+  if (typeof context.scheme?.description == 'function') {
+    return context.scheme.description(context);
   }
+  else {
+    return context.scheme?.description;
+  }
+}
 
-  
-  export const getOptionalPropertyList = (context: Context,mode?:'ui'): string[] => {
-    if (!(context.scheme?.uibase == 'object') || !context.scheme?.properties) {
-      return [];
-    }
-    const isel = Object.keys(context.scheme?.properties);
-    const rsel: string[] = [];
-    for (const s of isel) {
-      const value = context.value == undefined ?
-        undefined
-        : context.scheme?.transform?.forward ?
-          context.scheme?.transform?.forward(context.value)
-          : context.value;
-      if (!value?.hasOwnProperty(s) && (!(getOptional(context,s) == 'signal') || mode != 'ui')) {
-        rsel.push(s);
-      }
-    };
-    return rsel;
+export const getOptional = (context: Context, key?: string | number): boolean | 'signal' | undefined => {
+  const scheme = key == undefined ? context.scheme : context.scheme?.properties?.[key];
+  if (typeof scheme?.optional == 'function') {
+    return scheme.optional(context);
   }
-  
+  else {
+    return scheme?.optional;
+  }
+}
+
+
+export const getOptionalPropertyList = (context: Context, mode?: 'ui'): string[] => {
+  if (!(context.scheme?.uibase == 'object') || !context.scheme?.properties) {
+    return [];
+  }
+  const isel = Object.keys(context.scheme?.properties);
+  const rsel: string[] = [];
+  const value = context.value == undefined ?
+    undefined
+    : context.scheme?.transform?.forward ?
+      context.scheme?.transform?.forward(context.value)
+      : context.value;
+  for (const s of isel) {
+    if (!value?.hasOwnProperty(s) && (!(getOptional(context, s) == 'signal') || mode != 'ui')) {
+      rsel.push(s);
+    }
+  };
+  return rsel;
+}
+
 export const getSelectionList = (context?: Context, p?: string | number): SelectionList<any, any> => {
   if (!context?.scheme) return {};
   const selList = p ?
@@ -146,40 +146,39 @@ export const getSelectionList = (context?: Context, p?: string | number): Select
     selList(context) : selList) ?? {}
 }
 
-  export const getSelectionKeys = (context?: Context, p?: string | number): string[] => {
-    const list: string[] = [];
-    if (!context?.scheme || (p && !context?.scheme?.properties?.[p])) return [];
-    list.push(...Object.keys(getSelectionList(context, p)));
-    return list;
-  }
-  
-  export const getProperties = (context: Context) => {
-    let properties: (string | number)[] = [];
-    const value = context.scheme?.transform?.forward ?
-      context.scheme?.transform?.forward(context.value) :
-      context.value;
-    const schemeKeys = Object.keys(context.scheme?.properties ?? {});
-    for (const sp of schemeKeys) {
-      if ((value?.[sp] != undefined) || !isOptional(context,sp)) {
-        properties.push(sp);
-      }
+export const getSelectionKeys = (context?: Context, p?: string | number): string[] => {
+  const list: string[] = [];
+  if (!context?.scheme || (p && !context?.scheme?.properties?.[p])) return [];
+  list.push(...Object.keys(getSelectionList(context, p)));
+  return list;
+}
+
+export const getProperties = (context: Context) => {
+  let properties: (string | number)[] = [];
+  const value = context.scheme?.transform?.forward ?
+    context.scheme?.transform?.forward(context.value) :
+    context.value;
+  const schemeKeys = Object.keys(context.scheme?.properties ?? {});
+  for (const sp of schemeKeys) {
+    if ((value?.[sp] != undefined) || !isOptional(context, sp)) {
+      properties.push(sp);
     }
-    properties = (context.scheme?.uibase === 'object') ? properties.sort((a, b) => {
-      const a_ct = intS(context.scheme?.properties?.[a])?.ctime ?? 0;
-      const b_ct = intS(context.scheme?.properties?.[b])?.ctime ?? 0;
-      if (a_ct == b_ct) {
-        if ((typeof a == 'string') && (typeof b == 'string'))
-          return schemeKeys.indexOf(a) - schemeKeys.indexOf(b);
-        else
-          return properties.indexOf(a) - properties.indexOf(b);
-      }
-      else {
-        return a_ct - b_ct;
-      }
-    }) : properties.sort((a, b) => {
-      return Number(a) - Number(b)
-    })
-    return properties;
   }
-  
-  
+  properties = (context.scheme?.uibase === 'object') ? properties.sort((a, b) => {
+    const a_ct = intS(context.scheme?.properties?.[a])?.ctime ?? 0;
+    const b_ct = intS(context.scheme?.properties?.[b])?.ctime ?? 0;
+    if (a_ct == b_ct) {
+      if ((typeof a == 'string') && (typeof b == 'string'))
+        return schemeKeys.indexOf(a) - schemeKeys.indexOf(b);
+      else
+        return properties.indexOf(a) - properties.indexOf(b);
+    }
+    else {
+      return a_ct - b_ct;
+    }
+  }) : properties.sort((a, b) => {
+    return Number(a) - Number(b)
+  })
+  return properties;
+}
+

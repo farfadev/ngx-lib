@@ -79,6 +79,14 @@ export const routes: Routes = [
     }
   },
   {
+    path: 'transform-showcase',
+    loadComponent: () => import('./showcases/container/container.component').then((m) => m.ShowcasesContainerComponent),
+    data: {
+      component: () => import('./showcases/transform-showcase/transform-showcase.component').then((m) => m.ShowcaseTransformComponent),
+      sources: getSources('./showcases/transform-showcase/transform-showcase.component'),
+    }
+  },
+  {
     path: 'custom-frontend',
     loadComponent: () => import('./showcases/container/container.component').then((m) => m.ShowcasesContainerComponent),
     data: {

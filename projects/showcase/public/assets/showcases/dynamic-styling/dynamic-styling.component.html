@@ -1,3 +1,15 @@
-DEBUG <input type="checkbox" [(ngModel)]="debug"/>
-<object-editor [context]="mycontext" [debug]="debug"></object-editor>
+<article style="width: 25em">
+  <div style="margin-bottom: 0.5em">
+    Showcase dynamic styling where the style is dependant on the value.
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Uses the <code>UIEffects.style</code> scheme property
+  </div>
+  <div style="margin-bottom: 0.5em">
+    Click on the debug checkbox to see the resulting value.
+  </div>
+</article>
+<br />
 
+DEBUG <input type="checkbox" [(ngModel)]="debug" />
+<object-editor [context]="mycontext" [debug]="debug"></object-editor>
