@@ -1,6 +1,6 @@
 import { cloneDeep, isEqual, isMatch } from "lodash-es";
 import { Context, intS, Scheme, IntScheme, Signal, IntContext } from "./object-editor-decl";
-import { getLabel, getSelectionList } from './object-editor-get';
+import { getLabel, getOptional, getSelectionList } from './object-editor-get';
 import { addProperty, deleteProperty, select, setPropertyScheme, setSelectedScheme } from "./object-editor"
 import { FarfaOEValueCheck } from "./utils/verifyvalues";
 import { isOptional, isSchemeSelectionKey, isUptodate } from "./object-editor-is";
@@ -68,25 +68,88 @@ export const uidestroyed = (context: Context) => {
   }
 }
 
-export const initContext = (context: Context): void => {
-  if (!context.scheme) {
-    context.scheme = { uibase: 'object' };
+export const editUpdate = (subContext: Context) => {
+  if (subContext.pcontext == undefined) return;
+  const parentContext = subContext.pcontext;
+  const iContext = (parentContext as IntContext);
+  const transform = parentContext?.scheme?.transform;
+  if (subContext.key !== undefined) {
+    if (subContext.value !== undefined) {
+      if (transform == undefined)
+        parentContext.value[subContext.key] = subContext.value;
+      else {
+        iContext.fwdValue[subContext.key] = subContext.value;
+        parentContext.value = transform?.backward(iContext.fwdValue);
+      }
+    }
+    else if (isOptional(subContext)) {
+      if (iContext.fwdValue == undefined) {
+        delete parentContext.value[subContext.key];
+      }
+      else {
+        delete iContext.fwdValue[subContext.key];
+        parentContext.value = transform?.backward(iContext.fwdValue);
+      }
+
+      if ((parentContext.scheme?.properties?.[subContext.key] != undefined) &&
+        (intS(parentContext.scheme?.properties?.[subContext.key])?.deletable == true)) {
+        delete parentContext.scheme.properties[subContext.key];
+      }
+    }
   }
-  if (!context.pcontext && (context as IntContext).init != true) {
+  else if (iContext.scheme?.uibase == 'select') {
+    if (subContext.value == undefined || transform == undefined)
+      iContext.value = subContext.value;
+    else {
+      iContext.value = transform?.backward(subContext.value);
+    }
+  }
+  parentContext.editUpdate?.();
+}
+
+export const initContext = (context: Context): void => {
+
+  const iContext = (context as IntContext);
+
+  if (iContext.init == true) return;
+
+  const dynamic = context.scheme?.dynamic;
+  if (typeof dynamic == 'function') {
+    context.scheme = cloneDeep(dynamic(context));
+  }
+
+  if (!context.pcontext && iContext.init != true) {
+    if (!context.scheme) {
+      context.scheme = { uibase: 'object' };
+    }
     context.scheme = cloneDeep(context.scheme);
     const result = initScheme(context);
     context.value = initValue(context);
-    (context as IntContext).init = true;
   }
+
+  const transform = context.scheme?.transform;
+  if ((transform != undefined) && (iContext.fwdValue == undefined)) {
+    iContext.fwdValue = transform.forward(context.value);
+  }
+
+  context.editUpdate = () => editUpdate(context);
+  context.contextChange = context.contextChange;
+  context.onClick = () => {
+  }
+  initSignalling(context);
+  iContext.init = true;
 }
 
 export const initValue = (context: Context): any => {
   let { value, scheme } = context;
-  if (!scheme) return undefined;
+  if (!scheme) {
+    return value;
+  }
   if (value == undefined && scheme.default != undefined) {
     value = cloneDeep(scheme.default);
+    initScheme({ value, scheme });
   }
-  if (scheme.transform) {
+  if (scheme.transform != undefined) {
     value = scheme.transform.forward(value);
   }
   switch (scheme.uibase) {
@@ -94,8 +157,8 @@ export const initValue = (context: Context): any => {
       if (value == undefined) value = {};
       const keys = Object.keys(scheme?.properties ?? {});
       for (const key of keys) {
-        if (!scheme?.properties?.[key].optional && scheme.properties?.[key]) {
-          value![key] = value![key] ?? initValue({ value: value[key], scheme: scheme.properties?.[key] });
+        if (!(isOptional({ scheme, value }, key) && scheme.properties?.[key])) {
+          value![key] = initValue({ value: value[key], scheme: scheme.properties?.[key] });
         }
       }
       break;
@@ -103,6 +166,9 @@ export const initValue = (context: Context): any => {
       if (value == undefined) value = [];
       if (!(value instanceof Array)) {
         throw Error('Invalid value type, expecting Array');
+      }
+      for (let i = 0; i < value.length; i++) {
+        value[i] = initValue({ value: value[i], scheme: scheme.properties?.[i] })
       }
       if (scheme.length?.min != undefined) {
         let lastKey;
@@ -117,8 +183,7 @@ export const initValue = (context: Context): any => {
       }
       break;
     case 'select': {
-      select(context);
-      value = context.value;
+      value = initValue({ value: context.value, scheme: intS(context.scheme)!.selectedScheme! });
     }
       break;
     case 'boolean':
@@ -265,7 +330,7 @@ const initScheme = (context: Context): number => {
             }
             const smatch = initScheme(subContext);
             if (smatch == 1) {
-              setSelectedScheme(context, selKey);
+              setSelectedScheme(context, selKey, subContext.scheme);
               match = smatch;
               count = 1;
             }
@@ -280,7 +345,7 @@ const initScheme = (context: Context): number => {
             }
             const smatch = initScheme(subContext);
             if (smatch == 1) {
-              setSelectedScheme(context, selKey);
+              setSelectedScheme(context, selKey, subContext.scheme);
               match = smatch;
               count = 1;
               break;
@@ -290,7 +355,7 @@ const initScheme = (context: Context): number => {
       }
       break;
     case 'none':
-      match = isEqual(value, context.scheme.default) ? 1 : 0;
+      match = (context.scheme.default != undefined) ? (isEqual(value, context.scheme.default) ? 1 : 0) : 1;
       count = 1;
       break;
     case 'boolean':
@@ -347,7 +412,7 @@ export const checkScheme = (value: any, scheme: Scheme, baseScheme: Scheme, sele
               check(isSchemeSelectionKey({ scheme }, intS(subScheme)!.parentSelectedKey));
               baseSubScheme = getSelectionList({ scheme: baseScheme })[intS(subScheme)?.parentSelectedKey!]
               check(intS(subScheme)!.ctime != undefined)
-              check(intS(subScheme)!.optional == true)
+              check(getOptional({ scheme: subScheme }) == true)
               check(intS(subScheme)!.deletable == true)
             }
           }

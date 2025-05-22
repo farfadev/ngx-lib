@@ -163,8 +163,8 @@
     /**
      * custom callback to identify a scheme selection key from a value 
      * during initialisation from sheer value (without chimere context)
-     * shall return the scheme selection key or undefined if not found
-     * if not provided or return undefined, the internal algorithm is used
+     * shall return the scheme selection key or undefined if unable to identity the scheme.
+     * In this later case, the internal algorithm is used
     */
     detectScheme?: (context: Context, value: any) => string | undefined;
 

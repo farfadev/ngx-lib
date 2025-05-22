@@ -19,8 +19,12 @@ export const routes: Routes = [
     loadComponent: () => import('./home/home.component').then((m) => m.HomeComponent),
   },
   {
-    path: 'test',
-    loadComponent: () => import('./test/test.component').then((m) => m.TestComponent),
+    path: 'test_000',
+    loadComponent: () => import('./test/test_000/test.component').then((m) => m.TestComponent),
+  },
+  {
+    path: 'test_001',
+    loadComponent: () => import('./test/test_001/test_001.component').then((m) => m.Test001Component),
   },
   {
     path: 'icons-tooltip',

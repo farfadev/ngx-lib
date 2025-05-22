@@ -2,15 +2,20 @@
 import { cloneDeep } from "lodash-es";
 import { Scheme, Context, SelectionList, UIEffects, IntContext, intS, Adjusted, Adjust } from "./object-editor-decl";
 import { isOptional, isSchemeSelectionKey } from "./object-editor-is";
-import { initSignalling, initValue } from "./object-editor-init";
+import { initContext, initSignalling, initValue } from "./object-editor-init";
 import { getOptionalPropertyList, getSelectionKeys, getSelectionList } from "./object-editor-get";
 
 export type { Scheme, Context, SelectionList, UIEffects, Adjust, Adjusted };
 
-export const setSelectedScheme = (context: Context, key: string) => {
+export const setSelectedScheme = (context: Context, key: string, selectedScheme?: Scheme) => {
   intS(context.scheme)!.selectedKey = key;
-  const v = getSelectionList(context)?.[key!];
-  intS(context.scheme)!.selectedScheme = cloneDeep(v);
+  if (selectedScheme == undefined) {
+    const v = getSelectionList(context)?.[key!];
+    intS(context.scheme)!.selectedScheme = cloneDeep(v);
+  }
+  else {
+    intS(context.scheme)!.selectedScheme = selectedScheme;
+  }
 }
 
 export const select = (context: Context, key?: string): Context | undefined => {
@@ -196,29 +201,11 @@ export const deleteProperty = (context: Context, key?: string | number) => {
 }
 
 export const getSubContext = (context: Context, p?: string | number): Context | undefined => {
-  const dynamic = (p == undefined) ? context.scheme?.dynamic : context.scheme?.properties?.[p].dynamic;
-  if (typeof dynamic == 'function') {
-    const subContext = {
-      scheme: cloneDeep(dynamic(context)),
-      value: (p == undefined) ? context.value : context.value?.[p],
-      pcontext: context,
-      key: p,
-    }
-    if (p == undefined) (context as IntContext).subContext = subContext;
-    else {
-      if ((context as IntContext).subContexts == undefined) (context as IntContext).subContexts = {};
-      (context as IntContext).subContexts![p] = subContext;
-    }
-    initSignalling(subContext);
-    return subContext;
-  }
-  const transform = context.scheme?.transform;
+
   const iContext = (context as IntContext);
-  if ((transform != undefined) && (iContext.fwdValue == undefined)) {
-    iContext.fwdValue = transform.forward(context.value);
-  }
 
   if (context.scheme?.uibase == 'none') return undefined;
+
   if (['object', 'array', 'custom', 'angular'].includes(context.scheme?.uibase ?? '')) {
     if (p === undefined) {
       return undefined;
@@ -228,48 +215,29 @@ export const getSubContext = (context: Context, p?: string | number): Context | 
       value: iContext.fwdValue ? iContext.fwdValue[p] : context.value[p],
       pcontext: context,
       key: p,
-      editUpdate: () => {
-        if (subContext.key !== undefined) {
-          if (subContext.value !== undefined)
-            context.value[subContext.key] = transform?.backward ? transform.backward(subContext.value) : subContext.value;
-          else if (isOptional(subContext))
-            delete context.value[subContext.key];
-        }
-        delete iContext.fwdValue;
-        context.editUpdate?.();
-      },
-      contextChange: context.contextChange,
-      onClick: () => {
-
-      }
     }
     if (p == undefined) (context as IntContext).subContext = subContext;
     else {
       if ((context as IntContext).subContexts == undefined) (context as IntContext).subContexts = {};
       (context as IntContext).subContexts![p] = subContext;
     }
-    initSignalling(subContext);
+    initContext(subContext);
     return subContext;
   }
   else if ('select' == context.scheme?.uibase) {
     if (intS(context.scheme)?.selectedScheme) {
-      const transform = intS(context.scheme)!.selectedScheme!.transform;
+      //      const transform = intS(context.scheme)!.selectedScheme!.transform;
       const subContext = {
         scheme: intS(context.scheme)!.selectedScheme,
         pcontext: context,
         value: iContext.fwdValue ? iContext.fwdValue : context.value,
-        editUpdate: () => {
-          context.value = transform?.backward ? transform.backward(subContext.value) : subContext.value;
-          context.editUpdate?.();
-        },
-        contextChange: context.contextChange
       }
       if (p == undefined) (context as IntContext).subContext = subContext;
       else {
         if ((context as IntContext).subContexts == undefined) (context as IntContext).subContexts = {};
         (context as IntContext).subContexts![p] = subContext;
       }
-      initSignalling(subContext);
+      initContext(subContext);
       return subContext;
     }
     else {
