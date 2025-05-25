@@ -164,6 +164,7 @@ export const initContext = (context: Context): void => {
   context.editUpdate = () => editUpdate(context);
   context.contextChange = context.contextChange;
 
+  initUserFunctions(context);
   initSignalling(context);
   iContext.init = true;
 }
