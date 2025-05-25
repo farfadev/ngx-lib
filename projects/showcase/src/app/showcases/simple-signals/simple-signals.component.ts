@@ -104,7 +104,7 @@ export class ShowcaseSimpleSignalsComponent {
             {
               signals: [this.simpleText],
               call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal, data?: any }) => {
-                context.value = signal.data;
+                context.setUIValue?.(signal.data);
               }
             }
           ]
@@ -116,7 +116,7 @@ export class ShowcaseSimpleSignalsComponent {
             {
               signals: [this.simpleNumber],
               call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal, data?: any }) => {
-                context.value = signal.data;
+                context.setUIValue?.(signal.data);
               }
             }
           ]
@@ -128,7 +128,7 @@ export class ShowcaseSimpleSignalsComponent {
             {
               signals: [this.simpleColor],
               call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal; data?: any }) => {
-                context.value = signal.data;
+                context.setUIValue?.(signal.data);
               }
             },
           ]
@@ -140,7 +140,7 @@ export class ShowcaseSimpleSignalsComponent {
             {
               signals: [this.simpleBoolean],
               call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal; data?: any }) => {
-                context.value = signal.data;
+                context.setUIValue?.(signal.data);
               }
             }
           ]

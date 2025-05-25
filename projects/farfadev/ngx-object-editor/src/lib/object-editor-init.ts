@@ -502,4 +502,10 @@ const initUserFunctions = (context: IntContext) => {
       }
     }
   }
+  context.setUIValue = (value: any) => {
+    setUIValue(context,value);
+  }
+  context.getUIValue = () => {
+    return getUIValue(context);
+  }
 }

@@ -193,6 +193,14 @@
     setDisplay?: (display: 'on'|'off',key: string|number) => void;
     /** set/ unset an optional element contained in an object as readonly */
     setReadOnly?: (readonly: boolean,key?: string|number) => void;
+    /**
+     * set value (after transform if any)
+     */
+    setUIValue?: (value: any) => void;
+    /**
+     * get value (after transform if any)
+     */
+    getUIValue?: () => any;
     /** 
      * set/ unset an optional element contained in an object as mandatory 
      */

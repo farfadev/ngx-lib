@@ -1,7 +1,7 @@
 @if(context) {
 <ng-template #select let-lcontext="lcontext">
   @if(isRadio(lcontext)) {
-    <fieldset>
+    <fieldset class="fieldset-select">
       <legend>{{ getSelectionLabel(lcontext) }}</legend>
       @for(p of getSelectionKeyLabels(lcontext);track p.key) {
       <div [style]="{ display: isHorizontal(lcontext) ? 'inline' : 'block' }">
@@ -21,27 +21,28 @@
       }
     </fieldset>
     } @else {
-    <fieldset>
+    <fieldset class="fieldset-select">
       <legend>{{ getSelectionLabel(lcontext) }}
       <select
         [(ngModel)]="selectionKey"
         [disabled]="isReadOnly(lcontext)"
         style="margin-bottom: 0.5em"
       >
-        <option disabled value="">select</option>
+        <option disabled [ngValue]="undefined">select</option>
         <option
           *ngFor="let o of getSelectionKeyLabels(lcontext)"
-          value="{{ o.key }}"
+          [ngValue]="o.key"
         >
           {{ o.label }}
         </option>
-      </select><label>{{selectionKey}}</label></legend>
+      </select></legend>
       @if(subContext) {
       <object-editor [debug]="debug" [context]="subContext"></object-editor>
       }
     </fieldset>
     }   
 </ng-template>
+
 <ng-template #preIcons let-lcontext="lcontext">
   <span>&nbsp;&nbsp;&nbsp;</span>
   @if(canReset(lcontext)) {

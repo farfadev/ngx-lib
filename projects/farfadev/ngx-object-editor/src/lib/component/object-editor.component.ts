@@ -51,10 +51,10 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // for the select uibase
   get selectionKey() {
-    return ObjectEditorInt.getSelectionKey(this.context) ?? "";
+    return ObjectEditorInt.getSelectionKey(this.context);
   };
 
-  set selectionKey(key: string) {
+  set selectionKey(key: string | undefined) {
     this.schemeSelect(this.context!, key);
   }
 
@@ -207,7 +207,7 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getSelectionLabel(context: ObjectEditor.Context) {
-    return ObjectEditorInt.getSelectionLabel(context) ?? 'select';
+    return ObjectEditorInt.getSelectionLabel(context) ?? '';
   }
 
   selectOnclick() {
