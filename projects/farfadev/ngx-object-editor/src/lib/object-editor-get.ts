@@ -1,5 +1,9 @@
-import { Context, intS, SelectionList, UIEffects } from "./object-editor-decl";
+import { Context, intS, SelectionList, UIBase, UIEffects } from "./object-editor-decl";
 import { isOptional } from "./object-editor-int";
+
+export const getUIBase = (context?: Context): UIBase | undefined => {
+  return context?.scheme?.uibase;
+}
 
 export const getSelectionKey = (context?: Context): string | undefined => {
   return intS(context?.scheme)?.selectedKey;
@@ -160,7 +164,7 @@ export const getProperties = (context: Context) => {
     context.value;
   const schemeKeys = Object.keys(context.scheme?.properties ?? {});
   for (const sp of schemeKeys) {
-    if ((value?.[sp] != undefined) || !isOptional(context, sp)) {
+    if ((typeof value == 'object' && value.hasOwnProperty(sp)) || !isOptional(context, sp)) {
       properties.push(sp);
     }
   }

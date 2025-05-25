@@ -40,7 +40,7 @@ export const isSchemeSelectionKey = (context?: Context, key?: string): boolean =
 export const isUptodate = (context?: Context): boolean => {
   if(context == undefined) return false;
   if (context.pcontext == undefined) return true;
-  if (context.key && (context.pcontext as IntContext).subContexts?.[context.key] === context)
+  if ((context.key != undefined) && (context.pcontext as IntContext).subContexts?.[context.key] === context)
     return true;
   return ((context.pcontext as IntContext).subContext == context);
 }

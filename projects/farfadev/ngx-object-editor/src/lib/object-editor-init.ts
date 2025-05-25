@@ -68,21 +68,50 @@ export const uidestroyed = (context: Context) => {
   }
 }
 
+export const getUIValue = (context: Context): any => {
+  let value;
+  const iContext = context as IntContext;
+  if(context.scheme?.transform != undefined) {
+    if(iContext.fwdValue != undefined) {
+      return iContext.fwdValue;
+    }
+    iContext.fwdValue = context.scheme.transform.forward(context.value);
+    return iContext.fwdValue;
+  }
+  else {
+    iContext.fwdValue = undefined;
+    return context.value;
+  }
+}
+
+export const setUIValue = (context: Context,newValue: any) => {
+  let value;
+  const iContext = context as IntContext;
+  if(context.scheme?.transform != undefined) {
+    context.scheme.transform.backward(newValue);
+    iContext.fwdValue = newValue;
+  }
+  else {
+    context.value = newValue;
+    iContext.fwdValue = undefined;
+  }
+}
+
 export const editUpdate = (subContext: Context) => {
   if (subContext.pcontext == undefined) return;
   const parentContext = subContext.pcontext;
   const iContext = (parentContext as IntContext);
   const transform = parentContext?.scheme?.transform;
   if (subContext.key !== undefined) {
-    if (subContext.value !== undefined) {
-      if (transform == undefined)
+//    if (subContext.value !== undefined) {
+      if (transform == undefined || subContext.value == undefined)
         parentContext.value[subContext.key] = subContext.value;
       else {
         iContext.fwdValue[subContext.key] = subContext.value;
         parentContext.value = transform?.backward(iContext.fwdValue);
       }
-    }
-    else if (isOptional(subContext)) {
+//    }
+/*    else if (isOptional(subContext)) {
       if (iContext.fwdValue == undefined) {
         delete parentContext.value[subContext.key];
       }
@@ -96,7 +125,7 @@ export const editUpdate = (subContext: Context) => {
         delete parentContext.scheme.properties[subContext.key];
       }
     }
-  }
+*/  }
   else if (iContext.scheme?.uibase == 'select') {
     if (subContext.value == undefined || transform == undefined)
       iContext.value = subContext.value;
@@ -134,8 +163,7 @@ export const initContext = (context: Context): void => {
 
   context.editUpdate = () => editUpdate(context);
   context.contextChange = context.contextChange;
-  context.onClick = () => {
-  }
+
   initSignalling(context);
   iContext.init = true;
 }
@@ -408,7 +436,7 @@ export const checkScheme = (value: any, scheme: Scheme, baseScheme: Scheme, sele
           let baseSubScheme = baseScheme.properties?.[p];
           if (baseSubScheme == undefined) {
             check(intS(subScheme)!.parentSelectedKey != undefined);
-            if (intS(subScheme)?.parentSelectedKey) {
+            if (intS(subScheme)?.parentSelectedKey != undefined) {
               check(isSchemeSelectionKey({ scheme }, intS(subScheme)!.parentSelectedKey));
               baseSubScheme = getSelectionList({ scheme: baseScheme })[intS(subScheme)?.parentSelectedKey!]
               check(intS(subScheme)!.ctime != undefined)

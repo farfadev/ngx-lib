@@ -1,4 +1,5 @@
 import * as ObjectEditor from "../object-editor";
+import { getUIValue, setUIValue } from "../object-editor-int";
 
 export class InputSocket {
   constructor(private inputElement: HTMLInputElement, private adjust: ObjectEditor.Adjust, private context: ObjectEditor.Context, private update: (context: any, err_msg: string) => void) {
@@ -30,11 +31,11 @@ export class InputSocket {
   }
   private updateValue() {
     if (this.adjust.adjust) {
-      const adjusted = this.adjust.adjust(this.context, String(this.context.value ?? ''));
+      const adjusted = this.adjust.adjust(this.context, String(getUIValue(this.context) ?? ''));
       this.inputElement.value = adjusted?.formattedValue ?? '';
     }
     else {
-      this.inputElement.value = String(this.context.value ?? '');
+      this.inputElement.value = String(getUIValue(this.context) ?? '');
     }
   }
   private _update(uiAdjust: boolean) {
@@ -42,18 +43,18 @@ export class InputSocket {
     let adjusted;
     if(this.adjust.adjust) {
       adjusted = this.adjust.adjust(this.context, this.inputElement.value, this.inputElement.selectionStart ?? 0);
-      this.context.value = adjusted?.adjustedValue;
+      setUIValue(this.context, adjusted?.adjustedValue);
     }
     else {
-      this.context.value = this.inputElement.value;
+      setUIValue(this.context, this.inputElement.value);
     }
     if (uiAdjust) { // adjust UI value when focus is lost
       if(this.adjust.adjust) {
-        const adjusted = this.adjust.adjust(this.context, this.context.value, this.inputElement.selectionStart ?? 0);
+        const adjusted = this.adjust.adjust(this.context, getUIValue(this.context), this.inputElement.selectionStart ?? 0);
         this.inputElement.value = adjusted?.formattedValue ?? '';
       }
       else {
-        this.inputElement.value = this.context.value;
+        this.inputElement.value = getUIValue(this.context);
       }
       cursorPosition = String(this.inputElement.value).length;
     }

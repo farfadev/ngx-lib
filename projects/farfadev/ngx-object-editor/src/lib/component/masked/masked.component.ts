@@ -98,7 +98,7 @@ export class OEMaskedComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   editUpdate() {
-    this.context!.value = this.value;
+    ObjectEditorInt.setUIValue(this.context!, this.value);
     this._context!.editUpdate?.();
   }
 
@@ -117,7 +117,7 @@ export class OEMaskedComponent implements OnInit, OnDestroy, AfterViewInit {
         };
         if (this.inputElement != undefined && this.mask == undefined) {
           this.mask = IMask(this.inputElement, options);
-          this.mask.value = this.context.value.toString();
+          this.mask.value = ObjectEditorInt.getUIValue(this.context).toString();
           this.mask.on('accept', () => {
             if (this.context !== undefined && this.mask !== undefined) {
               this.value = this.mask.unmaskedValue;

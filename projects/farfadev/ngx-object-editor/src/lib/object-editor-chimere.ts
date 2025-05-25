@@ -107,7 +107,7 @@ export const fromChimere = (chimere: Record<string | number, any>, refScheme: Sc
 const _fromChimere = (context: Context, chimere: Record<string | number, any>): void => {
   if (chimere['key'] != undefined) context.key = chimere['key'];
   if (chimere['value'] != undefined) context.value = chimere['value'];
-  if ((context.key) && (context.scheme == undefined)) context.scheme = context.pcontext?.scheme?.properties?.[context.key];
+  if ((context.key != undefined) && (context.scheme == undefined)) context.scheme = context.pcontext?.scheme?.properties?.[context.key];
   if ((intS(context.pcontext?.scheme)?.selectedScheme) && (context.scheme == undefined)) context.scheme = cloneDeep(intS(context.pcontext?.scheme)?.selectedScheme);
   if (chimere['scheme'] != undefined) {
     if ((context.scheme == undefined) && (chimere['scheme']['parentSelectedKey'] != undefined)) {

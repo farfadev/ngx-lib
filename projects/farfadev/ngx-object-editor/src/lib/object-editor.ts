@@ -1,8 +1,8 @@
 //import cloneDeep from "lodash.clonedeep";
 import { cloneDeep } from "lodash-es";
 import { Scheme, Context, SelectionList, UIEffects, IntContext, intS, Adjusted, Adjust } from "./object-editor-decl";
-import { isOptional, isSchemeSelectionKey } from "./object-editor-is";
-import { initContext, initSignalling, initValue } from "./object-editor-init";
+import { isArray, isOptional, isSchemeSelectionKey } from "./object-editor-is";
+import { getUIValue, initContext, initSignalling, initValue, setUIValue } from "./object-editor-init";
 import { getOptionalPropertyList, getSelectionKeys, getSelectionList } from "./object-editor-get";
 
 export type { Scheme, Context, SelectionList, UIEffects, Adjust, Adjusted };
@@ -16,6 +16,7 @@ export const setSelectedScheme = (context: Context, key: string, selectedScheme?
   else {
     intS(context.scheme)!.selectedScheme = selectedScheme;
   }
+  (context as IntContext).subContext = undefined;
 }
 
 export const select = (context: Context, key?: string): Context | undefined => {
@@ -157,7 +158,7 @@ export const canDeleteProperty = (context: Context): boolean => {
 }
 
 export const deleteProperty = (context: Context, key?: string | number) => {
-
+  const iparentContext = context.pcontext as IntContext;
   if (key != undefined) {
     const subContext = (context as IntContext).subContexts?.[key];
     if (subContext == undefined) return;
@@ -165,7 +166,13 @@ export const deleteProperty = (context: Context, key?: string | number) => {
   }
   if (context.pcontext?.scheme?.uibase === 'object') {
     if ((isOptional(context) || intS(context.scheme)?.deletable) && context.key !== undefined) {
-      delete context?.pcontext?.value[context.key];
+      if(iparentContext?.fwdValue) {
+        delete iparentContext?.fwdValue[context.key];
+        iparentContext.value = iparentContext.scheme?.transform?.backward(iparentContext.fwdValue);
+      }
+      else {
+        delete context?.pcontext?.value[context.key];
+      }
       context.value = undefined;
     }
     if (intS(context.scheme)?.deletable && context.key !== undefined) {
@@ -181,7 +188,13 @@ export const deleteProperty = (context: Context, key?: string | number) => {
   if (context.pcontext?.scheme?.uibase === 'array') {
     const nschemeP = context.pcontext.scheme.properties ?? {};
     const end = context.pcontext?.value.length - 1;
-    (context.pcontext?.value as any[]).splice(Number(context.key), 1);
+    if(iparentContext?.fwdValue) {
+      (iparentContext?.fwdValue as any[]).splice(Number(context.key), 1);
+      iparentContext.value = iparentContext.scheme?.transform?.backward(iparentContext.fwdValue);
+    }
+    else {
+      (context.pcontext?.value as any[]).splice(Number(context.key), 1);
+    }
     for (const i of Object.keys(context.pcontext.scheme.properties!)) {
       if ((Number(i) >= Number(context.key)) && (Number(i) < end)) {
         nschemeP[Number(i)] = context.pcontext.scheme.properties![Number(i) + 1];
@@ -191,6 +204,10 @@ export const deleteProperty = (context: Context, key?: string | number) => {
     context.value = undefined;
     context.scheme = undefined;
     delete nschemeP[end];
+  }
+  if(context.pcontext != undefined) {
+    (context.pcontext as IntContext).subContext = undefined;
+    (context.pcontext as IntContext).subContexts = undefined;
   }
   if (context.editUpdate) {
     context.editUpdate();
@@ -203,6 +220,13 @@ export const deleteProperty = (context: Context, key?: string | number) => {
 export const getSubContext = (context: Context, p?: string | number): Context | undefined => {
 
   const iContext = (context as IntContext);
+
+  if(p != undefined && (iContext.subContexts?.[p] != undefined)) {
+    return iContext.subContexts?.[p];
+  }
+  else if (iContext.subContext != undefined) {
+    return iContext.subContext;
+  }
 
   if (context.scheme?.uibase == 'none') return undefined;
 
@@ -246,3 +270,99 @@ export const getSubContext = (context: Context, p?: string | number): Context | 
   }
   return undefined;
 }
+
+const getNumber = (arg0: any): number => {
+  return Number(arg0);
+}
+
+
+export const canArrayItemUp = (context: Context) => {
+  return !(context?.pcontext == undefined
+    || !isArray(context?.pcontext)
+    || context?.key === undefined
+    || context.pcontext?.scheme?.properties === undefined)
+    && getNumber(context.key) > 0;
+}
+
+export const arrayItemUp = (context: Context) => {
+  const iContext = context as IntContext;
+  const iparentContext = context?.pcontext as IntContext;
+  if (context?.key === undefined ||
+    context.pcontext?.scheme?.properties === undefined) return;
+  const i = Number(context.key);
+  if ((i < 1) || (i >= context.pcontext.value.length)) return;
+
+  const value = getUIValue(iparentContext);
+  const v0 = value[i - 1];
+  const v1 = value[i];
+  value[i] = v0;
+  value[i - 1] = v1;
+  setUIValue(iparentContext,value);
+
+  const s0 = context.pcontext?.scheme?.properties?.[i - 1];
+  const s1 = context.pcontext?.scheme?.properties?.[i];
+  context.pcontext.scheme.properties[i] = s0;
+  context.pcontext.scheme.properties[i - 1] = s1;
+/*
+  const sc0 = (context.pcontext as IntContext).subContexts![i - 1];
+  const sc1 = (context.pcontext as IntContext).subContexts![i];
+  (context.pcontext as IntContext).subContexts![i - 1] = sc1!;
+  (context.pcontext as IntContext).subContexts![i] = sc0;
+
+  const key0 = sc0.key;
+  const key1 = sc1.key;
+  sc0.key = key1;
+  sc1.key = key0;
+*/
+  delete (context.pcontext as IntContext).subContexts![i];
+  delete (context.pcontext as IntContext).subContexts![i - 1];
+
+  context.pcontext?.editUpdate?.();
+  context.pcontext.contextChange?.(context.pcontext, { key: i - 1 });
+}
+
+export const canArrayItemDown = (context: Context) => {
+  const res = !(context?.pcontext == undefined
+    || !isArray(context?.pcontext)
+    || context?.key === undefined
+    || context.pcontext?.scheme?.properties === undefined)
+    && getNumber(context.key) < context.pcontext.value.length - 1;
+  return res;
+}
+
+export const arrayItemDown = (context: Context) => {
+  const iparentContext = context?.pcontext as IntContext;
+  if (context?.key === undefined ||
+    context.pcontext?.scheme?.properties === undefined) return;
+  const i = Number(context.key);
+  if ((i < 0) || (i >= context.pcontext.value.length - 1)) return;
+
+  const value = getUIValue(iparentContext);
+  const v0 = value[i];
+  const v1 = value[i + 1];
+  value[i + 1] = v0;
+  value[i] = v1;
+  setUIValue(iparentContext,value);
+
+  const s0 = context.pcontext?.scheme?.properties?.[i];
+  const s1 = context.pcontext?.scheme?.properties?.[i + 1];
+  context.pcontext.scheme.properties[i + 1] = s0;
+  context.pcontext.scheme.properties[i] = s1;
+/*
+  const sc0 = (context.pcontext as IntContext).subContexts![i];
+  const sc1 = (context.pcontext as IntContext).subContexts![i + 1];
+  (context.pcontext as IntContext).subContexts![i] = sc1;
+  (context.pcontext as IntContext).subContexts![i + 1] = sc0;
+
+  const key0 = sc0.key;
+  const key1 = sc1.key;
+  sc0.key = key1;
+  sc1.key = key0;
+*/
+    delete (context.pcontext as IntContext).subContexts![i];
+    delete (context.pcontext as IntContext).subContexts![i + 1];
+  context.pcontext?.editUpdate?.();
+  context.pcontext.contextChange?.(context.pcontext, { key: i + 1 });
+}
+
+

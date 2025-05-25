@@ -32,8 +32,8 @@ export class OEColorComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input()
   set context(context: ObjectEditor.Context) {
     this._context = context;
-    this._colorPick = getColorHex(context.value) ?? '#ffffff';
-    this._colorName = getColorName(context.value) ?? '';
+    this._colorPick = getColorHex(ObjectEditorInt.getUIValue(this.context!)) ?? '#ffffff';
+    this._colorName = getColorName(ObjectEditorInt.getUIValue(this.context!)) ?? '';
     this.initContext();
   }
 
@@ -45,7 +45,7 @@ export class OEColorComponent implements OnInit, OnDestroy, AfterViewInit {
   set colorPick(v: string) {
     this._colorPick = v;
     this._colorName = getColorName(v) ?? '';
-    this.context!.value = v;
+    ObjectEditorInt.setUIValue(this.context!,v);
   }
   get colorName() {
     return this._colorName;
@@ -53,7 +53,7 @@ export class OEColorComponent implements OnInit, OnDestroy, AfterViewInit {
   set colorName(v: string) {
     this._colorPick = getColorHex(v) ?? '0xffffff';
     this._colorName = v;
-    this.context!.value = this.colorPick;
+    ObjectEditorInt.setUIValue(this.context!,this.colorPick);
   }
 
   ui_id;
@@ -105,8 +105,8 @@ export class OEColorComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.context) return;
     const peditUpdate = this.context.editUpdate;
     this.context.editUpdate = (self?: boolean) => {
-      this._colorPick = getColorHex(this.context?.value) ?? '#ffffff';
-      this._colorName = getColorName(this.context?.value) ?? '';  
+      this._colorPick = getColorHex(ObjectEditorInt.getUIValue(this.context!)) ?? '#ffffff';
+      this._colorName = getColorName(ObjectEditorInt.getUIValue(this.context!)) ?? '';  
       peditUpdate?.(self);
     }
   }

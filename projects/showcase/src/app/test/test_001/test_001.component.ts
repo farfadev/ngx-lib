@@ -3,20 +3,10 @@ import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import * as ObjectEditor from '@farfadev/ngx-object-editor';
-import { ObjectEditorModule, adjustNumber, dmsMask } from "@farfadev/ngx-object-editor";
+import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
 import { FarfaSvgModule, FarfaSvgService } from '@farfadev/ngx-svg';
-import hljs from 'highlight.js/lib/core';
-import json from 'highlight.js/lib/languages/json';
-import 'highlight.js/styles/github.css';
-import { valueScheme } from './expression-scheme';
+import { valueScheme } from './schemes/expression/common-scheme';
 
-// https://github.com/nerdstep/react-coordinate-input/blob/master/README.md
-// https://imask.js.org/guide.html#getting-started
-
-type Coordinates = {
-  lat: number;
-  lon: number;
-}
 
 @Component({
   selector: 'app-test-001',
@@ -36,14 +26,6 @@ export class Test001Component implements OnInit, AfterViewInit {
   constructor(private svgService: FarfaSvgService) {
   }
 
-  value2scheme(uibase: ObjectEditor.UIBase, value: any, label?: string) {
-    const scheme: ObjectEditor.Scheme = { uibase: uibase, default: value, label, readonly: true };
-    return scheme;
-  }
-
-  /**
-   * keep a native version of the scheme
-   */
   test001Context = {
     scheme: valueScheme,
 //    value: ['let','toto',3,'titi','hello',['var','toto']]

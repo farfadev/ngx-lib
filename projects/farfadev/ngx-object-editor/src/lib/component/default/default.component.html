@@ -3,7 +3,7 @@
     [id]="getId()"
     [type]="getHtmlType(context)"
     [disabled]="isReadOnly(context)"
-    [(ngModel)]="context.value"
+    [(ngModel)]="value"
     (ngModelChange)="context.editUpdate?.()"
     [class]="getStyleClass(context)"
     [style]="getStyle(context)"

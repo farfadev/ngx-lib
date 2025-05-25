@@ -36,6 +36,15 @@ export class OEDefaultComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ui_id;
 
+    get value(): any {
+      return ObjectEditorInt.getUIValue(this.context!);
+    }
+  
+    set value(v: any) {
+      ObjectEditorInt.setUIValue(this.context!,v);
+    }
+  
+  
   constructor() {
     this.ui_id = window.crypto.randomUUID();
   }

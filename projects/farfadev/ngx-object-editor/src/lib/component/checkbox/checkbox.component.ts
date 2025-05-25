@@ -36,6 +36,14 @@ export class OECheckboxComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ui_id;
 
+  get value(): boolean {
+    return ObjectEditorInt.getUIValue(this.context!);
+  }
+
+  set value(v: boolean) {
+    ObjectEditorInt.setUIValue(this.context!,v);
+  }
+
   constructor() {
     this.ui_id = window.crypto.randomUUID();
   }

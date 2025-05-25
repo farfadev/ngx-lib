@@ -8,13 +8,10 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
-  ViewEncapsulation
 } from '@angular/core';
 
 import * as ObjectEditor from '../../object-editor';
 import * as ObjectEditorInt from '../../object-editor-int';
-
-import IMask, { InputMask } from 'imask';
 
 @Component({
   standalone: false,
@@ -131,15 +128,15 @@ export class OEFileComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   editUpdate() {
-    this.context!.value = this.files;
+    ObjectEditorInt.setUIValue(this.context!, this.files);
     this._context!.editUpdate?.();
   }
 
   initContext() {
     if (!this.context) return;
-    const keys = this.context.value != undefined ? Object.keys(this.context.value) : [];
+    const keys = ObjectEditorInt.getUIValue(this.context) != undefined ? Object.keys(ObjectEditorInt.getUIValue(this.context)) : [];
     for (const key of keys) {
-      this.files.push(this.context.value[key]);
+      this.files.push(ObjectEditorInt.getUIValue(this.context)[key]);
     }
   }
 

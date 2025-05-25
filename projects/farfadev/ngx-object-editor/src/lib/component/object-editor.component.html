@@ -1,16 +1,4 @@
 @if(context) {
-<ng-template #color let-lcontext="lcontext">
-  <input
-    [id]="ui_id + lcontext.key + 'e'"
-    type="color"
-    [disabled]="isReadOnly(lcontext)"
-    [(ngModel)]="lcontext.value"
-    (ngModelChange)="lcontext.editUpdate()"
-    [class]="getStyleClass(lcontext)"
-    [style]="getStyle(lcontext)"
-    (click)="onclick(lcontext, $event)"
-  />
-</ng-template>
 <ng-template #select let-lcontext="lcontext">
   @if(isRadio(lcontext)) {
     <fieldset>
@@ -24,7 +12,6 @@
           [value]="p.key"
           [disabled]="isReadOnly(lcontext)"
           [(ngModel)]="selectionKey"
-          (ngModelChange)="schemeSelect(lcontext, p.key)"
           (click)="selectOnclick()"
         />
         <label [for]="p.key">{{ p.label }}</label>
@@ -35,11 +22,10 @@
     </fieldset>
     } @else {
     <fieldset>
-      <legend>{{ getSelectionLabel(lcontext) }}</legend>
+      <legend>{{ getSelectionLabel(lcontext) }}
       <select
         [(ngModel)]="selectionKey"
         [disabled]="isReadOnly(lcontext)"
-        (ngModelChange)="schemeSelect(lcontext, selectionKey)"
         style="margin-bottom: 0.5em"
       >
         <option disabled value="">select</option>
@@ -47,9 +33,9 @@
           *ngFor="let o of getSelectionKeyLabels(lcontext)"
           value="{{ o.key }}"
         >
-          {{ o.label }}({{ o.key }})
+          {{ o.label }}
         </option>
-      </select>
+      </select><label>{{selectionKey}}</label></legend>
       @if(subContext) {
       <object-editor [debug]="debug" [context]="subContext"></object-editor>
       }
@@ -256,8 +242,7 @@
       type={{typeof context.value}} value={{
         getTextValue(context.value)
       }}
-      pValue={{getTextValue(context.key?context.pcontext?.value?.[context.key]:'')}}
-      editing={{ editing == context }}
+      pValue={{getTextValue(context.key != undefined ? context.pcontext?.value?.[context.key]:'')}}
     </p>
     }
   </span>

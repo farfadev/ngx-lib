@@ -18,12 +18,12 @@ type AdjustNumberOptions = {
 export const adjustNumber = (options: AdjustNumberOptions) => {
   return {
     adjust: ((context: ObjectEditor.Context, inputValue?: string, curPos?: number) => {
-    return _adjustNumber(inputValue??'', options, curPos);
-  }),
-  accept: ((context: ObjectEditor.Context, key: KeyboardEvent, inputValue: string, curPos: number) => {
-    return _accept(inputValue, key, curPos);
-  })
-};
+      return _adjustNumber(inputValue ?? '', options, curPos);
+    }),
+    accept: ((context: ObjectEditor.Context, key: KeyboardEvent, inputValue: string, curPos: number) => {
+      return _accept(inputValue, key, curPos);
+    })
+  };
 }
 
 const _adjustNumber = (value: string, options: AdjustNumberOptions, cursorPosition?: number): ObjectEditor.Adjusted | null => {
