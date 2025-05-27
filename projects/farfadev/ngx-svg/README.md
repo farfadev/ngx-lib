@@ -74,7 +74,7 @@ In the css stylesheet of the component,
 ```
 
 <h3>embed SVGs for single use</h3>
-If you need to reference the SVG only once, the svg can be directly embeded via the svg attribute of the [farfa-svg] directive
+If you need to reference the SVG only once, the svg can be directly embedded via the svg attribute of the [farfa-svg] directive
 
 ```html
 <!-- embed inline SVG -->
@@ -84,3 +84,16 @@ If you need to reference the SVG only once, the svg can be directly embeded via 
 <i class="myicon" [farfa-svg]="{svg: '/assets/mySvgFile.svg'}">
 
 ```
+
+<h3>passing some attributes</h3>
+If you need to override or set some attributes in the svg , you can use the attributes property of the [farfa-svg] directive
+
+
+```html
+<!-- set some svg attributes -->
+<i class="myicon" [farfa-svg]="{svg: '/assets/mySvgFile.svg', attributes: {stroke: 'red'}}">
+
+```
+
+
+

@@ -21,7 +21,7 @@ export class FarfaTooltipDirective implements OnInit {
     overlayY: 'top',
     offsetX: -8,
     offsetY: -8,
-    style: 'background-color: white; border: 1px solid black; padding: 1rem'
+    style: 'background-color: white; border: 1px solid black; padding: 1em'
   };
 
   constructor(private overlay: Overlay,

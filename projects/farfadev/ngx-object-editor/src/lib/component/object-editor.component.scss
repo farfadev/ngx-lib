@@ -26,9 +26,35 @@
   @extend .fieldset-main;
 }
 
-.pre-icons {
+.icons {
   display: inline-block;
+  &:hover {
+    background-color: lightgrey;
+    cursor: pointer;
+  }
+  &:active {
+    transform: scale(0.5);
+  }
+}
+
+.pre-icons > svg {
+  @extend .icons;
   width: 0.75em;
   height: 0.75em;
   margin-left: 0.5em;
 }
+
+.toggle-icon > svg {
+  @extend .icons;
+  display: inline-block;
+  height: 1em;
+  width: 1em;
+}
+
+.add-icon > svg {
+  @extend .icons;
+  display: inline-block;
+  height: 1em;
+  width: 1em;
+}
+

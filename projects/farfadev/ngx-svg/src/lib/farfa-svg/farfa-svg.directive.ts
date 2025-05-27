@@ -42,6 +42,30 @@ export class FarfaSvgDirective implements OnInit, OnDestroy {
         const attrValue = this.elementRef.nativeElement.getAttribute(attr);
         svgEl.setAttribute(attr, attrValue);
       }
+      const propAttr = this.properties?.['attributes'];
+      if (propAttr != undefined) {
+        for (const p of Object.keys(propAttr)) {
+          if(propAttr[p] != undefined) {
+            svgEl.setAttribute(p, propAttr[p]);
+          }
+          else {
+            svgEl.removeAttribute(p);
+          }
+        }
+      }
+      if (this.properties?.['rect'] != undefined) {
+        const viewBox = svgEl.getAttribute('viewBox')?.split(/\s+/g);
+        if (viewBox != null) {
+          const rect = document.createElementNS("http://www.w3.org/2000/svg", 'rect');
+          rect.setAttributeNS(null, 'x', viewBox[0]);
+          rect.setAttributeNS(null, 'y', viewBox[1]);
+          rect.setAttributeNS(null, 'width', String(Number(viewBox[2]) - Number(viewBox[0])));
+          rect.setAttributeNS(null, 'height', String(Number(viewBox[3]) - Number(viewBox[1])));
+          rect.setAttributeNS(null,'stroke-width','4');
+          rect.setAttributeNS(null,'fill','red');
+          svgEl.prepend(rect);
+        }
+      }
     }
 
     this.fixEmulatedEncapsulation();

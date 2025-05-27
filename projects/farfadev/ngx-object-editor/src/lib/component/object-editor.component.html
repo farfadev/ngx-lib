@@ -1,28 +1,29 @@
 @if(context) {
 <ng-template #select let-lcontext="lcontext">
   @if(isRadio(lcontext)) {
-    <fieldset class="fieldset-select">
-      <legend>{{ getSelectionLabel(lcontext) }}</legend>
-      @for(p of getSelectionKeyLabels(lcontext);track p.key) {
-      <div [style]="{ display: isHorizontal(lcontext) ? 'inline' : 'block' }">
-        <input
-          type="radio"
-          [id]="p.key"
-          [name]="context.key + 'radio'"
-          [value]="p.key"
-          [disabled]="isReadOnly(lcontext)"
-          [(ngModel)]="selectionKey"
-          (click)="selectOnclick()"
-        />
-        <label [for]="p.key">{{ p.label }}</label>
-      </div>
-      } @if(subContext) {
-      <object-editor [debug]="debug" [context]="subContext"></object-editor>
-      }
-    </fieldset>
-    } @else {
-    <fieldset class="fieldset-select">
-      <legend>{{ getSelectionLabel(lcontext) }}
+  <fieldset class="fieldset-select">
+    <legend>{{ getSelectionLabel(lcontext) }}</legend>
+    @for(p of getSelectionKeyLabels(lcontext);track p.key) {
+    <div [style]="{ display: isHorizontal(lcontext) ? 'inline' : 'block' }">
+      <input
+        type="radio"
+        [id]="p.key"
+        [name]="context.key + 'radio'"
+        [value]="p.key"
+        [disabled]="isReadOnly(lcontext)"
+        [(ngModel)]="selectionKey"
+        (click)="selectOnclick()"
+      />
+      <label [for]="p.key">{{ p.label }}</label>
+    </div>
+    } @if(subContext) {
+    <object-editor [debug]="debug" [context]="subContext"></object-editor>
+    }
+  </fieldset>
+  } @else {
+  <fieldset class="fieldset-select">
+    <legend>
+      {{ getSelectionLabel(lcontext) }}
       <select
         [(ngModel)]="selectionKey"
         [disabled]="isReadOnly(lcontext)"
@@ -35,12 +36,13 @@
         >
           {{ o.label }}
         </option>
-      </select></legend>
-      @if(subContext) {
-      <object-editor [debug]="debug" [context]="subContext"></object-editor>
-      }
-    </fieldset>
-    }   
+      </select>
+    </legend>
+    @if(subContext) {
+    <object-editor [debug]="debug" [context]="subContext"></object-editor>
+    }
+  </fieldset>
+  }
 </ng-template>
 
 <ng-template #preIcons let-lcontext="lcontext">
@@ -48,24 +50,56 @@
   @if(canReset(lcontext)) {
   <i
     [farfa-svg]="{ name: 'reset' }"
+    [farfa-tooltip]="{
+      html: '<div>reset</div>',
+      mode: 'hover',
+      originY: 'top',
+      offsetY: -10,
+      offsetX: 0,
+      style: 'font-size:0.75em;padding: 2px;border: none'
+    }"
     class="pre-icons"
     (click)="reset(lcontext)"
   ></i>
   } @if(canDelete(lcontext)) {
   <i
     [farfa-svg]="{ name: 'trash-2' }"
+    [farfa-tooltip]="{
+      html: '<div>delete</div>',
+      mode: 'hover',
+      originY: 'top',
+      offsetY: -10,
+      offsetX: 0,
+      style: 'font-size:0.75em;padding: 2px;border: none'
+    }"
     class="pre-icons"
     (click)="delete(lcontext)"
   ></i>
   } @if(canArrayItemUp(lcontext)) {
   <i
     [farfa-svg]="{ name: 'move-up' }"
+    [farfa-tooltip]="{
+      html: '<div>move-up</div>',
+      mode: 'hover',
+      originY: 'top',
+      offsetY: -10,
+      offsetX: 0,
+      style: 'font-size:0.75em;padding: 2px;border: none'
+    }"
     class="pre-icons"
     (click)="arrayItemUp(lcontext)"
   ></i>
   } @if(canArrayItemDown(lcontext)) {
   <i
     [farfa-svg]="{ name: 'move-down' }"
+    [farfa-tooltip]="{
+      html: '<div>move-down</div>',
+      mode: 'hover',
+      originY: 'top',
+      offsetY: -10,
+      offsetX: 0,
+      style: 'font-size:0.75em;padding: 2px;border: none'
+    }"
     class="pre-icons"
     (click)="arrayItemDown(lcontext)"
   ></i>
@@ -103,9 +137,11 @@
     } @else {
     <oe-number [context]="subContext" />
     }} @case('color') {
-      <oe-color [context]="subContext"></oe-color>
+    <oe-color [context]="subContext"></oe-color>
     } @case('select') {
-      <ng-container *ngTemplateOutlet="select; context: { lcontext: subContext }"></ng-container>
+    <ng-container
+      *ngTemplateOutlet="select; context: { lcontext: subContext }"
+    ></ng-container>
     } @case('none') {
     <!-- no display -->
     } @case('text') { @if(hasMask(subContext)) {
@@ -127,17 +163,33 @@
 @if(context.scheme?.uibase != 'none') {
 
 <fieldset class="fieldset-main">
-  <legend>
+  <legend style="align-content: center">
     @if(canToggle()) { @if(root_fieldset_expanded) {
     <i
       [farfa-svg]="{ name: 'circle-minus' }"
-      style="display: inline-block; height: 1em; width: 1em"
+      [farfa-tooltip]="{
+        html: '<div>toggle</div>',
+        mode: 'hover',
+        originY: 'top',
+        offsetY: -10,
+        offsetX: 0,
+        style: 'font-size:0.75em;padding: 2px;border: none'
+      }"
+      class="toggle-icon"
       (click)="root_fieldset_expanded = !root_fieldset_expanded"
     ></i>
     } @else {
     <i
       [farfa-svg]="{ name: 'circle-plus' }"
-      style="display: inline-block; height: 1em; width: 1em"
+      [farfa-tooltip]="{
+        html: '<div>toggle</div>',
+        mode: 'hover',
+        originY: 'top',
+        offsetY: -10,
+        offsetX: 0,
+        style: 'font-size:0.75em;padding: 2px;border: none'
+      }"
+      class="toggle-icon"
       (click)="root_fieldset_expanded = !root_fieldset_expanded"
     ></i>
     } }
@@ -168,10 +220,11 @@
         </option>
       </select>
     </fieldset>
-    } @if((isObject() || isArray()) && schemeOptions.length > 0  && !isReadOnly(context)) {
+    } @if((isObject() || isArray()) && schemeOptions.length > 0 &&
+    !isReadOnly(context)) {
     <fieldset class="fieldset-new">
       <legend>
-        {{ isObject() ? "add a new property" : "add a new item"}}
+        {{ isObject() ? "add a new property" : "add a new item" }}
       </legend>
       @if(isObject()) {
       <input
@@ -193,8 +246,15 @@
         </option>
       </select>
       <i
-        style="display: inline-block; height: 1em; width: 1em"
-        [farfa-tooltip]="{ html: 'click to add property' }"
+        class="add-icon"
+        [farfa-tooltip]="{
+          html: '<div>add property</div>',
+          mode: 'hover',
+          originY: 'top',
+          offsetY: -10,
+          offsetX: 0,
+          style: 'font-size:0.75em;padding: 2px;border: none'
+        }"
         [farfa-svg]="{ name: 'circle-plus' }"
         (click)="addProperty()"
         [style]="!canAddObjectProperty() ? 'display:none' : ''"
@@ -210,8 +270,15 @@
         </option>
       </select>
       <i
-        style="display: inline-block; height: 1em; width: 1em"
-        [farfa-tooltip]="{ html: 'click to add item' }"
+        class="add-icon"
+        [farfa-tooltip]="{
+          html: '<div>add item</div>',
+          mode: 'hover',
+          originY: 'top',
+          offsetY: -10,
+          offsetX: 0,
+          style: 'font-size:0.75em;padding: 2px;border: none'
+        }"
         [farfa-svg]="{ name: 'circle-plus' }"
         (click)="addProperty()"
         [style]="!canAddArrayElement() ? 'display:none' : ''"
