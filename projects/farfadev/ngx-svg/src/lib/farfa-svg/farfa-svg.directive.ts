@@ -61,8 +61,7 @@ export class FarfaSvgDirective implements OnInit, OnDestroy {
           rect.setAttributeNS(null, 'y', viewBox[1]);
           rect.setAttributeNS(null, 'width', String(Number(viewBox[2]) - Number(viewBox[0])));
           rect.setAttributeNS(null, 'height', String(Number(viewBox[3]) - Number(viewBox[1])));
-          rect.setAttributeNS(null,'stroke-width','4');
-          rect.setAttributeNS(null,'fill','red');
+          rect.setAttributeNS(null,'id',this.properties['rect']);
           svgEl.prepend(rect);
         }
       }

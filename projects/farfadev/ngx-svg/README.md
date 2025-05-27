@@ -86,7 +86,7 @@ If you need to reference the SVG only once, the svg can be directly embedded via
 ```
 
 <h3>passing some attributes</h3>
-If you need to override or set some attributes in the svg , you can use the attributes property of the [farfa-svg] directive
+If you need to override or set some attributes in the svg , you can use the <code>attributes</code> property of the [farfa-svg] directive
 
 
 ```html
@@ -95,5 +95,12 @@ If you need to override or set some attributes in the svg , you can use the attr
 
 ```
 
+<h3>set a background rectangle</h3>
+if you need to set a background rectangle on the svg viewBox, you can use the <code>rect</code> property. The vaalue of the <code>rect</code> property will be the id of the viewBox rectangle. You can then style this viewBox rectangle by its id via CSS.
 
+```html
+<!-- set a background rectangle in the svg -->
+<i class="myicon" [farfa-svg]="{svg: '/assets/mySvgFile.svg', rect: 'rectid'}">
+
+```
 

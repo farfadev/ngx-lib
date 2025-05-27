@@ -18,6 +18,14 @@ export class ShowcaseIconsTooltipComponent implements OnInit {
   constructor(private svgService: FarfaSvgService) {
   }
 
+  invertRotation(event: Event) {
+    let element: HTMLElement | null = event.currentTarget as HTMLElement | null;
+    if (!element) return;
+    let rotate = element.getAttribute('rotate');
+    rotate = rotate == 'clockwise' ? 'anti-clockwise' : 'clockwise';
+    element.setAttribute('rotate',rotate);
+  }
+
   nextState(event: Event) {
     let element: HTMLElement | null = event.currentTarget as HTMLElement | null;
     if (!element) return;
@@ -87,10 +95,10 @@ export class ShowcaseIconsTooltipComponent implements OnInit {
     this.testicon = { name: 'microphone' };
     setInterval(() => {
       if (i1) {
-        this.testicon = { name: 'world-losange' };
+        this.testicon = { name: 'world-losange'};
       }
       else {
-        this.testicon = { name: 'microphone' };
+        this.testicon = { name: 'microphone'} ;
       }
       i1 = !i1;
     }, 4000);

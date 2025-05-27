@@ -1,20 +1,39 @@
 //--------- TEST ICON ----------------------
 .test-icon {
   display: inline-block;
+  :active {
+    scale: 0.5;
+  }
+  &[rotate='clockwise'] {
+    animation: test-icon-KF-CW 3.5s infinite linear
+  }
+  &[rotate='anti-clockwise'] {
+    animation: test-icon-KF-ACW 3.5s infinite linear
+  }
 }
 
 .test-icon svg {
   height: 4em;
   width: 4em;
-  animation: test-icon-KF 3.5s infinite linear
 }
 
-@keyframes test-icon-KF {
+// clockwise rotation
+@keyframes test-icon-KF-CW {
     0% {
         transform: rotate(0deg);
     };
     100% {
         transform: rotate(360deg);
+    } 
+}
+
+// anti clockwise rotation
+@keyframes test-icon-KF-ACW {
+    0% {
+        transform: rotate(360deg);
+    };
+    100% {
+        transform: rotate(0deg);
     } 
 }
 

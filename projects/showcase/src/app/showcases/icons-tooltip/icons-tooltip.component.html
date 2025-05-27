@@ -30,12 +30,14 @@
 </div>
 <div style="border: solid 1px black">
   <p style="width: 15em;font-size: small;">
-    Display an icon which is changed by the application at regular intervals by
-    changing the reference name, and with a tooltip
+    Display a rotating icon which is changed by the application at regular intervals by
+    changing the reference name, and with a tooltip. Click on the icon to inverse rotation.
   </p>
   <i
     class="test-icon"
     [farfa-svg]="testicon"
+    rotate="clockwise"
+    (click)="invertRotation($event)"
     [farfa-tooltip]="{
       html: '<div><span style=\'color:white;\'>GOOD DAY</span></div>',
       mode: 'hover',
