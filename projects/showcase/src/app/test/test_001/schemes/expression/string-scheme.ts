@@ -1,6 +1,6 @@
 import * as ObjectEditor from "@farfadev/ngx-object-editor";
-import { arrayScheme, booleanScheme, numberScheme, objectScheme, stringScheme, valueScheme } from "./common-scheme";
 import { expressionScheme } from "./expression-scheme";
+import { stringScheme } from "./common-scheme";
 
 type _string = {
   operator: 'string',

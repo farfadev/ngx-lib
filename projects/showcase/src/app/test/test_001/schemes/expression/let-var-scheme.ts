@@ -5,7 +5,7 @@ import { valueScheme } from "./common-scheme";
 
 type _let = {
   operator: 'let',
-  namedValues: {name: string, value: any}[],
+  namedValues: { name: string, value: any }[],
   expression: Expression;
 }
 
@@ -25,26 +25,26 @@ export const expLetScheme: ObjectEditor.Scheme = {
             name: {
               uibase: 'text'
             },
-            value: valueScheme
+            value: () => valueScheme
           }
         }
       }
     },
-    expression: expressionScheme
+    expression: () => expressionScheme
   },
-  default: ['let','placeholder',0,undefined],
+  default: ['let', 'placeholder', 0, undefined],
   transform: {
     forward: (t: any[]): _let => {
-      if (t[0] != 'let') throw ('Invalid let expression' + JSON.stringify(t))
+      if (typeof t != 'object' || t[0] != 'let') throw ('Invalid let expression' + JSON.stringify(t))
       if (t.length < 4) throw ('Invalid let expression, shall have minimum of three operande' + JSON.stringify(t))
       if (t.length % 2 != 0) throw ('Invalid let expression' + JSON.stringify(t))
       return {
         operator: 'let',
         namedValues: (() => {
-          const res: Array<{name: string,value: any}> = [];
-          for (let i = 1; i < t.length - 2; i+=2) {
+          const res: Array<{ name: string, value: any }> = [];
+          for (let i = 1; i < t.length - 2; i += 2) {
             if (typeof t[i] == "string") {
-              res.push({name: t[i],value: t[i + 1]});
+              res.push({ name: t[i], value: t[i + 1] });
             }
             else {
               throw ('Invalid let expression, operande at position ' + i + 1 + ' shall be a string ' + 'Invalid let expression' + JSON.stringify(t))
@@ -60,9 +60,9 @@ export const expLetScheme: ObjectEditor.Scheme = {
     backward: (u: _let): any[] => {
       const res: any[] = [u.operator];
       for (let i = 0; i < u.namedValues.length; i++) {
-        if(u.namedValues[i]?.name != undefined) {
-        res.push(u.namedValues[i].name);
-        res.push(u.namedValues[i].value);
+        if (u.namedValues[i]?.name != undefined) {
+          res.push(u.namedValues[i].name);
+          res.push(u.namedValues[i].value);
         }
       }
       res.push(u.expression);
@@ -86,7 +86,7 @@ export const expVarScheme: ObjectEditor.Scheme = {
       uibase: 'text'
     }
   },
-  default: ['var','placeholder'],
+  default: ['var', 'placeholder'],
   transform: {
     forward: (t: any[]): _var => {
       if (t[0] != 'var') throw ('Invalid var expression ' + JSON.stringify(t))
@@ -98,7 +98,7 @@ export const expVarScheme: ObjectEditor.Scheme = {
       }
     },
     backward: (u: _var) => {
-      return [u.operator,u.name];
+      return [u.operator, u.name];
     }
   }
 }

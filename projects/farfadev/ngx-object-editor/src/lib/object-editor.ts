@@ -3,7 +3,7 @@ import { cloneDeep } from "lodash-es";
 import { Scheme, Context, SelectionList, UIEffects, IntContext, intS, Adjusted, Adjust } from "./object-editor-decl";
 import { isArray, isOptional, isSchemeSelectionKey } from "./object-editor-is";
 import { getUIValue, initContext, initSignalling, initValue, setUIValue } from "./object-editor-init";
-import { getOptionalPropertyList, getSelectionKeys, getSelectionList } from "./object-editor-get";
+import { getOptionalPropertyList, getPropertyScheme, getRunScheme, getSelectionKeys, getSelectionList } from "./object-editor-get";
 
 export type { Scheme, Context, SelectionList, UIEffects, Adjust, Adjusted };
 
@@ -11,7 +11,7 @@ export const setSelectedScheme = (context: Context, key: string, selectedScheme?
   intS(context.scheme)!.selectedKey = key;
   if (selectedScheme == undefined) {
     const v = getSelectionList(context)?.[key!];
-    intS(context.scheme)!.selectedScheme = cloneDeep(v);
+    intS(context.scheme)!.selectedScheme = getRunScheme(v);
   }
   else {
     intS(context.scheme)!.selectedScheme = selectedScheme;
@@ -44,7 +44,7 @@ export const setPropertyScheme = (context: Context, property: string | number, s
   }
   if (isSchemeSelectionKey(context, schemeKey)) {
     context.scheme!.properties[property] = (scheme == undefined) ?
-      cloneDeep(getSelectionList(context)[schemeKey]) as Scheme :
+      getRunScheme(getSelectionList(context)[schemeKey]) as Scheme :
       scheme;
     intS(context.scheme!.properties[property])!.parentSelectedKey = schemeKey;
     intS(context.scheme!.properties[property])!.optional = true;
@@ -68,7 +68,7 @@ const editUpdate = (context: Context) => {
     if (!context.pcontext.scheme) context.pcontext.scheme = { uibase: 'object', properties: {} };
     context.pcontext.value[context.key] = convert(
       context.pcontext.value[context.key],
-      context.pcontext.scheme.properties![context.key]
+      getPropertyScheme(context.pcontext.scheme,context.key) || {uibase: 'none'}
     );
     context.editUpdate();
   }
@@ -104,7 +104,7 @@ export const addProperty = (context: Context, newProperty: { property: string | 
         context.value[newProperty.property] =
           initValue({
             value: undefined,
-            scheme: context.scheme.properties?.[newProperty.property]
+            scheme: getPropertyScheme(context.scheme,newProperty.property)
           })
       }
         break;
@@ -112,7 +112,7 @@ export const addProperty = (context: Context, newProperty: { property: string | 
         context.value.splice(newProperty.property, 0,
           initValue({
             value: undefined,
-            scheme: context.scheme.properties?.[newProperty.property]
+            scheme: getPropertyScheme(context.scheme,newProperty.property)
           }));
       }
         break;
@@ -235,7 +235,7 @@ export const getSubContext = (context: Context, p?: string | number): Context | 
       return undefined;
     }
     const subContext = {
-      scheme: context.scheme?.properties?.[p],
+      scheme: getPropertyScheme(context.scheme,p),
       value: iContext.fwdValue ? iContext.fwdValue[p] : context.value[p],
       pcontext: context,
       key: p,

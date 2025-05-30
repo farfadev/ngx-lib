@@ -1,4 +1,5 @@
-import { Context, intS, SelectionList, UIBase, UIEffects } from "./object-editor-decl";
+import { cloneDeep } from "lodash-es";
+import { Context, intS, Scheme, SelectionList, UIBase, UIEffects } from "./object-editor-decl";
 import { isOptional } from "./object-editor-int";
 
 export const getUIBase = (context?: Context): UIBase | undefined => {
@@ -110,8 +111,22 @@ export const getDescription = (context: Context): string | undefined => {
   }
 }
 
+export const getRunScheme = (scheme?: Scheme|(()=>Scheme)) => {
+  if(typeof scheme == 'function') scheme = scheme();
+  if(!intS(scheme)?.cloned) {
+    scheme = cloneDeep(scheme);
+    if(typeof scheme == 'object') intS(scheme)!.cloned = true;
+  }
+  return scheme;
+}
+
+export const getPropertyScheme = (scheme?: Scheme, key?: number|string): Scheme|undefined => {
+  if((scheme == undefined)||(key==undefined)) return undefined;
+  return getRunScheme(scheme.properties?.[key]);
+}
+
 export const getOptional = (context: Context, key?: string | number): boolean | 'signal' | undefined => {
-  const scheme = key == undefined ? context.scheme : context.scheme?.properties?.[key];
+  const scheme = (key == undefined)||(context.scheme == undefined) ? context.scheme : getPropertyScheme(context.scheme,key);
   if (typeof scheme?.optional == 'function') {
     return scheme.optional(context);
   }
@@ -143,7 +158,7 @@ export const getOptionalPropertyList = (context: Context, mode?: 'ui'): string[]
 export const getSelectionList = (context?: Context, p?: string | number): SelectionList<any, any> => {
   if (!context?.scheme) return {};
   const selList = p ?
-    context.scheme.properties?.[p].selectionList :
+    getPropertyScheme(context.scheme,p)?.selectionList :
     context.scheme.selectionList;
 
   return (typeof selList == 'function' ?
@@ -169,8 +184,8 @@ export const getProperties = (context: Context) => {
     }
   }
   properties = (context.scheme?.uibase === 'object') ? properties.sort((a, b) => {
-    const a_ct = intS(context.scheme?.properties?.[a])?.ctime ?? 0;
-    const b_ct = intS(context.scheme?.properties?.[b])?.ctime ?? 0;
+    const a_ct = intS(getPropertyScheme(context.scheme,a))?.ctime ?? 0;
+    const b_ct = intS(getPropertyScheme(context.scheme,b))?.ctime ?? 0;
     if (a_ct == b_ct) {
       if ((typeof a == 'string') && (typeof b == 'string'))
         return schemeKeys.indexOf(a) - schemeKeys.indexOf(b);

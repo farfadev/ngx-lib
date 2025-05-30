@@ -79,11 +79,13 @@ export const arrayScheme: ObjectEditor.Scheme = {
 
 export const valueScheme: ObjectEditor.Scheme = {
     uibase: 'select',
-    selectionList: {
-        'number': numberScheme,
-        'string': stringScheme,
-        'boolean': booleanScheme,
-        'expression': expressionScheme
+    selectionList: (context: ObjectEditor.Context) => {
+        return {
+            'number': numberScheme,
+            'string': stringScheme,
+            'boolean': booleanScheme,
+            'expression': expressionScheme
+        }
     },
     detectScheme: (context: ObjectEditor.Context) => {
         if (context.value == undefined || context.value == null) return undefined;

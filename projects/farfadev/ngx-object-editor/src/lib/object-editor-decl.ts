@@ -111,7 +111,7 @@
     /** an html <article> that helps frontend user to understand/ set the value */
     description?: string | ((context: Context) => string);
     /** //TODO a call-back to set the Scheme dynamically depending on a runtime context */
-    dynamic?: (context?: Context) => Scheme<ValueType, FwdValueType>;
+    dynamic?: (context: Context) => Scheme<ValueType, FwdValueType>;
     /** array of signals fired when value changes*/
     fireSignals?: (context: Context) => {signal: Signal; data?: any} [],
     onSignals?: {signals: Signal[]; call: (context: Context, source: Context, signal: {signal: Signal; data?: any}) => void}[];
@@ -169,7 +169,7 @@
     detectScheme?: (context: Context, value: any) => string | undefined;
 
     /** for object/array provides the schemes corresponding to the value properties */
-    properties?: { [key: number | string]: Scheme }
+    properties?: { [key: number | string]: Scheme | (() => Scheme)}
   }
   export interface Context {
     /** the value which is edited */
@@ -231,6 +231,9 @@ export interface IntScheme<ValueType = any, FwdValueType = any> extends Scheme<V
 
   /** holds the scheme selection key from the parent object/array scheme selection list */
   parentSelectedKey?: string;
+
+  /**cloned */
+  cloned?: true;
 }
 
 export const intS = (scheme: Scheme | undefined): IntScheme | undefined => {

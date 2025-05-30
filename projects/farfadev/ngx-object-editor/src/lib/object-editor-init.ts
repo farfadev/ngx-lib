@@ -1,6 +1,6 @@
 import { cloneDeep, isEqual, isMatch } from "lodash-es";
 import { Context, intS, Scheme, IntScheme, Signal, IntContext } from "./object-editor-decl";
-import { getLabel, getOptional, getSelectionList } from './object-editor-get';
+import { getOptional, getPropertyScheme, getRunScheme, getSelectionList } from './object-editor-get';
 import { addProperty, deleteProperty, select, setPropertyScheme, setSelectedScheme } from "./object-editor"
 import { FarfaOEValueCheck } from "./utils/verifyvalues";
 import { isOptional, isSchemeSelectionKey, isUptodate } from "./object-editor-is";
@@ -144,14 +144,14 @@ export const initContext = (context: Context): void => {
 
   const dynamic = context.scheme?.dynamic;
   if (typeof dynamic == 'function') {
-    context.scheme = cloneDeep(dynamic(context));
+    context.scheme = getRunScheme(dynamic(context));
   }
 
   if (!context.pcontext && iContext.init != true) {
     if (!context.scheme) {
       context.scheme = { uibase: 'object' };
     }
-    context.scheme = cloneDeep(context.scheme);
+    context.scheme = getRunScheme(context.scheme);
     const result = initScheme(context);
     context.value = initValue(context);
   }
@@ -186,8 +186,8 @@ export const initValue = (context: Context): any => {
       if (value == undefined) value = {};
       const keys = Object.keys(scheme?.properties ?? {});
       for (const key of keys) {
-        if (!(isOptional({ scheme, value }, key) && scheme.properties?.[key])) {
-          value![key] = initValue({ value: value[key], scheme: scheme.properties?.[key] });
+        if (!(isOptional({ scheme, value }, key) && getPropertyScheme(scheme,key))) {
+          value![key] = initValue({ value: value[key], scheme: getPropertyScheme(scheme,key) });
         }
       }
       break;
@@ -197,7 +197,7 @@ export const initValue = (context: Context): any => {
         throw Error('Invalid value type, expecting Array');
       }
       for (let i = 0; i < value.length; i++) {
-        value[i] = initValue({ value: value[i], scheme: scheme.properties?.[i] })
+        value[i] = initValue({ value: value[i], scheme: getPropertyScheme(scheme,i) })
       }
       if (scheme.length?.min != undefined) {
         let lastKey;
@@ -206,8 +206,8 @@ export const initValue = (context: Context): any => {
           if (scheme.properties?.[i]) {
             lastKey = i;
           }
-          if (lastKey && i > value.length && scheme.properties?.[lastKey])
-            value.push(initValue({ value: value[i], scheme: scheme.properties?.[lastKey] }));
+          if (lastKey && i > value.length && getPropertyScheme(scheme,lastKey))
+            value.push(initValue({ value: value[i], scheme: getPropertyScheme(scheme,lastKey) }));
         }
       }
       break;
@@ -302,7 +302,7 @@ const initScheme = (context: Context): number => {
         let pmatch = 0;
         if (context.scheme.properties?.[p] != undefined) {
           const subContext = {
-            scheme: context.scheme.properties?.[p],
+            scheme: getPropertyScheme(context.scheme,p),
             pcontext: context,
             value: value[p],
             key: p
@@ -314,7 +314,7 @@ const initScheme = (context: Context): number => {
             const selKey = context.scheme.detectScheme(context, value);
             if (selKey != undefined && Object.keys(selectionList).includes(selKey)) {
               const subContext = {
-                scheme: cloneDeep(selectionList[selKey]),
+                scheme: getRunScheme(selectionList[selKey]),
                 pcontext: context,
                 value: value[p],
                 key: p
@@ -329,7 +329,7 @@ const initScheme = (context: Context): number => {
           if (pmatch == 0) {
             for (const selKey of Object.keys(selectionList)) {
               const subContext = {
-                scheme: cloneDeep(selectionList[selKey]),
+                scheme: getRunScheme(selectionList[selKey]),
                 pcontext: context,
                 value: value[p],
                 key: p
@@ -353,7 +353,7 @@ const initScheme = (context: Context): number => {
           const selKey = context.scheme.detectScheme(context, value);
           if (selKey != undefined && Object.keys(selectionList).includes(selKey)) {
             const subContext = {
-              scheme: cloneDeep(selectionList[selKey]),
+              scheme: getRunScheme(selectionList[selKey]),
               pcontext: context,
               value
             }
@@ -368,7 +368,7 @@ const initScheme = (context: Context): number => {
         if (match == 0) {
           for (const selKey of Object.keys(selectionList)) {
             const subContext = {
-              scheme: cloneDeep(selectionList[selKey]),
+              scheme: getRunScheme(selectionList[selKey]),
               pcontext: context,
               value: value
             }
@@ -432,9 +432,9 @@ export const checkScheme = (value: any, scheme: Scheme, baseScheme: Scheme, sele
       case 'object':
       case 'array':
         for (const p of Object.keys(value)) {
-          const subScheme = scheme.properties?.[p];
+          const subScheme = getPropertyScheme(scheme,p);
           check(subScheme != undefined);
-          let baseSubScheme = baseScheme.properties?.[p];
+          let baseSubScheme = getPropertyScheme(baseScheme,p);
           if (baseSubScheme == undefined) {
             check(intS(subScheme)!.parentSelectedKey != undefined);
             if (intS(subScheme)?.parentSelectedKey != undefined) {

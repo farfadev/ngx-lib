@@ -122,7 +122,7 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
     const keyLabelList: KeyLabel[] = [];
     const keyList = ObjectEditorInt.getOptionalPropertyList(this.context, 'ui');
     for (const key of keyList) {
-      keyLabelList.push({ key, label: this.context.scheme?.properties?.[key]?.label ?? key });
+      keyLabelList.push({ key, label: ObjectEditorInt.getPropertyScheme(this.context.scheme,key)?.label ?? key });
     }
     return keyLabelList;
   }
@@ -131,9 +131,9 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   optionalPropertySet() {
     const s = this.optionalPropertySel;
-    if (s && this.context?.scheme?.properties?.[s]) {
+    if (s && ObjectEditorInt.getPropertyScheme(this.context?.scheme,s)) {
       this.newProperty.property = s;
-      this.newProperty.schemeKey = this.context.scheme?.properties[s].uibase ?? "";
+      this.newProperty.schemeKey = ObjectEditorInt.getPropertyScheme(this.context?.scheme,s)?.uibase ?? "";
       this.addProperty();
       this.newProperty.property = '';
       this.newProperty.schemeKey = '';

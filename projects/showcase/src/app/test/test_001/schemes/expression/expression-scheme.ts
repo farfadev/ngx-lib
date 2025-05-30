@@ -1,6 +1,6 @@
 
 import * as ObjectEditor from "@farfadev/ngx-object-editor";
-import { operators, value } from "./common-scheme";
+import { value } from "./common-scheme";
 import { expLetScheme, expVarScheme } from "./let-var-scheme";
 import { expLiteralScheme } from "./literal-scheme";
 import { expArrayScheme } from "./array-scheme";

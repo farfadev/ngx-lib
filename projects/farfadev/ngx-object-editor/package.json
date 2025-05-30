@@ -1,6 +1,6 @@
 {
   "name": "@farfadev/ngx-object-editor",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "description": "An angular component to edit typecript/ javascript objects",
   "author": "farfadev",
   "repository": {
