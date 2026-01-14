@@ -1,6 +1,6 @@
 {
   "name": "@farfadev/ngx-a-tooltip",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "An angular directive to popup a tooltip on mouse hover/ click",
   "author": "farfadev",
   "repository": {
@@ -18,9 +18,9 @@
   "license": "MIT",
   "private": false,
   "peerDependencies": {
-    "@angular/common": "^19.1.0",
-    "@angular/core": "^19.1.0",
-    "@angular/cdk": "^19.1.0"
+    "@angular/common": ">=19.1.0",
+    "@angular/core": ">=19.1.0",
+    "@angular/cdk": ">=19.1.0"
   },
   "dependencies": {
     "tslib": "^2.3.0"

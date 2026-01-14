@@ -1,6 +1,6 @@
 {
   "name": "@farfadev/ngx-svg",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "An angular directive and service to load and embed svg (such as svg icons) in Angular app",
   "author": "farfadev",
   "repository": {
@@ -19,8 +19,8 @@
   "license": "MIT",
   "private": false,
   "peerDependencies": {
-    "@angular/common": "^19.2.0",
-    "@angular/core": "^19.2.0"
+    "@angular/common": ">=19.2.0",
+    "@angular/core": ">=19.2.0"
   },
   "dependencies": {
     "tslib": "^2.3.0"
