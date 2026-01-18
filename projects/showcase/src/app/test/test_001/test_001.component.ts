@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, Inject, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import * as ObjectEditor from '@farfadev/ngx-object-editor';
@@ -23,12 +23,12 @@ export class Test001Component implements OnInit, AfterViewInit {
 
   chimereHL: string = '';
 
-  constructor(private svgService: FarfaSvgService) {
+  constructor(@Inject(FarfaSvgService) private svgService: FarfaSvgService) {
   }
 
   test001Context = {
     scheme: valueScheme,
-//    value: ['let','toto',3,'titi','hello',['var','toto']]
+    value: ['let','toto',3,'titi','hello',['var','toto']]
   };
 
   ngOnInit() {

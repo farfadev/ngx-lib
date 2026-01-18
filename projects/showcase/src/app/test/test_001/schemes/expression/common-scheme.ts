@@ -84,7 +84,8 @@ export const valueScheme: ObjectEditor.Scheme = {
             'number': numberScheme,
             'string': stringScheme,
             'boolean': booleanScheme,
-            'expression': expressionScheme
+            'expression': expressionScheme,
+            'object': objectScheme,
         }
     },
     detectScheme: (context: ObjectEditor.Context) => {

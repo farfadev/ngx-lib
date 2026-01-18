@@ -71,8 +71,8 @@ export const uidestroyed = (context: Context) => {
 export const getUIValue = (context: Context): any => {
   let value;
   const iContext = context as IntContext;
-  if(context.scheme?.transform != undefined) {
-    if(iContext.fwdValue != undefined) {
+  if (context.scheme?.transform != undefined) {
+    if (iContext.fwdValue != undefined) {
       return iContext.fwdValue;
     }
     iContext.fwdValue = context.scheme.transform.forward(context.value);
@@ -84,10 +84,10 @@ export const getUIValue = (context: Context): any => {
   }
 }
 
-export const setUIValue = (context: Context,newValue: any) => {
+export const setUIValue = (context: Context, newValue: any) => {
   let value;
   const iContext = context as IntContext;
-  if(context.scheme?.transform != undefined) {
+  if (context.scheme?.transform != undefined) {
     context.scheme.transform.backward(newValue);
     iContext.fwdValue = newValue;
   }
@@ -103,13 +103,13 @@ export const editUpdate = (subContext: Context) => {
   const iContext = (parentContext as IntContext);
   const transform = parentContext?.scheme?.transform;
   if (subContext.key !== undefined) {
-//    if (subContext.value !== undefined) {
-      if (transform == undefined || subContext.value == undefined)
-        parentContext.value[subContext.key] = subContext.value;
-      else {
-        iContext.fwdValue[subContext.key] = subContext.value;
-        parentContext.value = transform?.backward(iContext.fwdValue);
-      }
+    //    if (subContext.value !== undefined) {
+    if (transform == undefined || subContext.value == undefined)
+      parentContext.value[subContext.key] = subContext.value;
+    else {
+      iContext.fwdValue[subContext.key] = subContext.value;
+      parentContext.value = transform?.backward(iContext.fwdValue);
+    }
 //    }
 /*    else if (isOptional(subContext)) {
       if (iContext.fwdValue == undefined) {
@@ -186,8 +186,8 @@ export const initValue = (context: Context): any => {
       if (value == undefined) value = {};
       const keys = Object.keys(scheme?.properties ?? {});
       for (const key of keys) {
-        if (!(isOptional({ scheme, value }, key) && getPropertyScheme(scheme,key))) {
-          value![key] = initValue({ value: value[key], scheme: getPropertyScheme(scheme,key) });
+        if (!(isOptional({ scheme, value }, key) && getPropertyScheme(scheme, key))) {
+          value![key] = initValue({ value: value[key], scheme: getPropertyScheme(scheme, key) });
         }
       }
       break;
@@ -197,7 +197,7 @@ export const initValue = (context: Context): any => {
         throw Error('Invalid value type, expecting Array');
       }
       for (let i = 0; i < value.length; i++) {
-        value[i] = initValue({ value: value[i], scheme: getPropertyScheme(scheme,i) })
+        value[i] = initValue({ value: value[i], scheme: getPropertyScheme(scheme, i) })
       }
       if (scheme.length?.min != undefined) {
         let lastKey;
@@ -206,8 +206,8 @@ export const initValue = (context: Context): any => {
           if (scheme.properties?.[i]) {
             lastKey = i;
           }
-          if (lastKey && i > value.length && getPropertyScheme(scheme,lastKey))
-            value.push(initValue({ value: value[i], scheme: getPropertyScheme(scheme,lastKey) }));
+          if (lastKey && i > value.length && getPropertyScheme(scheme, lastKey))
+            value.push(initValue({ value: value[i], scheme: getPropertyScheme(scheme, lastKey) }));
         }
       }
       break;
@@ -302,12 +302,15 @@ const initScheme = (context: Context): number => {
         let pmatch = 0;
         if (context.scheme.properties?.[p] != undefined) {
           const subContext = {
-            scheme: getPropertyScheme(context.scheme,p),
+            scheme: getRunScheme(getPropertyScheme(context.scheme, p)),
             pcontext: context,
             value: value[p],
             key: p
           }
           pmatch = initScheme(subContext);
+          if (pmatch == 1) {
+            context.scheme.properties[p] = subContext.scheme!;
+          }
         }
         if (pmatch == 0 && selectionList != undefined) {
           if (context.scheme.detectScheme != undefined) {
@@ -432,9 +435,9 @@ export const checkScheme = (value: any, scheme: Scheme, baseScheme: Scheme, sele
       case 'object':
       case 'array':
         for (const p of Object.keys(value)) {
-          const subScheme = getPropertyScheme(scheme,p);
+          const subScheme = getPropertyScheme(scheme, p);
           check(subScheme != undefined);
-          let baseSubScheme = getPropertyScheme(baseScheme,p);
+          let baseSubScheme = getPropertyScheme(baseScheme, p);
           if (baseSubScheme == undefined) {
             check(intS(subScheme)!.parentSelectedKey != undefined);
             if (intS(subScheme)?.parentSelectedKey != undefined) {
@@ -504,7 +507,7 @@ const initUserFunctions = (context: IntContext) => {
     }
   }
   context.setUIValue = (value: any) => {
-    setUIValue(context,value);
+    setUIValue(context, value);
   }
   context.getUIValue = () => {
     return getUIValue(context);

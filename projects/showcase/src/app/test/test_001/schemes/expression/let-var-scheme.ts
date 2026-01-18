@@ -9,6 +9,16 @@ type _let = {
   expression: Expression;
 }
 
+const namedValuesScheme: ObjectEditor.Scheme = {
+  uibase: 'object',
+  properties: {
+    name: {
+      uibase: 'text'
+    },
+    value: () => valueScheme
+  }
+}
+
 export const expLetScheme: ObjectEditor.Scheme = {
   uibase: 'object',
   properties: {

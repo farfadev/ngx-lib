@@ -166,7 +166,7 @@
      * shall return the scheme selection key or undefined if unable to identity the scheme.
      * In this later case, the internal algorithm is used
     */
-    detectScheme?: (context: Context, value: any) => string | undefined;
+    detectScheme?: (context: Context, value: any, key?: string | number) => string | undefined;
 
     /** for object/array provides the schemes corresponding to the value properties */
     properties?: { [key: number | string]: Scheme | (() => Scheme)}
