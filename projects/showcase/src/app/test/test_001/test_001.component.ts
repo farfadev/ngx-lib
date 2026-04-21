@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { AfterViewInit, Component, Inject, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -12,7 +12,7 @@ import { valueScheme } from './schemes/expression/common-scheme';
   selector: 'app-test-001',
   templateUrl: './test_001.component.html',
   styleUrls: [],
-  imports: [CommonModule, FormsModule, RouterModule, ObjectEditorModule, FarfaSvgModule],
+  imports: [FormsModule, RouterModule, ObjectEditorModule, FarfaSvgModule],
 })
 export class Test001Component implements OnInit, AfterViewInit {
 

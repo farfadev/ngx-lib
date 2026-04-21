@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ObjectEditorModule } from '@farfadev/ngx-object-editor';
@@ -8,7 +8,7 @@ import * as ObjectEditor from '@farfadev/ngx-object-editor';
   selector: 'showcases-dynamic-styling',
   templateUrl: './dynamic-styling.component.html',
   styleUrls: ['./dynamic-styling.component.scss'],
-  imports: [CommonModule, FormsModule, ObjectEditorModule],
+  imports: [FormsModule, ObjectEditorModule],
 })
 export class ShowcaseDynamicStylingComponent {
 

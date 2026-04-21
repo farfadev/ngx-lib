@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { ChangeDetectorRef, Component, ComponentRef, OnDestroy, OnInit, ViewChild, ViewContainerRef, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FarfaSourceCodeComponent } from '../../source-code/source-code.component';
@@ -7,7 +7,7 @@ import { FarfaSourceCodeComponent } from '../../source-code/source-code.componen
   selector: 'showcases-container',
   templateUrl: './container.component.html',
   styleUrls: ['./container.component.scss'],
-  imports: [CommonModule, FarfaSourceCodeComponent],
+  imports: [FarfaSourceCodeComponent],
 })
 export class ShowcasesContainerComponent implements OnInit, OnDestroy {
 

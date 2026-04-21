@@ -8,11 +8,11 @@ import css from 'highlight.js/lib/languages/css';
 import json from 'highlight.js/lib/languages/json';
 import 'highlight.js/styles/github.css';
 import { ActivatedRoute } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'source-code',
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './source-code.component.html',
   styleUrl: './source-code.component.scss'
 })

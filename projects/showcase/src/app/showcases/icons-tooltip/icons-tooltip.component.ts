@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FarfaTooltipModule } from '@farfadev/ngx-a-tooltip';
@@ -8,7 +8,7 @@ import { FarfaSvgModule, FarfaSvgService } from "@farfadev/ngx-svg";
   selector: 'showcases-icons-tooltip',
   templateUrl: './icons-tooltip.component.html',
   styleUrls: ['./icons-tooltip.component.scss'],
-  imports: [CommonModule, FormsModule, FarfaSvgModule, FarfaTooltipModule],
+  imports: [FormsModule, FarfaSvgModule, FarfaTooltipModule],
 })
 export class ShowcaseIconsTooltipComponent implements OnInit {
 

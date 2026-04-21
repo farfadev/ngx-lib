@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, ElementRef, Host, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import * as ObjectEditor from '@farfadev/ngx-object-editor';
@@ -13,7 +13,7 @@ type Coordinates = {
   selector: 'showcases-custom-frontend',
   templateUrl: './custom-frontend.component.html',
   styleUrls: ['./custom-frontend.component.scss'],
-  imports: [CommonModule, FormsModule, ObjectEditorModule],
+  imports: [FormsModule, ObjectEditorModule],
 })
 export class ShowcasesCustomFrontendComponent {
 

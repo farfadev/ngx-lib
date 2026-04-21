@@ -60,7 +60,7 @@ export class FarfaTooltipDirective implements OnInit {
   }
 
   @HostListener('click', ['$event.target'])
-  click(target: HTMLElement) {
+  click(target: EventTarget | null) {
     if (this.overlayRef.hasAttached()) this.hide();
     else this.show();
   }

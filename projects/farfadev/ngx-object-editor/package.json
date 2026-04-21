@@ -1,6 +1,6 @@
 {
   "name": "@farfadev/ngx-object-editor",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "An angular component to edit typecript/ javascript objects",
   "author": "farfadev",
   "repository": {
@@ -27,8 +27,8 @@
     "build:publish": "run-s build:prod npm publish --access public"
   },
   "peerDependencies": {
-    "@angular/common": ">=19.1.0",
-    "@angular/core": ">=19.1.0",
+    "@angular/common": ">=21.2.6",
+    "@angular/core": ">=21.2.6",
     "@farfadev/ngx-svg": ">=0.0.1",
     "@farfadev/ngx-a-tooltip": ">=0.3.0",
     "imask": ">=7.6.1",
@@ -37,13 +37,13 @@
     "mathjs": ">=14.3.1"
   },
   "dependencies": {
-    "tslib": "^2.3.0"
+    "tslib": ">=2.3.0"
   },
   "sideEffects": false,
   "devDependencies": {
-    "@types/lodash-es": "^4.17.12",
-    "@types/lodash.clonedeep": "^4.5.9",
-    "@types/lodash.merge": "^4.6.9",
-    "@types/luxon": "^3.6.2"
+    "@types/lodash-es": ">=4.17.12",
+    "@types/lodash.clonedeep": ">=4.5.9",
+    "@types/lodash.merge": ">=4.6.9",
+    "@types/luxon": ">=3.6.2"
   }
 }

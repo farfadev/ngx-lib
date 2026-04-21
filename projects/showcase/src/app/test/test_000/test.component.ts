@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -22,7 +22,7 @@ type Coordinates = {
   selector: 'app-object-editor-test',
   templateUrl: './test.component.html',
   styleUrls: ['./test.component.scss'],
-  imports: [CommonModule, FormsModule, RouterModule, ObjectEditorModule, FarfaSvgModule],
+  imports: [FormsModule, RouterModule, ObjectEditorModule, FarfaSvgModule],
 })
 export class TestComponent implements OnInit, AfterViewInit {
 

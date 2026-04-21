@@ -1,4 +1,3 @@
-import { animate, style, transition, trigger } from '@angular/animations';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
@@ -9,15 +8,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   templateUrl: './farfa-tooltip.component.html',
   styleUrls: ['./farfa-tooltip.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('tooltip', [
-      transition(':enter', [
-        style({ opacity: 0 }),
-        animate(1000, style({ opacity: 1 })),
-      ]),
-      transition(':leave', [animate(1000, style({ opacity: 0 }))]),
-    ]),
-  ],
 })
 export class FarfaTooltipComponent {
   _trustedHtml?: SafeHtml;

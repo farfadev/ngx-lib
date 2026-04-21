@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import * as ObjectEditor from '@farfadev/ngx-object-editor';
@@ -12,7 +12,7 @@ type Coordinates = {
   selector: 'showcases-angular-component',
   templateUrl: './my.component.html',
   styleUrls: ['./my.component.scss'],
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
 })
 export class ShowcasesAngularComponentCoords implements OnInit, AfterViewInit {
 

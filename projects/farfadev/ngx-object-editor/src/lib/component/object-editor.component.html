@@ -1,55 +1,56 @@
 @if(context) {
-<ng-template #select let-lcontext="lcontext">
-  @if(isRadio(lcontext)) {
-  <fieldset class="fieldset-select">
-    <legend>{{ getSelectionLabel(lcontext) }}</legend>
-    @for(p of getSelectionKeyLabels(lcontext);track p.key) {
-    <div [style]="{ display: isHorizontal(lcontext) ? 'inline' : 'block' }">
-      <input
-        type="radio"
-        [id]="p.key"
-        [name]="context.key + 'radio'"
-        [value]="p.key"
-        [disabled]="isReadOnly(lcontext)"
-        [(ngModel)]="selectionKey"
-        (click)="selectOnclick()"
-      />
-      <label [for]="p.key">{{ p.label }}</label>
-    </div>
-    } @if(subContext) {
-    <object-editor [debug]="debug" [context]="subContext"></object-editor>
-    }
-  </fieldset>
-  } @else {
-  <fieldset class="fieldset-select">
-    <legend>
-      {{ getSelectionLabel(lcontext) }}
-      <select
-        [(ngModel)]="selectionKey"
-        [disabled]="isReadOnly(lcontext)"
-        style="margin-bottom: 0.5em"
-      >
-        <option disabled [ngValue]="undefined">select</option>
-        <option
-          *ngFor="let o of getSelectionKeyLabels(lcontext)"
-          [ngValue]="o.key"
-        >
-          {{ o.label }}
-        </option>
-      </select>
-    </legend>
-    @if(subContext) {
-    <object-editor [debug]="debug" [context]="subContext"></object-editor>
-    }
-  </fieldset>
-  }
-</ng-template>
+  <ng-template #select let-lcontext="lcontext">
+    @if(isRadio(lcontext)) {
+      <fieldset class="fieldset-select">
+        <legend>{{ getSelectionLabel(lcontext) }}</legend>
+        @for(p of getSelectionKeyLabels(lcontext);track p.key) {
+          <div [style]="{ display: isHorizontal(lcontext) ? 'inline' : 'block' }">
+            <input
+              type="radio"
+              [id]="p.key"
+              [name]="context.key + 'radio'"
+              [value]="p.key"
+              [disabled]="isReadOnly(lcontext)"
+              [(ngModel)]="selectionKey"
+              (click)="selectOnclick()"
+              />
+              <label [for]="p.key">{{ p.label }}</label>
+            </div>
+            } @if(subContext) {
+            <object-editor [debug]="debug" [context]="subContext"></object-editor>
+          }
+        </fieldset>
+      } @else {
+        <fieldset class="fieldset-select">
+          <legend>
+            {{ getSelectionLabel(lcontext) }}
+            <select
+              [(ngModel)]="selectionKey"
+              [disabled]="isReadOnly(lcontext)"
+              style="margin-bottom: 0.5em"
+              >
+              <option disabled [ngValue]="undefined">select</option>
+              @for (o of getSelectionKeyLabels(lcontext); track o) {
+                <option
+                  [ngValue]="o.key"
+                  >
+                  {{ o.label }}
+                </option>
+              }
+            </select>
+          </legend>
+          @if(subContext) {
+            <object-editor [debug]="debug" [context]="subContext"></object-editor>
+          }
+        </fieldset>
+      }
+    </ng-template>
 
-<ng-template #preIcons let-lcontext="lcontext">
-  <span>&nbsp;&nbsp;&nbsp;</span>
-  @if(canReset(lcontext)) {
-  <i
-    [farfa-svg]="{ name: 'reset' }"
+    <ng-template #preIcons let-lcontext="lcontext">
+      <span>&nbsp;&nbsp;&nbsp;</span>
+      @if(canReset(lcontext)) {
+        <i
+          [farfa-svg]="{ name: 'reset' }"
     [farfa-tooltip]="{
       html: '<div>reset</div>',
       mode: 'hover',
@@ -58,12 +59,12 @@
       offsetX: 0,
       style: 'font-size:0.75em;padding: 2px;border: none'
     }"
-    class="pre-icons"
-    (click)="reset(lcontext)"
-  ></i>
-  } @if(canDelete(lcontext)) {
-  <i
-    [farfa-svg]="{ name: 'trash-2' }"
+          class="pre-icons"
+          (click)="reset(lcontext)"
+        ></i>
+        } @if(canDelete(lcontext)) {
+        <i
+          [farfa-svg]="{ name: 'trash-2' }"
     [farfa-tooltip]="{
       html: '<div>delete</div>',
       mode: 'hover',
@@ -72,12 +73,12 @@
       offsetX: 0,
       style: 'font-size:0.75em;padding: 2px;border: none'
     }"
-    class="pre-icons"
-    (click)="delete(lcontext)"
-  ></i>
-  } @if(canArrayItemUp(lcontext)) {
-  <i
-    [farfa-svg]="{ name: 'move-up' }"
+          class="pre-icons"
+          (click)="delete(lcontext)"
+        ></i>
+        } @if(canArrayItemUp(lcontext)) {
+        <i
+          [farfa-svg]="{ name: 'move-up' }"
     [farfa-tooltip]="{
       html: '<div>move-up</div>',
       mode: 'hover',
@@ -86,12 +87,12 @@
       offsetX: 0,
       style: 'font-size:0.75em;padding: 2px;border: none'
     }"
-    class="pre-icons"
-    (click)="arrayItemUp(lcontext)"
-  ></i>
-  } @if(canArrayItemDown(lcontext)) {
-  <i
-    [farfa-svg]="{ name: 'move-down' }"
+          class="pre-icons"
+          (click)="arrayItemUp(lcontext)"
+        ></i>
+        } @if(canArrayItemDown(lcontext)) {
+        <i
+          [farfa-svg]="{ name: 'move-down' }"
     [farfa-tooltip]="{
       html: '<div>move-down</div>',
       mode: 'hover',
@@ -100,73 +101,73 @@
       offsetX: 0,
       style: 'font-size:0.75em;padding: 2px;border: none'
     }"
-    class="pre-icons"
-    (click)="arrayItemDown(lcontext)"
-  ></i>
-  }
-  <i
-    [id]="lcontext.key"
+          class="pre-icons"
+          (click)="arrayItemDown(lcontext)"
+        ></i>
+      }
+      <i
+        [id]="lcontext.key"
     [farfa-tooltip]="{
       mode: 'click',
       html: getDescriptionArticle(lcontext) ?? ''
     }"
-    [farfa-svg]="{ name: 'info' }"
-    class="pre-icons"
-    [style.visibility]="getDescriptionArticle(lcontext) ? 'visible' : 'hidden'"
-  ></i>
-</ng-template>
+        [farfa-svg]="{ name: 'info' }"
+        class="pre-icons"
+        [style.visibility]="getDescriptionArticle(lcontext) ? 'visible' : 'hidden'"
+      ></i>
+    </ng-template>
 
-<ng-template #subItem let-subContext="lcontext" let-isArray="isArray">
-  @if(subContext) {
+    <ng-template #subItem let-subContext="lcontext" let-isArray="isArray">
+      @if(subContext) {
 
-  <span>
-    @if(['array','object'].includes(getUIBase(subContext))) {
-    <object-editor
-      [context]="subContext"
-      (propertyListChange)="updatePropertyList($event)"
-      [debug]="debug"
-    />
-    } @else { @switch(getUIBase(subContext)) { @case('angular') {
-    <oe-angular [debug]="debug" [context]="subContext" />
-    } @case('custom') {
-    <oe-custom [context]="subContext" />
-    } @case('boolean') {
-    <oe-checkbox [context]="subContext" />
-    } @case('number') { @if(hasMask(subContext)) {
-    <oe-masked [context]="subContext" />
-    } @else {
-    <oe-number [context]="subContext" />
-    }} @case('color') {
-    <oe-color [context]="subContext"></oe-color>
-    } @case('select') {
-    <ng-container
-      *ngTemplateOutlet="select; context: { lcontext: subContext }"
-    ></ng-container>
-    } @case('none') {
-    <!-- no display -->
-    } @case('text') { @if(hasMask(subContext)) {
-    <oe-masked [context]="subContext" />
-    } @else {
-    <oe-default [context]="subContext"></oe-default>
-    } } @case('file') {
-    <oe-file [context]="subContext"></oe-file>
-    } @default {
-    <oe-default [context]="subContext"></oe-default>
-    } } }
-  </span>
-  }
-</ng-template>
+        <span>
+          @if(['array','object'].includes(getUIBase(subContext))) {
+            <object-editor
+              [context]="subContext"
+              (propertyListChange)="updatePropertyList($event)"
+              [debug]="debug"
+              />
+            } @else { @switch(getUIBase(subContext)) { @case('angular') {
+              <oe-angular [debug]="debug" [context]="subContext" />
+              } @case('custom') {
+              <oe-custom [context]="subContext" />
+              } @case('boolean') {
+              <oe-checkbox [context]="subContext" />
+              } @case('number') { @if(hasMask(subContext)) {
+              <oe-masked [context]="subContext" />
+            } @else {
+              <oe-number [context]="subContext" />
+              }} @case('color') {
+              <oe-color [context]="subContext"></oe-color>
+              } @case('select') {
+              <ng-container
+                *ngTemplateOutlet="select; context: { lcontext: subContext }"
+              ></ng-container>
+              } @case('none') {
+              <!-- no display -->
+              } @case('text') { @if(hasMask(subContext)) {
+              <oe-masked [context]="subContext" />
+            } @else {
+              <oe-default [context]="subContext"></oe-default>
+              } } @case('file') {
+              <oe-file [context]="subContext"></oe-file>
+              } @default {
+              <oe-default [context]="subContext"></oe-default>
+              } } }
+            </span>
+          }
+        </ng-template>
 
-<!-- ----------------------------------------------------------------------
-  The main HTML STARTS HERE !!!!
-  -->
-@if(context.scheme?.uibase != 'none') {
+        <!-- ----------------------------------------------------------------------
+        The main HTML STARTS HERE !!!!
+        -->
+        @if(context.scheme?.uibase != 'none') {
 
-<fieldset class="fieldset-main">
-  <legend style="align-content: center">
-    @if(canToggle()) { @if(root_fieldset_expanded) {
-    <i
-      [farfa-svg]="{ name: 'circle-minus' }"
+          <fieldset class="fieldset-main">
+            <legend style="align-content: center">
+              @if(canToggle()) { @if(root_fieldset_expanded) {
+                <i
+                  [farfa-svg]="{ name: 'circle-minus' }"
       [farfa-tooltip]="{
         html: '<div>toggle</div>',
         mode: 'hover',
@@ -175,12 +176,12 @@
         offsetX: 0,
         style: 'font-size:0.75em;padding: 2px;border: none'
       }"
-      class="toggle-icon"
-      (click)="root_fieldset_expanded = !root_fieldset_expanded"
-    ></i>
-    } @else {
-    <i
-      [farfa-svg]="{ name: 'circle-plus' }"
+                  class="toggle-icon"
+                  (click)="root_fieldset_expanded = !root_fieldset_expanded"
+                ></i>
+              } @else {
+                <i
+                  [farfa-svg]="{ name: 'circle-plus' }"
       [farfa-tooltip]="{
         html: '<div>toggle</div>',
         mode: 'hover',
@@ -189,64 +190,67 @@
         offsetX: 0,
         style: 'font-size:0.75em;padding: 2px;border: none'
       }"
-      class="toggle-icon"
-      (click)="root_fieldset_expanded = !root_fieldset_expanded"
-    ></i>
-    } }
-    <span>{{ (getLabel(context) ?? "object-editor").toString() }}</span>
-    <span style="font-size: 0.5em">{{ debug ? " (DEBUG) " : "" }}</span>
-    <ng-container
-      *ngTemplateOutlet="preIcons; context: { lcontext: context }"
-    ></ng-container>
-  </legend>
-  <div
-    #objectcontainer
-    [hidden]="!root_fieldset_expanded"
-    style="margin-left: 2em"
-  >
-    @if(hasOptionalProperties()) {
-    <fieldset class="fieldset-optional">
-      <legend>add an optional property</legend>
-      <select
-        [(ngModel)]="optionalPropertySel"
-        (ngModelChange)="optionalPropertySet()"
-      >
-        <option selected value="">optional property</option>
-        <option
-          *ngFor="let o of getOptionalPropertyKeyLabelList()"
-          value="{{ o.key }}"
-        >
-          {{ o.label }}
-        </option>
-      </select>
-    </fieldset>
-    } @if((isObject() || isArray()) && schemeOptions.length > 0 &&
-    !isReadOnly(context)) {
-    <fieldset class="fieldset-new">
-      <legend>
-        {{ isObject() ? "add a new property" : "add a new item" }}
-      </legend>
-      @if(isObject()) {
-      <input
-        [id]="ui_id + 0"
-        type="text"
-        pattern="[a-zA-Z]{1}[a-zA-Z0-9_]*"
-        placeholder="enter property name"
-        [(ngModel)]="newProperty.property"
-        style="margin-right: 1em; border: solid 1px lightgrey"
-      />
-      <select
-        [(ngModel)]="newProperty.schemeKey"
-        style="margin-right: 1em; border: solid 1px lightgrey"
-        [style.display]="newProperty.property != '' ? '' : 'none'"
-      >
-        <option disabled value="">select</option>
-        <option *ngFor="let o of schemeOptions" value="{{ o }}">
-          {{ o }}
-        </option>
-      </select>
-      <i
-        class="add-icon"
+                  class="toggle-icon"
+                  (click)="root_fieldset_expanded = !root_fieldset_expanded"
+                ></i>
+                } }
+                <span>{{ (getLabel(context) ?? "object-editor").toString() }}</span>
+                <span style="font-size: 0.5em">{{ debug ? " (DEBUG) " : "" }}</span>
+                <ng-container
+                  *ngTemplateOutlet="preIcons; context: { lcontext: context }"
+                ></ng-container>
+              </legend>
+              <div
+                #objectcontainer
+                [hidden]="!root_fieldset_expanded"
+                style="margin-left: 2em"
+                >
+                @if(hasOptionalProperties()) {
+                  <fieldset class="fieldset-optional">
+                    <legend>add an optional property</legend>
+                    <select
+                      [(ngModel)]="optionalPropertySel"
+                      (ngModelChange)="optionalPropertySet()"
+                      >
+                      <option selected value="">optional property</option>
+                      @for (o of getOptionalPropertyKeyLabelList(); track o) {
+                        <option
+                          value="{{ o.key }}"
+                          >
+                          {{ o.label }}
+                        </option>
+                      }
+                    </select>
+                  </fieldset>
+                  } @if((isObject() || isArray()) && schemeOptions.length > 0 &&
+                  !isReadOnly(context)) {
+                  <fieldset class="fieldset-new">
+                    <legend>
+                      {{ isObject() ? "add a new property" : "add a new item" }}
+                    </legend>
+                    @if(isObject()) {
+                      <input
+                        [id]="ui_id + 0"
+                        type="text"
+                        pattern="[a-zA-Z]{1}[a-zA-Z0-9_]*"
+                        placeholder="enter property name"
+                        [(ngModel)]="newProperty.property"
+                        style="margin-right: 1em; border: solid 1px lightgrey"
+                        />
+                        <select
+                          [(ngModel)]="newProperty.schemeKey"
+                          style="margin-right: 1em; border: solid 1px lightgrey"
+                          [style.display]="newProperty.property != '' ? '' : 'none'"
+                          >
+                          <option disabled value="">select</option>
+                          @for (o of schemeOptions; track o) {
+                            <option value="{{ o }}">
+                              {{ o }}
+                            </option>
+                          }
+                        </select>
+                        <i
+                          class="add-icon"
         [farfa-tooltip]="{
           html: '<div>add property</div>',
           mode: 'hover',
@@ -255,22 +259,24 @@
           offsetX: 0,
           style: 'font-size:0.75em;padding: 2px;border: none'
         }"
-        [farfa-svg]="{ name: 'circle-plus' }"
-        (click)="addProperty()"
-        [style]="!canAddObjectProperty() ? 'display:none' : ''"
-      ></i>
-      } @if(isArray()) {
-      <select
-        [(ngModel)]="newProperty.schemeKey"
-        style="margin-right: 1em; border: solid 1px lightgrey"
-      >
-        <option disabled value="">select</option>
-        <option *ngFor="let o of schemeOptions" value="{{ o }}">
-          {{ o }}
-        </option>
-      </select>
-      <i
-        class="add-icon"
+                          [farfa-svg]="{ name: 'circle-plus' }"
+                          (click)="addProperty()"
+                          [style]="!canAddObjectProperty() ? 'display:none' : ''"
+                        ></i>
+                        } @if(isArray()) {
+                        <select
+                          [(ngModel)]="newProperty.schemeKey"
+                          style="margin-right: 1em; border: solid 1px lightgrey"
+                          >
+                          <option disabled value="">select</option>
+                          @for (o of schemeOptions; track o) {
+                            <option value="{{ o }}">
+                              {{ o }}
+                            </option>
+                          }
+                        </select>
+                        <i
+                          class="add-icon"
         [farfa-tooltip]="{
           html: '<div>add item</div>',
           mode: 'hover',
@@ -279,40 +285,40 @@
           offsetX: 0,
           style: 'font-size:0.75em;padding: 2px;border: none'
         }"
-        [farfa-svg]="{ name: 'circle-plus' }"
-        (click)="addProperty()"
-        [style]="!canAddArrayElement() ? 'display:none' : ''"
-      ></i>
-      }
-    </fieldset>
-    <p></p>
-    } @if(isObject() || isArray()) {
-    <div [style]="getInnerStyle(context!)">
-      @for (p of properties; track p) { @let subContext = getSubContext(p);
-      <object-editor
-        [debug]="debug"
-        [context]="subContext!"
-        (propertyListChange)="updatePropertyList(subContext!)"
-      ></object-editor>
-      }
-    </div>
-    } @else() {
-    <div>
-      <ng-container
-        *ngTemplateOutlet="subItem; context: { lcontext: context }"
-      ></ng-container>
-    </div>
-    }
-  </div>
-  <span>
-    @if(debug) {
-    <p [style]="getStyle(context, 'font-size: 0.5em')">
-      type={{typeof context.value}} value={{
-        getTextValue(context.value)
-      }}
-      pValue={{getTextValue(context.key != undefined ? context.pcontext?.value?.[context.key]:'')}}
-    </p>
-    }
-  </span>
-</fieldset>
-} }
+                          [farfa-svg]="{ name: 'circle-plus' }"
+                          (click)="addProperty()"
+                          [style]="!canAddArrayElement() ? 'display:none' : ''"
+                        ></i>
+                      }
+                    </fieldset>
+                    <p></p>
+                    } @if(isObject() || isArray()) {
+                    <div [style]="getInnerStyle(context!)">
+                      @for (p of properties; track p) { @let subContext = getSubContext(p);
+                        <object-editor
+                          [debug]="debug"
+                          [context]="subContext!"
+                          (propertyListChange)="updatePropertyList(subContext!)"
+                        ></object-editor>
+                      }
+                    </div>
+                  } @else() {
+                    <div>
+                      <ng-container
+                        *ngTemplateOutlet="subItem; context: { lcontext: context }"
+                      ></ng-container>
+                    </div>
+                  }
+                </div>
+                <span>
+                  @if(debug) {
+                    <p [style]="getStyle(context, 'font-size: 0.5em')">
+                      type={{typeof context.value}} value={{
+                      getTextValue(context.value)
+                      }}
+                      pValue={{getTextValue(context.key != undefined ? context.pcontext?.value?.[context.key]:'')}}
+                    </p>
+                  }
+                </span>
+              </fieldset>
+              } }

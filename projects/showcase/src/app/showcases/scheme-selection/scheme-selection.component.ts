@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import * as ObjectEditor from '@farfadev/ngx-object-editor';
@@ -8,7 +8,7 @@ import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
   selector: 'showcases-scheme-selection',
   templateUrl: './scheme-selection.component.html',
   styleUrls: ['./scheme-selection.component.scss'],
-  imports: [CommonModule, FormsModule, ObjectEditorModule],
+  imports: [FormsModule, ObjectEditorModule],
 })
 export class ShowcaseSchemeSelectionComponent {
 

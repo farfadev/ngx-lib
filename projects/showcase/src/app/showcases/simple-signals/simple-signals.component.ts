@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import * as ObjectEditor from '@farfadev/ngx-object-editor';
@@ -9,7 +9,7 @@ import { isEqual } from 'lodash-es';
   selector: 'showcases-simple-signals',
   templateUrl: './simple-signals.component.html',
   styleUrls: ['./simple-signals.component.scss'],
-  imports: [CommonModule, FormsModule, ObjectEditorModule],
+  imports: [FormsModule, ObjectEditorModule],
 })
 export class ShowcaseSimpleSignalsComponent {
 
