@@ -120,13 +120,13 @@ export const getRunScheme = (scheme?: Scheme|(()=>Scheme)) => {
   return scheme;
 }
 
-export const getPropertyScheme = (scheme?: Scheme, key?: number|string): Scheme|undefined => {
-  if((scheme == undefined)||(key==undefined)) return undefined;
-  return getRunScheme(scheme.properties?.[key]);
+export const getPropertyScheme = (context?: Context, key?: number|string): Scheme|undefined => {
+  if((context?.scheme == undefined)||(key==undefined)) return undefined;
+  return getRunScheme(context.scheme.properties?.[key]);
 }
 
 export const getOptional = (context: Context, key?: string | number): boolean | 'signal' | undefined => {
-  const scheme = (key == undefined)||(context.scheme == undefined) ? context.scheme : getPropertyScheme(context.scheme,key);
+  const scheme = (key == undefined)||(context.scheme == undefined) ? context.scheme : getPropertyScheme(context,key);
   if (typeof scheme?.optional == 'function') {
     return scheme.optional(context);
   }
@@ -158,7 +158,7 @@ export const getOptionalPropertyList = (context: Context, mode?: 'ui'): string[]
 export const getSelectionList = (context?: Context, p?: string | number): SelectionList<any, any> => {
   if (!context?.scheme) return {};
   const selList = p ?
-    getPropertyScheme(context.scheme,p)?.selectionList :
+    getPropertyScheme(context,p)?.selectionList :
     context.scheme.selectionList;
 
   return (typeof selList == 'function' ?
@@ -184,8 +184,8 @@ export const getProperties = (context: Context) => {
     }
   }
   properties = (context.scheme?.uibase === 'object') ? properties.sort((a, b) => {
-    const a_ct = intS(getPropertyScheme(context.scheme,a))?.ctime ?? 0;
-    const b_ct = intS(getPropertyScheme(context.scheme,b))?.ctime ?? 0;
+    const a_ct = intS(getPropertyScheme(context,a))?.ctime ?? 0;
+    const b_ct = intS(getPropertyScheme(context,b))?.ctime ?? 0;
     if (a_ct == b_ct) {
       if ((typeof a == 'string') && (typeof b == 'string'))
         return schemeKeys.indexOf(a) - schemeKeys.indexOf(b);

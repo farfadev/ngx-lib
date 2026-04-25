@@ -2,7 +2,8 @@
 
 .fieldset-main {
   margin-bottom: 1em;
-  border: 1px solid lightgray;
+  border: none;
+  border-left: 1px solid lightgray;
   width: max-content;
   padding-bottom: 0;
   padding-left: 0;
@@ -14,7 +15,8 @@
 }
 
 .fieldset-optional > select {
-  border: solid lightgrey 1px;
+  border: none;
+  border-left: solid lightgrey 1px;
   min-width: 10rem;
 }
 

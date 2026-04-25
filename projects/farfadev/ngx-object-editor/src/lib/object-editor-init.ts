@@ -186,8 +186,8 @@ export const initValue = (context: Context): any => {
       if (value == undefined) value = {};
       const keys = Object.keys(scheme?.properties ?? {});
       for (const key of keys) {
-        if (!(isOptional({ scheme, value }, key) && getPropertyScheme(scheme, key))) {
-          value![key] = initValue({ value: value[key], scheme: getPropertyScheme(scheme, key) });
+        if (!(isOptional({ scheme, value }, key) && getPropertyScheme({ scheme, value }, key))) {
+          value![key] = initValue({ value: value[key], scheme: getPropertyScheme({ scheme, value }, key) });
         }
       }
       break;
@@ -197,7 +197,7 @@ export const initValue = (context: Context): any => {
         throw Error('Invalid value type, expecting Array');
       }
       for (let i = 0; i < value.length; i++) {
-        value[i] = initValue({ value: value[i], scheme: getPropertyScheme(scheme, i) })
+        value[i] = initValue({ value: value[i], scheme: getPropertyScheme({value,scheme}, i) })
       }
       if (scheme.length?.min != undefined) {
         let lastKey;
@@ -206,8 +206,8 @@ export const initValue = (context: Context): any => {
           if (scheme.properties?.[i]) {
             lastKey = i;
           }
-          if (lastKey && i > value.length && getPropertyScheme(scheme, lastKey))
-            value.push(initValue({ value: value[i], scheme: getPropertyScheme(scheme, lastKey) }));
+          if (lastKey && i > value.length && getPropertyScheme({value,scheme}, lastKey))
+            value.push(initValue({ value: value[i], scheme: getPropertyScheme({value,scheme}, lastKey) }));
         }
       }
       break;
@@ -302,7 +302,7 @@ const initScheme = (context: Context): number => {
         let pmatch = 0;
         if (context.scheme.properties?.[p] != undefined) {
           const subContext = {
-            scheme: getRunScheme(getPropertyScheme(context.scheme, p)),
+            scheme: getRunScheme(getPropertyScheme(context, p)),
             pcontext: context,
             value: value[p],
             key: p
@@ -435,9 +435,9 @@ export const checkScheme = (value: any, scheme: Scheme, baseScheme: Scheme, sele
       case 'object':
       case 'array':
         for (const p of Object.keys(value)) {
-          const subScheme = getPropertyScheme(scheme, p);
+          const subScheme = getPropertyScheme({value,scheme}, p);
           check(subScheme != undefined);
-          let baseSubScheme = getPropertyScheme(baseScheme, p);
+          let baseSubScheme = getPropertyScheme({value,scheme: baseScheme}, p);
           if (baseSubScheme == undefined) {
             check(intS(subScheme)!.parentSelectedKey != undefined);
             if (intS(subScheme)?.parentSelectedKey != undefined) {

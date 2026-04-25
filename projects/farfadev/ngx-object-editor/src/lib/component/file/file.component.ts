@@ -7,6 +7,7 @@ import {
   Input,
   OnDestroy,
   OnInit,
+  signal,
   ViewChild,
 } from '@angular/core';
 
@@ -34,7 +35,7 @@ export class OEFileComponent implements OnInit, OnDestroy, AfterViewInit {
     this.initContext();
   }
 
-  files = new Array<File>();
+  filesSignal = signal<File[]>(new Array<File>());
 
   urls = new Map<File, string>();
 
@@ -65,8 +66,11 @@ export class OEFileComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   trash(f: File) {
-    const i = this.files.indexOf(f);
-    if (i >= 0) this.files.splice(i, 1);
+    this.filesSignal.update((files: File[]) => {
+      const i = files.indexOf(f);
+      if (i >= 0) files.splice(i, 1);
+      return files.splice(0);
+    });
     const url = this.urls.get(f);
     if (url !== undefined) URL.revokeObjectURL(url);
     this.urls.delete(f);
@@ -101,7 +105,7 @@ export class OEFileComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         false,
       );
-      ObjectEditorInt.uiinitialized(this.context!);
+    ObjectEditorInt.uiinitialized(this.context!);
   }
 
   ngOnDestroy(): void {
@@ -128,16 +132,19 @@ export class OEFileComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   editUpdate() {
-    ObjectEditorInt.setUIValue(this.context!, this.files);
+    ObjectEditorInt.setUIValue(this.context!, this.filesSignal());
     this._context!.editUpdate?.();
   }
 
   initContext() {
     if (!this.context) return;
     const keys = ObjectEditorInt.getUIValue(this.context) != undefined ? Object.keys(ObjectEditorInt.getUIValue(this.context)) : [];
-    for (const key of keys) {
-      this.files.push(ObjectEditorInt.getUIValue(this.context)[key]);
-    }
+    this.filesSignal.update((files: File[]) => {
+      for (const key of keys) {
+        files.push(ObjectEditorInt.getUIValue(this.context!)[key]);
+      }
+      return files.slice(0);
+    });
   }
 
   dragenter = (e: DragEvent) => {
@@ -167,11 +174,14 @@ export class OEFileComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  handleFiles = (files: FileList) => {
-    for (let i = 0; i < files.length; i++) {
-      this.files.push(files[i]);
-      this.urls.set(files[i], URL.createObjectURL(files[i]));
-    }
+  handleFiles = (newFiles: FileList) => {
+    this.filesSignal.update((files: File[]) => {
+      for (let i = 0; i < newFiles.length; i++) {
+        files.push(newFiles[i]);
+        this.urls.set(newFiles[i], URL.createObjectURL(newFiles[i]));
+      }
+      return files.slice(0);
+    });
     this.editUpdate();
   }
 }

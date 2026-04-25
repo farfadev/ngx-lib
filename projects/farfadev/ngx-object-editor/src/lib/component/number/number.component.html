@@ -1,4 +1,4 @@
-@if(context) {
+@if (context) {
   <input
     [id]="getId()"
     type="text"
@@ -6,7 +6,8 @@
     [class]="getStyleClass(context)"
     [style]="getStyle(context)"
   />
-  @if(err_msg) {
-    <p style='color:red;font-size: 0.8rem;margin: 0;'>{{err_msg}}</p>
+  <p style="display:none">{{updateSignal()}}</p> <!-- to refresh the component in case of value change -->
+  @if (err_msg()) {
+    <p style="color: red; font-size: 0.8rem; margin: 0">{{ err_msg() }}</p>
   }
 }

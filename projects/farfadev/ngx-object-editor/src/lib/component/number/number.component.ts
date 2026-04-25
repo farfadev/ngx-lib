@@ -7,6 +7,7 @@ import {
   Input,
   OnDestroy,
   OnInit,
+  signal,
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
@@ -38,9 +39,9 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ui_id;
 
-  err_msg: string = '';
+  err_msg = signal<string>('');
 
-  value: string = '';
+  updateSignal = signal<bigint>(0n);
 
   inputElement?: HTMLElement;
 
@@ -57,8 +58,9 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
   setAdjustSocket() {
     if (this.inputElement) {
       this.adjustSocket = new InputSocket(this.inputElement as HTMLInputElement, this.context?.scheme?.adjust ?? adjustNumber({}), this.context!, (context: any, err_msg: string) => {
-        this.err_msg = err_msg;
+        this.err_msg.set(err_msg);
         context.editUpdate(true);
+        this.updateSignal.update((v: bigint)=>++v);
       });
     }
   }
@@ -81,7 +83,7 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getStyle(context: ObjectEditor.Context) {
-    const stylePlus = this.err_msg != '' ? 'color:red' : '';
+    const stylePlus = this.err_msg() != '' ? 'color:red' : '';
     const rstyle = ObjectEditorInt.getStyle(context);
 
     return rstyle ? rstyle + ';' + stylePlus : stylePlus;

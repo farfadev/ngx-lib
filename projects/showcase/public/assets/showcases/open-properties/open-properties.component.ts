@@ -4,19 +4,21 @@ import { FormsModule } from '@angular/forms';
 import * as ObjectEditor from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
 
+const selSignal = ObjectEditor.signal('selSignal');
 @Component({
   selector: 'showcases-optional-properties',
   templateUrl: './open-properties.component.html',
   styleUrls: ['./open-properties.component.scss'],
   imports: [FormsModule, ObjectEditorModule],
 })
+
 export class ShowcaseOpenPropertiesComponent {
 
   @Input()
   debug: boolean = false;
 
-  value2scheme(value: any,label?: string) {
-    const scheme: ObjectEditor.Scheme = {uibase: 'none',default: value,label,readonly:true};
+  value2scheme(value: any, label?: string) {
+    const scheme: ObjectEditor.Scheme = { uibase: 'none', default: value, label, readonly: true };
     return scheme;
   }
 
@@ -60,8 +62,32 @@ export class ShowcaseOpenPropertiesComponent {
             sel1: this.value2scheme('coucou'),
             sel2: this.value2scheme(0),
             sel3: this.value2scheme({ a: 1, b: 'zebu' })
-          }
+          },
+          fireSignals: (context?: ObjectEditor.Context) => [
+            { signal: selSignal, data: context?.value }
+          ]
         },
+        subjectToSel2: (context?: ObjectEditor.Context): ObjectEditor.Scheme => {
+          if (context?.pcontext?.value['simpleRadio'] == 0) {
+            return {
+              uibase: 'text', label: 'url', onSignals: [{
+                signals: [selSignal],
+                call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal, data?: any }) => {
+                  if (signal.data == 0) {
+                  }
+                }
+              }]
+            }
+          }
+          return { uibase: 'none', default: undefined, readonly: true, onSignals: [{
+                signals: [selSignal],
+                call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal, data?: any }) => {
+                  if (signal.data == 0) {
+                  }
+                }
+              }]
+           }
+        }
       },
       selectionList: {
         'boolean': {

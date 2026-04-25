@@ -68,7 +68,7 @@ const editUpdate = (context: Context) => {
     if (!context.pcontext.scheme) context.pcontext.scheme = { uibase: 'object', properties: {} };
     context.pcontext.value[context.key] = convert(
       context.pcontext.value[context.key],
-      getPropertyScheme(context.pcontext.scheme,context.key) || {uibase: 'none'}
+      getPropertyScheme(context.pcontext,context.key) || {uibase: 'none'}
     );
     context.editUpdate();
   }
@@ -104,7 +104,7 @@ export const addProperty = (context: Context, newProperty: { property: string | 
         context.value[newProperty.property] =
           initValue({
             value: undefined,
-            scheme: getPropertyScheme(context.scheme,newProperty.property)
+            scheme: getPropertyScheme(context,newProperty.property)
           })
       }
         break;
@@ -112,7 +112,7 @@ export const addProperty = (context: Context, newProperty: { property: string | 
         context.value.splice(newProperty.property, 0,
           initValue({
             value: undefined,
-            scheme: getPropertyScheme(context.scheme,newProperty.property)
+            scheme: getPropertyScheme(context,newProperty.property)
           }));
       }
         break;
@@ -235,7 +235,7 @@ export const getSubContext = (context: Context, p?: string | number): Context | 
       return undefined;
     }
     const subContext = {
-      scheme: getPropertyScheme(context.scheme,p),
+      scheme: getPropertyScheme(context,p),
       value: iContext.fwdValue ? iContext.fwdValue[p] : context.value[p],
       pcontext: context,
       key: p,

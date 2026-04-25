@@ -10,6 +10,7 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  signal,
   ViewEncapsulation
 } from '@angular/core';
 import * as ObjectEditor from '../object-editor';
@@ -45,6 +46,8 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   propertyListChange = new EventEmitter<ObjectEditor.Context>();
 
   ui_id;
+
+  updateSignal = signal(0n);
 
   // binding to toggle the root fieldset
   root_fieldset_expanded = true;
@@ -122,7 +125,7 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
     const keyLabelList: KeyLabel[] = [];
     const keyList = ObjectEditorInt.getOptionalPropertyList(this.context, 'ui');
     for (const key of keyList) {
-      keyLabelList.push({ key, label: ObjectEditorInt.getPropertyScheme(this.context.scheme,key)?.label ?? key });
+      keyLabelList.push({ key, label: ObjectEditorInt.getPropertyScheme(this.context, key)?.label ?? key });
     }
     return keyLabelList;
   }
@@ -131,9 +134,9 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   optionalPropertySet() {
     const s = this.optionalPropertySel;
-    if (s && ObjectEditorInt.getPropertyScheme(this.context?.scheme,s)) {
+    if (s && ObjectEditorInt.getPropertyScheme(this.context, s)) {
       this.newProperty.property = s;
-      this.newProperty.schemeKey = ObjectEditorInt.getPropertyScheme(this.context?.scheme,s)?.uibase ?? "";
+      this.newProperty.schemeKey = ObjectEditorInt.getPropertyScheme(this.context, s)?.uibase ?? "";
       this.addProperty();
       this.newProperty.property = '';
       this.newProperty.schemeKey = '';
@@ -192,7 +195,7 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   schemeSelect(context: ObjectEditor.Context, key?: string) {
     ObjectEditorInt.select(context, key);
-//    this.selectionKey = ObjectEditorInt.getSelectionKey(this.context) ?? "";
+    //    this.selectionKey = ObjectEditorInt.getSelectionKey(this.context) ?? "";
   }
 
   getSelectionKeyLabels(context: ObjectEditor.Context) {
@@ -318,24 +321,19 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   initContext() {
     if (!this.context) return;
     ObjectEditorInt.initContext(this.context);
+    const editUpdate = this.context.editUpdate;
+    this.context.editUpdate = () => {
+      this.updateSignal.update((v: bigint) => ++v);
+      editUpdate?.(true);
+    }
     if (ObjectEditorInt.getUIBase(this.context) == 'select') {
-      const editUpdate = this.context.editUpdate;
-      this.context.editUpdate = () => {
-//        this.selectionKey = ObjectEditorInt.getSelectionKey(this.context) ?? "";
-        editUpdate?.(true);
-      }
-//      this.selectionKey = ObjectEditorInt.getSelectionKey(this.context) ?? "";
       const test = 0;
     }
     else {
       this.schemeOptions = ObjectEditorInt.getSelectionKeys(this.context);
-      //    if(!this.context.value) this.context.value = {};
       this.setProperties();
       this.context.contextChange = (context, env?: { [key: string | number]: any }) => {
-        //this.ref.detectChanges();
-        //this.reloadComponent();
         this.context = context;
-        //this.setProperties();
         if (env?.['key'] != undefined) {
           this.propertyClickEvent = true;
           this.editing = this.getSubContext(env?.['key']);
