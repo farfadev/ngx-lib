@@ -109,10 +109,10 @@ const _fromChimere = (context: Context, chimere: Record<string | number, any>): 
   if (chimere['key'] != undefined) context.key = chimere['key'];
   if (chimere['value'] != undefined) context.value = chimere['value'];
   if ((context.key != undefined) && (context.scheme == undefined)) context.scheme = getPropertyScheme(context.pcontext,context.key);
-  if ((intS(context.pcontext?.scheme)?.selectedScheme) && (context.scheme == undefined)) context.scheme = getRunScheme(intS(context.pcontext?.scheme)?.selectedScheme);
+  if ((intS(context.pcontext?.scheme)?.selectedScheme) && (context.scheme == undefined)) context.scheme = getRunScheme(intS(context.pcontext?.scheme)?.selectedScheme,context.pcontext);
   if (chimere['scheme'] != undefined) {
     if ((context.scheme == undefined) && (chimere['scheme']['parentSelectedKey'] != undefined)) {
-      context.scheme = getRunScheme(getSelectionList(context.pcontext)[chimere['scheme']['parentSelectedKey']]);
+      context.scheme = getRunScheme(getSelectionList(context.pcontext)[chimere['scheme']['parentSelectedKey']],context.pcontext);
     }
     if (chimere['scheme']['deletable'] != undefined) intS(context.scheme)!.deletable = chimere['scheme']['deletable'];
     if (chimere['scheme']['ctime'] != undefined) intS(context.scheme)!.ctime = chimere['scheme']['ctime'];

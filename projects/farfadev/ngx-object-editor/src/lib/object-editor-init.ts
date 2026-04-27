@@ -84,11 +84,14 @@ export const getUIValue = (context: Context): any => {
   }
 }
 
-export const setUIValue = (context: Context, newValue: any) => {
+export const setUIValue = (context: Context, newValue: any, scheme?: Scheme) => {
   let value;
   const iContext = context as IntContext;
-  if (context.scheme?.transform != undefined) {
-    context.scheme.transform.backward(newValue);
+  if (scheme) {
+    reinitContext(context, newValue, scheme);
+  }
+  else if (context.scheme?.transform != undefined) {
+    context.value = context.scheme.transform.backward(newValue);
     iContext.fwdValue = newValue;
   }
   else {
@@ -136,25 +139,31 @@ export const editUpdate = (subContext: Context) => {
   parentContext.editUpdate?.();
 }
 
+export const reinitContext = (context: Context, value: any, scheme: Scheme): void => {
+  const newContext: Context = { scheme, value };
+  initContext(newContext);
+  const ipContext = context.pcontext as IntContext;
+  ipContext.subContext = ipContext.subContext == context ? newContext : undefined;
+  for (const key of Object.keys(ipContext.subContexts?? {})) {
+    if(ipContext.subContexts?.[key] == context) {
+      ipContext.subContexts[key] = newContext;
+    }
+  }
+  newContext.pcontext = context.pcontext;
+}
+
 export const initContext = (context: Context): void => {
 
   const iContext = (context as IntContext);
 
   if (iContext.init == true) return;
 
-  const dynamic = context.scheme?.dynamic;
-  if (typeof dynamic == 'function') {
-    context.scheme = getRunScheme(dynamic(context));
+  if (!context.scheme) {
+    context.scheme = { uibase: 'object' };
   }
-
-  if (!context.pcontext && iContext.init != true) {
-    if (!context.scheme) {
-      context.scheme = { uibase: 'object' };
-    }
-    context.scheme = getRunScheme(context.scheme);
-    const result = initScheme(context);
-    context.value = initValue(context);
-  }
+  context.scheme = getRunScheme(context.scheme, context.pcontext);
+  const result = initScheme(context);
+  context.value = initValue(context);
 
   const transform = context.scheme?.transform;
   if ((transform != undefined) && (iContext.fwdValue == undefined)) {
@@ -197,7 +206,7 @@ export const initValue = (context: Context): any => {
         throw Error('Invalid value type, expecting Array');
       }
       for (let i = 0; i < value.length; i++) {
-        value[i] = initValue({ value: value[i], scheme: getPropertyScheme({value,scheme}, i) })
+        value[i] = initValue({ value: value[i], scheme: getPropertyScheme({ value, scheme }, i) })
       }
       if (scheme.length?.min != undefined) {
         let lastKey;
@@ -206,8 +215,8 @@ export const initValue = (context: Context): any => {
           if (scheme.properties?.[i]) {
             lastKey = i;
           }
-          if (lastKey && i > value.length && getPropertyScheme({value,scheme}, lastKey))
-            value.push(initValue({ value: value[i], scheme: getPropertyScheme({value,scheme}, lastKey) }));
+          if (lastKey && i > value.length && getPropertyScheme({ value, scheme }, lastKey))
+            value.push(initValue({ value: value[i], scheme: getPropertyScheme({ value, scheme }, lastKey) }));
         }
       }
       break;
@@ -302,7 +311,7 @@ const initScheme = (context: Context): number => {
         let pmatch = 0;
         if (context.scheme.properties?.[p] != undefined) {
           const subContext = {
-            scheme: getRunScheme(getPropertyScheme(context, p)),
+            scheme: getRunScheme(getPropertyScheme(context, p), context),
             pcontext: context,
             value: value[p],
             key: p
@@ -317,7 +326,7 @@ const initScheme = (context: Context): number => {
             const selKey = context.scheme.detectScheme(context, value);
             if (selKey != undefined && Object.keys(selectionList).includes(selKey)) {
               const subContext = {
-                scheme: getRunScheme(selectionList[selKey]),
+                scheme: getRunScheme(selectionList[selKey], context),
                 pcontext: context,
                 value: value[p],
                 key: p
@@ -332,7 +341,7 @@ const initScheme = (context: Context): number => {
           if (pmatch == 0) {
             for (const selKey of Object.keys(selectionList)) {
               const subContext = {
-                scheme: getRunScheme(selectionList[selKey]),
+                scheme: getRunScheme(selectionList[selKey], context),
                 pcontext: context,
                 value: value[p],
                 key: p
@@ -356,7 +365,7 @@ const initScheme = (context: Context): number => {
           const selKey = context.scheme.detectScheme(context, value);
           if (selKey != undefined && Object.keys(selectionList).includes(selKey)) {
             const subContext = {
-              scheme: getRunScheme(selectionList[selKey]),
+              scheme: getRunScheme(selectionList[selKey], context),
               pcontext: context,
               value
             }
@@ -371,7 +380,7 @@ const initScheme = (context: Context): number => {
         if (match == 0) {
           for (const selKey of Object.keys(selectionList)) {
             const subContext = {
-              scheme: getRunScheme(selectionList[selKey]),
+              scheme: getRunScheme(selectionList[selKey], context),
               pcontext: context,
               value: value
             }
@@ -416,6 +425,11 @@ const initScheme = (context: Context): number => {
   return (count != 0 ? match / count : 0);
 }
 
+export const updateScheme = async (context: Context, scheme: Scheme) => {
+
+  // TODO
+}
+
 export const checkScheme = (value: any, scheme: Scheme, baseScheme: Scheme, select?: boolean) => {
 
   let badcheckcount = 0;
@@ -435,9 +449,9 @@ export const checkScheme = (value: any, scheme: Scheme, baseScheme: Scheme, sele
       case 'object':
       case 'array':
         for (const p of Object.keys(value)) {
-          const subScheme = getPropertyScheme({value,scheme}, p);
+          const subScheme = getPropertyScheme({ value, scheme }, p);
           check(subScheme != undefined);
-          let baseSubScheme = getPropertyScheme({value,scheme: baseScheme}, p);
+          let baseSubScheme = getPropertyScheme({ value, scheme: baseScheme }, p);
           if (baseSubScheme == undefined) {
             check(intS(subScheme)!.parentSelectedKey != undefined);
             if (intS(subScheme)?.parentSelectedKey != undefined) {
@@ -506,8 +520,8 @@ const initUserFunctions = (context: IntContext) => {
       }
     }
   }
-  context.setUIValue = (value: any) => {
-    setUIValue(context, value);
+  context.setUIValue = (value: any, scheme?: Scheme): void => {
+    (async () => setUIValue(context, value, scheme))();
   }
   context.getUIValue = () => {
     return getUIValue(context);

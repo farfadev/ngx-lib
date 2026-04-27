@@ -111,8 +111,8 @@ export const getDescription = (context: Context): string | undefined => {
   }
 }
 
-export const getRunScheme = (scheme?: Scheme|(()=>Scheme)) => {
-  if(typeof scheme == 'function') scheme = scheme();
+export const getRunScheme = (scheme?: Scheme|((context?: Context)=>Scheme),pContext?: Context) => {
+  if(typeof scheme == 'function') scheme = scheme(pContext);
   if(!intS(scheme)?.cloned) {
     scheme = cloneDeep(scheme);
     if(typeof scheme == 'object') intS(scheme)!.cloned = true;
@@ -122,7 +122,7 @@ export const getRunScheme = (scheme?: Scheme|(()=>Scheme)) => {
 
 export const getPropertyScheme = (context?: Context, key?: number|string): Scheme|undefined => {
   if((context?.scheme == undefined)||(key==undefined)) return undefined;
-  return getRunScheme(context.scheme.properties?.[key]);
+  return getRunScheme(context.scheme.properties?.[key],context);
 }
 
 export const getOptional = (context: Context, key?: string | number): boolean | 'signal' | undefined => {

@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll, afterEach } from 'vitest';
 import * as ObjectEditor from "./object-editor";
 import * as ObjectEditorInt from "./object-editor-int"
 import { isEqual } from "lodash-es";

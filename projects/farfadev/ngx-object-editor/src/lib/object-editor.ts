@@ -11,7 +11,7 @@ export const setSelectedScheme = (context: Context, key: string, selectedScheme?
   intS(context.scheme)!.selectedKey = key;
   if (selectedScheme == undefined) {
     const v = getSelectionList(context)?.[key!];
-    intS(context.scheme)!.selectedScheme = getRunScheme(v);
+    intS(context.scheme)!.selectedScheme = getRunScheme(v,context);
   }
   else {
     intS(context.scheme)!.selectedScheme = selectedScheme;
@@ -44,7 +44,7 @@ export const setPropertyScheme = (context: Context, property: string | number, s
   }
   if (isSchemeSelectionKey(context, schemeKey)) {
     context.scheme!.properties[property] = (scheme == undefined) ?
-      getRunScheme(getSelectionList(context)[schemeKey]) as Scheme :
+      getRunScheme(getSelectionList(context)[schemeKey],context) as Scheme :
       scheme;
     intS(context.scheme!.properties[property])!.parentSelectedKey = schemeKey;
     intS(context.scheme!.properties[property])!.optional = true;

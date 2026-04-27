@@ -196,7 +196,7 @@
     /**
      * set value (after transform if any)
      */
-    setUIValue?: (value: any) => void;
+    setUIValue?: (value: any, scheme?: Scheme) => void;
     /**
      * get value (after transform if any)
      */

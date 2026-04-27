@@ -11,5 +11,5 @@ export * from './lib/input/input-socket';
 export * from './lib/imasks/dms-mask';
 export * from './lib/object-editor-decl';
 export * from './lib/object-editor-chimere';
-export { initContext, checkScheme } from './lib/object-editor-init';
+export { initContext, updateScheme, checkScheme } from './lib/object-editor-init';
 export { getSubContext } from './lib/object-editor';

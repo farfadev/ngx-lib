@@ -67,26 +67,41 @@ export class ShowcaseOpenPropertiesComponent {
             { signal: selSignal, data: context?.value }
           ]
         },
-        subjectToSel2: (context?: ObjectEditor.Context): ObjectEditor.Scheme => {
-          if (context?.pcontext?.value['simpleRadio'] == 0) {
-            return {
-              uibase: 'text', label: 'url', onSignals: [{
-                signals: [selSignal],
-                call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal, data?: any }) => {
-                  if (signal.data == 0) {
-                  }
+        // the subjectToSel2 property depend on the value of the simpleRadio property
+        // the simpleRadio shall be defined before the subjectToSel2 property
+        subjectToSel2: (pcontext?: ObjectEditor.Context): ObjectEditor.Scheme => {
+          let scheme1Value: any, scheme2Value: any;
+          const scheme1: ObjectEditor.Scheme = {
+            uibase: 'text',
+            label: 'url',
+            onSignals: [{
+              signals: [selSignal],
+              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal, data?: any }) => {
+                if (signal.data != 0) {
+                  scheme1Value = context.getUIValue!();
+                  context.setUIValue!(scheme2Value, scheme2);
                 }
-              }]
-            }
+              }
+            }]
           }
-          return { uibase: 'none', default: undefined, readonly: true, onSignals: [{
-                signals: [selSignal],
-                call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal, data?: any }) => {
-                  if (signal.data == 0) {
-                  }
+          const scheme2: ObjectEditor.Scheme = {
+            uibase: 'none',
+            default: undefined,
+            readonly: true,
+            onSignals: [{
+              signals: [selSignal],
+              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal, data?: any }) => {
+                if (signal.data == 0) {
+                  scheme2Value = context.getUIValue!();
+                  context.setUIValue!(scheme1Value, scheme1);
                 }
-              }]
-           }
+              }
+            }]
+          }
+          if (pcontext?.value['simpleRadio'] == 0) {
+            return (scheme1);
+          }
+          return (scheme2);
         }
       },
       selectionList: {
