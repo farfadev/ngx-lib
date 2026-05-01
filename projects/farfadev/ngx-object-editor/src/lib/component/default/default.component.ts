@@ -36,15 +36,15 @@ export class OEDefaultComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ui_id;
 
-    get value(): any {
-      return ObjectEditorInt.getUIValue(this.context!);
-    }
-  
-    set value(v: any) {
-      ObjectEditorInt.setUIValue(this.context!,v);
-    }
-  
-  
+  get value(): any {
+    return ObjectEditorInt.getUIValue(this.context!);
+  }
+
+  set value(v: any) {
+    ObjectEditorInt.setUIValue(this.context!, v);
+  }
+
+
   constructor() {
     this.ui_id = window.crypto.randomUUID();
   }
@@ -68,9 +68,9 @@ export class OEDefaultComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const customElement = document.getElementById(this.getId()) as HTMLInputElement;
     const attributes = ObjectEditorInt.getInputAttributes(this.context!);
-    if(attributes != undefined) {
+    if (attributes != undefined) {
       for (const key of Object.keys(attributes)) {
-        customElement.setAttribute(key,attributes[key]);
+        customElement.setAttribute(key, attributes[key]);
       }
     }
     ObjectEditorInt.uiinitialized(this.context!);
@@ -93,6 +93,7 @@ export class OEDefaultComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getHtmlType(context: ObjectEditor.Context) {
+    if (context?.scheme?.uibase == 'datetime') return 'datetime-local';
     return context?.scheme?.uibase;
   }
 

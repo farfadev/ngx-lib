@@ -3,20 +3,10 @@ import { cloneDeep } from "lodash-es";
 import { Context, Scheme, intS } from "./object-editor-decl"
 import { getProperties, getPropertyScheme, getSelectionList, getSubContext, setSelectedScheme } from "./object-editor-int";
 import { getRunScheme } from "./object-editor-get";
+import { initContextInternals } from "./object-editor-init";
 
 export const loadContext = (context: Context, stream: ReadableStream) => {
 
-}
-/**
- * @function storeContext 
- * @param context the context (a value and a scheme)
- * @param stream the output stream
- * @param chimere an internal object construct mixing value and parts of scheme
- * @description Serialize a context into a stream for transmission or storage
- */
-export const storeContext = (context: Context, stream?: WritableStream) => {
-  const chimere = _toChimere(context);
-  return chimere;
 }
 const cc = {
   key: 'key',
@@ -155,6 +145,7 @@ const _fromChimere = (context: Context, chimere: Record<string | number, any>): 
     if (context.value == undefined)
       context.value = nContext.value;
   }
+  initContextInternals(context);
 }
 /**
  * find all differences between 2 contexes (check toChimere/ fromChimere)

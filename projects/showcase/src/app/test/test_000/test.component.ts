@@ -1,5 +1,5 @@
 
-import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import * as ObjectEditor from '@farfadev/ngx-object-editor';
@@ -7,8 +7,8 @@ import { ObjectEditorModule, adjustNumber, dmsMask } from "@farfadev/ngx-object-
 import { FarfaSvgModule, FarfaSvgService } from '@farfadev/ngx-svg';
 import hljs from 'highlight.js/lib/core';
 import json from 'highlight.js/lib/languages/json';
-import 'highlight.js/styles/github.css';
 import { test_init } from './test_init/test_init';
+import { Subscription } from 'rxjs';
 
 // https://github.com/nerdstep/react-coordinate-input/blob/master/README.md
 // https://imask.js.org/guide.html#getting-started
@@ -24,7 +24,7 @@ type Coordinates = {
   styleUrls: ['./test.component.scss'],
   imports: [FormsModule, RouterModule, ObjectEditorModule, FarfaSvgModule],
 })
-export class TestComponent implements OnInit, AfterViewInit {
+export class TestComponent implements OnInit, AfterViewInit, OnDestroy {
 
   err_msg: string = '';
   @Input()
@@ -32,7 +32,9 @@ export class TestComponent implements OnInit, AfterViewInit {
 
   testicon = { name: 'test' };
 
-  viewInitialized = new Promise<boolean>(resolve=>resolve(true));
+  subscription: Subscription | undefined;
+  
+  viewInitialized = new Promise<boolean>(resolve => resolve(true));
   chimereHL: string = '';
 
   reload_error = '';
@@ -48,14 +50,6 @@ export class TestComponent implements OnInit, AfterViewInit {
   }
 
   mycontext: ObjectEditor.Context = {
-    editUpdate: () => {
-      (async () => {
-        await (this.viewInitialized);
-        const chimere = ObjectEditor.toChimere(this.mycontext);
-        const chimereJSON = JSON.stringify(chimere);
-        this.chimereHL = hljs.highlightAuto(chimereJSON).value;
-      })();
-    },
     value: {
       '1-text': 'coucou',
       '3-color': '#ffffff',
@@ -268,7 +262,6 @@ export class TestComponent implements OnInit, AfterViewInit {
                   if (subContext) {
                     new ObjectEditor.InputSocket(c as HTMLInputElement, ObjectEditor.adjustDMS({}), subContext, (context: ObjectEditor.Context, err_msg: string) => {
                       err(err_msg);
-                      context.editUpdate?.();
                     });
                   }
                 }
@@ -279,6 +272,7 @@ export class TestComponent implements OnInit, AfterViewInit {
       }
     }
   }
+
 
   /**
    * keep a native version of the scheme
@@ -291,7 +285,7 @@ export class TestComponent implements OnInit, AfterViewInit {
 
   reloadCount = 0;
   chimereReload() {
-    this.reloadCount ++;
+    this.reloadCount++;
     const chimere = ObjectEditor.toChimere(this.mycontext);
     const jsonChimere = JSON.stringify(chimere);
     const nchimere = JSON.parse(jsonChimere);
@@ -301,8 +295,8 @@ export class TestComponent implements OnInit, AfterViewInit {
       this.reload_error = 'Reload Mismatch';
     }
     else {
-      ncontext.editUpdate = this.mycontext.editUpdate;
-      ncontext.value['1-text'] = 'changed '+this.reloadCount;
+      const subContext = ObjectEditor.getSubContext(ncontext,'1-text');
+      subContext?.setUIValue?.('changed ' + this.reloadCount);
       this.mycontext = ncontext;
       this.reload_error = '';
     }
@@ -340,6 +334,17 @@ export class TestComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.viewInitialized = Promise.resolve(true);
+    ObjectEditor.initContext(this.mycontext);
+    this.subscription?.unsubscribe();
+    this.subscription = this.mycontext.updateObservable?.subscribe((o: object) => {
+      const chimere = ObjectEditor.toChimere(this.mycontext);
+      const chimereJSON = JSON.stringify(chimere);
+      this.chimereHL = hljs.highlightAuto(chimereJSON).value;
+    })
+  }
+
+  ngOnDestroy() {
+    this.subscription?.unsubscribe();
   }
 }
 

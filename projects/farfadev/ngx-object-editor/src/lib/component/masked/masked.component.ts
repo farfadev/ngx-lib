@@ -99,7 +99,6 @@ export class OEMaskedComponent implements OnInit, OnDestroy, AfterViewInit {
 
   editUpdate() {
     ObjectEditorInt.setUIValue(this.context!, this.value);
-    this._context!.editUpdate?.();
   }
 
   initMask() {

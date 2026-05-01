@@ -16,6 +16,7 @@ import {
 import * as ObjectEditor from '../object-editor';
 import * as ObjectEditorInt from '../object-editor-int';
 import { _farfa_oe_marker } from './markers';
+import { Subscription } from 'rxjs';
 
 type KeyLabel = {
   key: string;
@@ -46,6 +47,8 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   propertyListChange = new EventEmitter<ObjectEditor.Context>();
 
   ui_id;
+
+  updateSubscription: Subscription | undefined;
 
   updateSignal = signal(0n);
 
@@ -321,11 +324,10 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   initContext() {
     if (!this.context) return;
     ObjectEditorInt.initContext(this.context);
-    const editUpdate = this.context.editUpdate;
-    this.context.editUpdate = () => {
+    this.updateSubscription?.unsubscribe();
+    this.updateSubscription = this.context.updateObservable?.subscribe((o: object) => {
       this.updateSignal.update((v: bigint) => ++v);
-      editUpdate?.(true);
-    }
+    });
     if (ObjectEditorInt.getUIBase(this.context) == 'select') {
       const test = 0;
     }
@@ -349,6 +351,7 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     window.removeEventListener('click', this.windowClickListener);
+    this.updateSubscription?.unsubscribe();
     ObjectEditorInt.uidestroyed(this.context!);
   }
 

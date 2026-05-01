@@ -1,7 +1,8 @@
 
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import * as ObjectEditor from '@farfadev/ngx-object-editor';
+import { Subscription } from 'rxjs';
 
 type Coordinates = {
   lat: number;
@@ -14,7 +15,7 @@ type Coordinates = {
   styleUrls: ['./my.component.scss'],
   imports: [FormsModule],
 })
-export class ShowcasesAngularComponentCoords implements OnInit, AfterViewInit {
+export class ShowcasesAngularComponentCoords implements OnInit, AfterViewInit, OnDestroy {
 
   @Input()
   context?: ObjectEditor.Context
@@ -31,6 +32,8 @@ export class ShowcasesAngularComponentCoords implements OnInit, AfterViewInit {
   err_msg_lon: string = "";
   err_msg_lat: string = "";
 
+  subscription: Subscription | undefined;
+
   constructor() {
   }
 
@@ -38,22 +41,25 @@ export class ShowcasesAngularComponentCoords implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    this.subscription?.unsubscribe();
+    this.subscription = this.context?.updateObservable?.subscribe((o: object) => {
+      // some stuff when the context is updated
+    });
     const subContextLat = ObjectEditor.getSubContext(this.context!, 'lat');
     if (subContextLat && this.latEl) {
       new ObjectEditor.InputSocket(this.latEl.nativeElement, ObjectEditor.adjustDMS({}), subContextLat, (context: ObjectEditor.Context, err_msg: string) => {
         this.err_msg_lat = err_msg;
-        context.editUpdate?.();
       });
     }
     const subContextLon = ObjectEditor.getSubContext(this.context!, 'lon');
     if (subContextLon && this.lonEl) {
       new ObjectEditor.InputSocket(this.lonEl.nativeElement, ObjectEditor.adjustDMS({}), subContextLon, (context: ObjectEditor.Context, err_msg: string) => {
         this.err_msg_lon = err_msg;
-        context.editUpdate?.();
       });
     }
-
   }
-
+  ngOnDestroy() {
+    this.subscription?.unsubscribe();
+  }
 }
 

@@ -133,7 +133,6 @@ export class OEFileComponent implements OnInit, OnDestroy, AfterViewInit {
 
   editUpdate() {
     ObjectEditorInt.setUIValue(this.context!, this.filesSignal());
-    this._context!.editUpdate?.();
   }
 
   initContext() {

@@ -4,6 +4,8 @@ import { getOptional, getPropertyScheme, getRunScheme, getSelectionList } from '
 import { addProperty, deleteProperty, select, setPropertyScheme, setSelectedScheme } from "./object-editor"
 import { FarfaOEValueCheck } from "./utils/verifyvalues";
 import { isOptional, isSchemeSelectionKey, isUptodate } from "./object-editor-is";
+import { fromChimere } from "./object-editor-chimere";
+import { Subject } from "rxjs";
 
 const signalsMap = new Map<Signal, Set<Context>>();
 // TODO detect loops
@@ -20,12 +22,10 @@ export const initSignalling = (context: Context) => {
   }
   if ((context as IntContext).sigInit != true) {
     (context as IntContext).sigInit = true;
-    const peditUpdate = context.editUpdate;
-    context.editUpdate = (self?: boolean) => {
+    context.updateObservable?.subscribe((o: object) => {
       if (!isUptodate(context)) return;
       fireSignals(context);
-      peditUpdate?.(self);
-    }
+    });
   }
 }
 
@@ -42,7 +42,6 @@ const fireSignals = (sourceContext: Context) => {
                 const actions = ssg.call(targetContext, sourceContext, signal);
               }
             }
-            (async () => targetContext.editUpdate?.())();
           }
         }
       }
@@ -58,6 +57,10 @@ export const uiinitialized = (context: Context) => {
 }
 
 export const uidestroyed = (context: Context) => {
+  releaseSignalling(context);
+}
+
+export const releaseSignalling = (context: Context) => {
   if (context.scheme?.onSignals != undefined) {
     for (const ss of context.scheme?.onSignals) {
       for (const s of ss.signals) {
@@ -66,6 +69,37 @@ export const uidestroyed = (context: Context) => {
       }
     }
   }
+}
+
+export const releaseContext = (context: Context | undefined) => {
+
+  const iContext = context as IntContext;
+
+  if (!context || iContext.released) return;
+
+  iContext.released = true;
+
+  if ((context.pcontext as IntContext)?.subContext == context) {
+    (context.pcontext as IntContext).subContext = undefined;
+  }
+
+  releaseContext(iContext.subContext);
+
+  for (const subContext of Object.values(iContext.subContexts ?? {})) {
+    releaseContext(subContext);
+  }
+
+  releaseSignalling(context);
+  context.updateObservable?.complete();
+  delete iContext.init;
+  delete context.updateObservable;
+  delete context.contextChange;
+  delete context.onClick;
+  delete iContext.subContext;
+  delete iContext.subContexts;
+  context.key = undefined;
+  context.value = undefined;
+  context.scheme = undefined;
 }
 
 export const getUIValue = (context: Context): any => {
@@ -84,11 +118,13 @@ export const getUIValue = (context: Context): any => {
   }
 }
 
-export const setUIValue = (context: Context, newValue: any, scheme?: Scheme) => {
+export const setUIValue = (context: Context, newValue: any, scheme?: Scheme): Context => {
   let value;
   const iContext = context as IntContext;
+  let rContext = context;
+
   if (scheme) {
-    reinitContext(context, newValue, scheme);
+    rContext = reinitContext(context, newValue, scheme);
   }
   else if (context.scheme?.transform != undefined) {
     context.value = context.scheme.transform.backward(newValue);
@@ -98,6 +134,8 @@ export const setUIValue = (context: Context, newValue: any, scheme?: Scheme) => 
     context.value = newValue;
     iContext.fwdValue = undefined;
   }
+  rContext.updateObservable?.next({ value: newValue, scheme });
+  return rContext;
 }
 
 export const editUpdate = (subContext: Context) => {
@@ -113,22 +151,7 @@ export const editUpdate = (subContext: Context) => {
       iContext.fwdValue[subContext.key] = subContext.value;
       parentContext.value = transform?.backward(iContext.fwdValue);
     }
-//    }
-/*    else if (isOptional(subContext)) {
-      if (iContext.fwdValue == undefined) {
-        delete parentContext.value[subContext.key];
-      }
-      else {
-        delete iContext.fwdValue[subContext.key];
-        parentContext.value = transform?.backward(iContext.fwdValue);
-      }
-
-      if ((parentContext.scheme?.properties?.[subContext.key] != undefined) &&
-        (intS(parentContext.scheme?.properties?.[subContext.key])?.deletable == true)) {
-        delete parentContext.scheme.properties[subContext.key];
-      }
-    }
-*/  }
+  }
   else if (iContext.scheme?.uibase == 'select') {
     if (subContext.value == undefined || transform == undefined)
       iContext.value = subContext.value;
@@ -136,23 +159,25 @@ export const editUpdate = (subContext: Context) => {
       iContext.value = transform?.backward(subContext.value);
     }
   }
-  parentContext.editUpdate?.();
+  parentContext.updateObservable?.next({ subContext });
 }
 
-export const reinitContext = (context: Context, value: any, scheme: Scheme): void => {
+export const reinitContext = (context: Context, value: any, scheme: Scheme): Context => {
   const newContext: Context = { scheme, value };
   initContext(newContext);
   const ipContext = context.pcontext as IntContext;
   ipContext.subContext = ipContext.subContext == context ? newContext : undefined;
-  for (const key of Object.keys(ipContext.subContexts?? {})) {
-    if(ipContext.subContexts?.[key] == context) {
+  for (const key of Object.keys(ipContext.subContexts ?? {})) {
+    if (ipContext.subContexts?.[key] == context) {
       ipContext.subContexts[key] = newContext;
     }
   }
   newContext.pcontext = context.pcontext;
+  releaseContext(context);
+  return newContext;
 }
 
-export const initContext = (context: Context): void => {
+const initSchemeAndValue = (context: Context): void => {
 
   const iContext = (context as IntContext);
 
@@ -169,13 +194,28 @@ export const initContext = (context: Context): void => {
   if ((transform != undefined) && (iContext.fwdValue == undefined)) {
     iContext.fwdValue = transform.forward(context.value);
   }
+}
 
-  context.editUpdate = () => editUpdate(context);
+export const initContextInternals = (context: Context) => {
+
+  const iContext = (context as IntContext);
+
+  if (iContext.init == true) return;
+
+  context.updateObservable = new Subject<object>();
+  context.updateObservable.subscribe((o: object) => {
+    editUpdate(context);
+  });
   context.contextChange = context.contextChange;
 
   initUserFunctions(context);
   initSignalling(context);
   iContext.init = true;
+}
+
+export const initContext = (context: Context): void => {
+  initSchemeAndValue(context);
+  initContextInternals(context);
 }
 
 export const initValue = (context: Context): any => {
@@ -425,11 +465,6 @@ const initScheme = (context: Context): number => {
   return (count != 0 ? match / count : 0);
 }
 
-export const updateScheme = async (context: Context, scheme: Scheme) => {
-
-  // TODO
-}
-
 export const checkScheme = (value: any, scheme: Scheme, baseScheme: Scheme, select?: boolean) => {
 
   let badcheckcount = 0;
@@ -496,12 +531,12 @@ const initUserFunctions = (context: IntContext) => {
       if (subContext != undefined) {
         if (flag) subContext.readonly = true;
         else delete subContext.readonly;
-        subContext.editUpdate?.();
+        subContext.updateObservable?.next({ readonly: subContext.readonly });
       }
       else {
         if (flag) context.readonly = true;
         else delete context.readonly;
-        context.editUpdate?.();
+        context.updateObservable?.next({ readonly: context.readonly });
       }
     }
   }
@@ -509,21 +544,22 @@ const initUserFunctions = (context: IntContext) => {
     if (key != undefined) {
       const subContext = context.subContexts?.[key];
       if (subContext != undefined) {
-        if (flag) subContext.readonly = true;
-        else delete subContext.readonly;
-        subContext.editUpdate?.();
+        subContext.display = flag;
+        subContext.updateObservable?.next({ display: subContext.display });
       }
       else {
-        if (flag) context.readonly = true;
-        else delete context.readonly;
-        context.editUpdate?.();
+        context.display = flag;
+        context.updateObservable?.next({ display: context.display });
       }
     }
   }
-  context.setUIValue = (value: any, scheme?: Scheme): void => {
-    (async () => setUIValue(context, value, scheme))();
+  context.setUIValue = (value: any, scheme?: Scheme): Context => {
+    return setUIValue(context, value, scheme);
   }
   context.getUIValue = () => {
     return getUIValue(context);
+  }
+  context.setChimere = (chimere: Record<string | number, any>, scheme: Scheme): Context => {
+    return fromChimere(chimere, scheme);
   }
 }

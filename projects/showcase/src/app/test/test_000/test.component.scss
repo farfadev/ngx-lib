@@ -1,4 +1,6 @@
- /* Customize the label (the container) */
+@import url('highlight.js/styles/github.css') screen and (prefers-color-scheme: light);
+
+/* Customize the label (the container) */
  :host::ng-deep .container {
     display: block;
     position: relative;

@@ -20,13 +20,6 @@ export class InputSocket {
         context?.onClick?.(context);
       }
       this.updateValue();
-      const editUpdate = this.context.editUpdate;
-      this.context.editUpdate = (self?: boolean) => {
-        if (self !== true) {
-          this.updateValue();
-        }
-        editUpdate?.();
-      }
     }
   }
   private updateValue() {
@@ -72,7 +65,6 @@ export class InputSocket {
       this.inputElement!.selectionStart = cursorPosition;
       this.inputElement!.selectionEnd = cursorPosition;
     })();
-    this.context.editUpdate?.(true);
     this.update(this.context, uiAdjust ? '' : (adjusted?.message ?? ''));
   }
 }

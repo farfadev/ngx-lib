@@ -4,7 +4,7 @@ An [Angular](https://angular.dev/) component to edit typescript/ javascript obje
 
 <a href='https://stackblitz.com/github/farfadev/ngx-lib'>Run Showcase on Stackblitz</a>
 
-<span style='color:red;font-weight:bold;'>WARNING:</span> this component is at a <span style='color:red;font-weight:bold;'>VERY DRAFT</span> development stage and we expect to have a stable release by June 2025 => Wait for release 0.1.0
+<span style='color:red;font-weight:bold;'>WARNING:</span> this component is at a <span style='color:red;font-weight:bold;'>VERY DRAFT</span> development stage and we expect to have a stable release by June 2026 => Wait for release 0.1.0
 
 
 <h2>installation</h2>

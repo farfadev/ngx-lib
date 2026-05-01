@@ -5,6 +5,7 @@ import * as ObjectEditor from '@farfadev/ngx-object-editor';
 import { ObjectEditorModule } from "@farfadev/ngx-object-editor";
 import { isEqual } from 'lodash-es';
 
+const selSignal = ObjectEditor.signal('selSignal');
 @Component({
   selector: 'showcases-simple-signals',
   templateUrl: './simple-signals.component.html',
@@ -149,6 +150,60 @@ export class ShowcaseSimpleSignalsComponent {
           uibase: 'text',
           optional: 'signal',
           default: 'optional text that can be added/ removed by signals on the containing object',
+        },
+        simpleRadio: {
+          uibase: 'select',
+          optional: true,
+          uiEffects: {
+            radio: true,
+            horizontal: true
+          },
+          selectionList: {
+            sel1: this.value2scheme('coucou'),
+            sel2: this.value2scheme(0),
+            sel3: this.value2scheme({ a: 1, b: 'zebu' })
+          },
+          fireSignals: (context?: ObjectEditor.Context) => [
+            { signal: selSignal, data: context?.value }
+          ]
+        },
+        // the subjectToSel2 property depend on the value of the simpleRadio property
+        // the simpleRadio shall be defined before the subjectToSel2 property
+        // when the simpleRadio value changes, a signal is fired and received by the subject2Sel2 scheme, 
+        // which then update its scheme and value in accordance with the signal received.
+        subjectToSel2: (pcontext?: ObjectEditor.Context): ObjectEditor.Scheme => {
+          let scheme1Value: any, scheme2Value: any;
+          const scheme1: ObjectEditor.Scheme = {
+            uibase: 'text',
+            label: 'url',
+            onSignals: [{
+              signals: [selSignal],
+              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal, data?: any }) => {
+                if (signal.data != 0) {
+                  scheme1Value = context.getUIValue!();
+                  context.setUIValue!(scheme2Value, scheme2);
+                }
+              }
+            }]
+          }
+          const scheme2: ObjectEditor.Scheme = {
+            uibase: 'none',
+            default: undefined,
+            readonly: true,
+            onSignals: [{
+              signals: [selSignal],
+              call: (context: ObjectEditor.Context, source: ObjectEditor.Context, signal: { signal: ObjectEditor.Signal, data?: any }) => {
+                if (signal.data == 0) {
+                  scheme2Value = context.getUIValue!();
+                  context.setUIValue!(scheme1Value, scheme1);
+                }
+              }
+            }]
+          }
+          if (pcontext?.value['simpleRadio'] == 0) {
+            return (scheme1);
+          }
+          return (scheme2);
         }
       }
     }

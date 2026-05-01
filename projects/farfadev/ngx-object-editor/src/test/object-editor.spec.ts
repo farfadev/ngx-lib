@@ -1,9 +1,12 @@
 import { describe, it, expect, beforeAll, afterEach } from 'vitest';
-import * as ObjectEditor from "./object-editor";
-import * as ObjectEditorInt from "./object-editor-int"
+import * as ObjectEditor from "../lib/object-editor";
+import * as ObjectEditorInt from "../lib/object-editor-int"
 import { isEqual } from "lodash-es";
+import { fromChimere, toChimere } from '../lib/object-editor-chimere';
+import { expectSubSet, getSubContextFromKeys, getSubValueFromKeys, Semaphore, sleep } from './tests-utils.spec';
 
-const sleep = (ms: any) => new Promise(resolve => setTimeout(resolve, ms));
+const step1 = new Semaphore();
+
 const scheme1: ObjectEditor.Scheme = {
   uibase: 'object',
   selectionList: {
@@ -79,6 +82,16 @@ const scheme1Value1 = {
     toto: true, tila: { z: 12, g: 'o00kJk' }
   }]
 }
+const actionList1 = [
+  {
+    item: ['p1'],
+    value: false
+  },
+  {
+    item: ['fifi', 1],
+    value: { amp: 'hello', loop: { q: 12, m: 'bOkp' } }
+  }
+]
 describe('object-editor', () => {
   beforeAll(async () => {
 
@@ -92,12 +105,21 @@ describe('object-editor', () => {
       value: scheme1Value1
     }
     ObjectEditorInt.initContext(context1);
-    expect(isEqual(context1.scheme.properties?.['p1'],scheme1.properties?.['p1'])).toBeTruthy();
-    expect(isEqual(context1.scheme.properties?.['p2'],scheme1.properties?.['p2'])).toBeTruthy();
-    expect(isEqual(context1.scheme.properties?.['p3'],scheme1.properties?.['p3'])).toBeTruthy();
+    expectSubSet(context1.scheme.properties?.['p1'], scheme1.properties?.['p1']);
+    expectSubSet(context1.scheme.properties?.['p2'], scheme1.properties?.['p2']);
+    expectSubSet(context1.scheme.properties?.['p3'], scheme1.properties?.['p3']);
     expect(context1.scheme.properties?.['pInt']).toBeDefined();
     expect(context1.scheme.properties?.['pInt']).toBeDefined();
     expect(context1.scheme.properties?.['fifi']).toBeDefined();
     expect(context1.scheme.properties?.['lala']).toBeDefined();
+    const chimere1 = toChimere(context1);
+    const context2 = fromChimere(chimere1, context1.scheme);
+    expect(isEqual(context1.value, context2.value)).toBeTruthy();
+    for(const action of actionList1) {
+      const subContext = getSubContextFromKeys(context1, action.item);
+      subContext?.setUIValue?.(action.value);
+      const subValue = getSubValueFromKeys(context1.value,action.item);
+      expect(subValue).toEqual(action.value);
+    }
   })
 })

@@ -1,3 +1,5 @@
+import { Subject } from "rxjs";
+
   /**
    * - [UIBase]({@link ./object-editor.doc.md})
    */
@@ -98,7 +100,7 @@
   export type Signal = Symbol;
 
   /**
-   * describes a data scheme for the display and manupulation of the data
+   * describes a data scheme for the display and manipulation of the data
    * 
    */
   export type Scheme<ValueType = any, FwdValueType = any> = {
@@ -110,8 +112,6 @@
     uiEffects?: UIEffects | ((context: Context) => UIEffects);
     /** an html <article> that helps frontend user to understand/ set the value */
     description?: string | ((context: Context) => string);
-    /** //TODO a call-back to set the Scheme dynamically depending on a runtime context */
-    dynamic?: (context: Context) => Scheme<ValueType, FwdValueType>;
     /** array of signals fired when value changes*/
     fireSignals?: (context: Context) => {signal: Signal; data?: any} [],
     onSignals?: {signals: Signal[]; call: (context: Context, source: Context, signal: {signal: Signal; data?: any}) => void}[];
@@ -176,27 +176,38 @@
     value?: any;
     /** the edition scheme */
     scheme?: Scheme;
-
+  
     /** the parent context (encompassing object, array, select, undefined on the root Context)  */
     pcontext?: Context;
     /** the key in the parent context (object property name, array item number, selection key */
     key?: string | number;
-    /** a call back which is called by the editor when the value changes */
-    editUpdate?: (self?: boolean) => void;
-    /** called by the client application to change the context (value and/ or scheme)
-     eg in case of an update from the server, to avoid full page reload */
+    /** a rxjs observable which is called where there is a change in the context 
+     * such change is cascaded to parent contexts
+     * the object contains the changed subset of the context
+     * mind to unsubscribe when ui component is removed/ destroyed from DOM
+    */
+    updateObservable?: Subject<object>;
+    /** to be called by the client application when there is a change in the context (value and/ or scheme)
+     eg in case of an update from the server, to avoid full page reload 
+     the parameter end specifies the key - value pairs which are changed in an array/ object
+     */
     contextChange?: (context: Context, env?: { [key: string | number]: any }) => void;
     /** a call back which is called when the ui is clicked, internal use only */
-    onClick?: (subContext: Context) => void;
+    onClick?: (context: Context) => void;
 
     /** set the display on/off of an element contained in an object or an array */
     setDisplay?: (display: 'on'|'off',key: string|number) => void;
     /** set/ unset an optional element contained in an object as readonly */
     setReadOnly?: (readonly: boolean,key?: string|number) => void;
     /**
-     * set value (after transform if any)
+     * set value (after transform if any). 
+     * If a scheme is passed, a new context is built (only for dynamic scheme changes)
      */
-    setUIValue?: (value: any, scheme?: Scheme) => void;
+    setUIValue?: (value: any, scheme?: Scheme) => Context;
+    /**
+     * set value from a chimere and a scheme
+     */
+    setChimere?: (chimere: Record<string | number, any>, scheme: Scheme) => Context;
     /**
      * get value (after transform if any)
      */
@@ -244,12 +255,13 @@ export const intS = (scheme: Scheme | undefined): IntScheme | undefined => {
  * holds internal context properties 
  */
 export interface IntContext extends Context {
-  init?: true;
-  sigInit?: true;
-  fwdValue?: any;
-  display?: 'on' | 'off', // as set by signals
-  readonly?: true, // as set by signals
-  subContext?: IntContext;
-  subContexts?: Record<string|number,IntContext>;
+  released?: boolean; // the context have been released and is no longer in use
+  init?: true; // the context has been initialised
+  sigInit?: true; // the context signalling has been set-up
+  fwdValue?: any; // holds a forward value when the UI representation differs from 
+  display?: 'on' | 'off', // switch on/ off the display of the value 
+  readonly?: true, // switch on/ off the modifications of the value
+  subContext?: IntContext; // a subcontext associated with the current scheme selection
+  subContexts?: Record<string|number,IntContext>; // the subContexts associated with an object properties or an array items
 }
 

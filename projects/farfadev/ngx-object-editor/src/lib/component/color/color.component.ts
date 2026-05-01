@@ -13,6 +13,8 @@ import {
 import * as ObjectEditor from '../../object-editor';
 import * as ObjectEditorInt from '../../object-editor-int';
 import { colorNames, getColorHex, getColorName } from '../../color-utils/color-table';
+import { Subscription } from 'rxjs';
+
 
 @Component({
   standalone: false,
@@ -58,6 +60,8 @@ export class OEColorComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ui_id;
 
+  updateSubscription: Subscription | undefined;
+
   constructor() {
     this.ui_id = window.crypto.randomUUID();
   }
@@ -90,6 +94,7 @@ export class OEColorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
+    this.updateSubscription?.unsubscribe();
     ObjectEditorInt.uidestroyed(this.context!);
   }
 
@@ -103,12 +108,11 @@ export class OEColorComponent implements OnInit, OnDestroy, AfterViewInit {
 
   initContext() {
     if (!this.context) return;
-    const peditUpdate = this.context.editUpdate;
-    this.context.editUpdate = (self?: boolean) => {
+    this.updateSubscription?.unsubscribe();
+    this.updateSubscription = this.context.updateObservable?.subscribe((o: object) => {
       this._colorPick = getColorHex(ObjectEditorInt.getUIValue(this.context!)) ?? '#ffffff';
       this._colorName = getColorName(ObjectEditorInt.getUIValue(this.context!)) ?? '';  
-      peditUpdate?.(self);
-    }
+    })
   }
 
   getHtmlType(context: ObjectEditor.Context) {

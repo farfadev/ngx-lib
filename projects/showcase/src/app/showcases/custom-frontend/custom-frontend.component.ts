@@ -55,7 +55,6 @@ export class ShowcasesCustomFrontendComponent {
                   if (subContext) {
                     new ObjectEditor.InputSocket(c as HTMLInputElement, ObjectEditor.adjustDMS({}), subContext, (context: ObjectEditor.Context, err_msg: string) => {
                       err(err_msg);
-                      context.editUpdate?.();
                     });
                   }
                 }
