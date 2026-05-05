@@ -59,15 +59,12 @@ export class OEAngularComponent implements OnInit, AfterViewInit, OnDestroy, OnC
   ngOnInit() {
     const breakpoint = 0; // to set breakpoints
     this.renderDynamicComponents();
-    ObjectEditorInt.uiinitialized(this.context!);
   }
   ngAfterViewInit(): void {
-    ObjectEditorInt.uiinitialized(this.context!);
   }
   ngOnDestroy(): void {
     this.componentRef?.destroy();
     this.componentRef = undefined;
-    ObjectEditorInt.uidestroyed(this.context!);
   }
   ngOnChanges(changes: SimpleChanges): void {
 

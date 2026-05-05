@@ -20,30 +20,29 @@ export class ShowcasesCustomFrontendComponent {
   err_msg: string = '';
   @Input() debug = false;
 
-  mycontext: ObjectEditor.Context = {
-    scheme: {
-      uibase: 'object',
-      label: 'showcase angular frontend',
-      uiEffects: {
-        toggle: true
-      },
-      properties: {
-        'coordinates': {
-          uibase: 'angular',
-          default: [12.5542, 15.87122],
-          transform: {
-            forward: (value: number[]) => ({ lat: value[0], lon: value[1] }),
-            backward: (value: Coordinates) => [value.lat, value.lon]
-          },
-          angularFrontEnd: {
-            component: (context: ObjectEditor.Context) => ShowcasesAngularComponentCoords,
-            inputs: (context: ObjectEditor.Context) => ({
-              welcomeMessage: 'I am a custom angular component'
-            })
-          }
+  myscheme: ObjectEditor.Scheme = {
+    uibase: 'object',
+    label: 'showcase angular frontend',
+    uiEffects: {
+      toggle: true
+    },
+    properties: {
+      'coordinates': {
+        uibase: 'angular',
+        default: [12.5542, 15.87122],
+        transform: {
+          forward: (value: number[]) => ({ lat: value[0], lon: value[1] }),
+          backward: (value: Coordinates) => [value.lat, value.lon]
+        },
+        angularFrontEnd: {
+          component: (context: ObjectEditor.Context) => ShowcasesAngularComponentCoords,
+          inputs: (context: ObjectEditor.Context) => ({
+            welcomeMessage: 'I am a custom angular component'
+          })
         }
       }
     }
   }
+  mycontext: ObjectEditor.Context = ObjectEditor.createContext(this.myscheme);
 }
 

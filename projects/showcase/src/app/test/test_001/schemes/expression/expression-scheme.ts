@@ -16,7 +16,7 @@ export type Expression = {
 
 export const expressionScheme: ObjectEditor.Scheme = {
   uibase: 'select',
-  selectionList: (context: ObjectEditor.Context) => {return {
+  selectionList: (context: ObjectEditor.BaseContext) => {return {
     'let': expLetScheme,
     'var': expVarScheme,
     'literal': expLiteralScheme,
@@ -24,7 +24,7 @@ export const expressionScheme: ObjectEditor.Scheme = {
     'typeof': expTypeofScheme,
     'string': expStringScheme
   }},
-  detectScheme: (context: ObjectEditor.Context) => {
+  detectScheme: (context: ObjectEditor.BaseContext) => {
     if (context.value?.[0] != undefined
       && Object.keys((expressionScheme.selectionList as Function)(undefined)).includes(context.value[0])) {
       return context.value?.[0];

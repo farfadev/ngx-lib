@@ -15,16 +15,16 @@ export class ShowcaseFilesComponent {
   @Input()
   debug: boolean = false;
 
-  mycontext: ObjectEditor.Context = {
-    scheme: {
-      uibase: 'object',
-      label: 'showcase files',
-      properties: {
-        files: {
-          uibase: 'file',
-        },
-      }
+  myscheme: ObjectEditor.Scheme = {
+    uibase: 'object',
+    label: 'showcase files',
+    properties: {
+      files: {
+        uibase: 'file',
+      },
     }
   }
+  mycontext: ObjectEditor.Context = ObjectEditor.createContext(this.myscheme);
 }
+
 

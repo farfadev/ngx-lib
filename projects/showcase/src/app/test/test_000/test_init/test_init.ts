@@ -119,9 +119,9 @@ export const test_init = (): number => {
     value: scheme1Value1
   }
   const scheme1_clone = cloneDeep(scheme1);
-  ObjectEditor.initContext(context1);
+  const uicontext1 = ObjectEditor.createContext(context1.scheme, context1.value);
   let err_count = ObjectEditor.checkScheme(scheme1Value1,context1.scheme,scheme1);
-  const chimere1 = ObjectEditor.toChimere(context1);
+  const chimere1 = uicontext1.getChimere();
   const context1_b = ObjectEditor.fromChimere(chimere1,scheme1);
   if(!isEqual(context1_b, context1)) err_count++;
   if(!isEqual(scheme1,scheme1_clone)) err_count++;

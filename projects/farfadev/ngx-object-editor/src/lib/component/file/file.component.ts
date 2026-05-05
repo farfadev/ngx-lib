@@ -12,7 +12,6 @@ import {
 } from '@angular/core';
 
 import * as ObjectEditor from '../../object-editor';
-import * as ObjectEditorInt from '../../object-editor-int';
 
 @Component({
   standalone: false,
@@ -54,15 +53,15 @@ export class OEFileComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   isReadOnly(context: ObjectEditor.Context) {
-    return ObjectEditorInt.isReadOnly(context);
+    return context.isReadOnly();
   }
 
   isMultiple() {
-    return ObjectEditorInt.getMaskOptions(this.context!)?.['multiple'] ?? false;
+    return this.context?.getMaskOptions()?.['multiple'] ?? false;
   }
 
   accept() {
-    return ObjectEditorInt.getMaskOptions(this.context!)?.['accept'] ?? '*';
+    return this.context?.getMaskOptions()?.['accept'] ?? '*';
   }
 
   trash(f: File) {
@@ -105,42 +104,40 @@ export class OEFileComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         false,
       );
-    ObjectEditorInt.uiinitialized(this.context!);
   }
 
   ngOnDestroy(): void {
-    ObjectEditorInt.uidestroyed(this.context!);
   }
 
   getStyle(context: ObjectEditor.Context) {
     const stylePlus = this.err_msg != '' ? 'color:red' : '';
-    const rstyle = ObjectEditorInt.getStyle(context);
+    const rstyle = context.getStyle();
 
     return rstyle ? rstyle + ';' + stylePlus : stylePlus;
   }
 
   getStyleClass(context: ObjectEditor.Context) {
-    return ObjectEditorInt.getStyleClass(context);
+    return context.getStyleClass();
   }
 
   getLabel(subContext: ObjectEditor.Context) {
-    return ObjectEditorInt.getLabel(subContext);
+    return subContext.getLabel();
   }
 
   onclick() {
-    this._context?.pcontext?.onClick?.(this._context);
+    // this._context?.pcontext?.onClick?.(this._context);
   }
 
   editUpdate() {
-    ObjectEditorInt.setUIValue(this.context!, this.filesSignal());
+    this.context?.setUIValue(this.filesSignal());
   }
 
   initContext() {
     if (!this.context) return;
-    const keys = ObjectEditorInt.getUIValue(this.context) != undefined ? Object.keys(ObjectEditorInt.getUIValue(this.context)) : [];
+    const keys = this.context.getUIValue() != undefined ? Object.keys(this.context.getUIValue()) : [];
     this.filesSignal.update((files: File[]) => {
       for (const key of keys) {
-        files.push(ObjectEditorInt.getUIValue(this.context!)[key]);
+        if(this.context) files.push(this.context.getUIValue()[key]);
       }
       return files.slice(0);
     });

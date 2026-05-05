@@ -54,11 +54,11 @@ export class OEDefaultComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   isReadOnly(context: ObjectEditor.Context) {
-    return ObjectEditorInt.isReadOnly(context);
+    return context.isReadOnly();
   }
 
   isHorizontal() {
-    return ObjectEditorInt.getUIEffects(this.context!)?.['horizontal'] ?? false;
+    return this.context!.getUIEffects()?.['horizontal'] ?? false;
   }
 
   ngOnInit(): void {
@@ -67,25 +67,23 @@ export class OEDefaultComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
 
     const customElement = document.getElementById(this.getId()) as HTMLInputElement;
-    const attributes = ObjectEditorInt.getInputAttributes(this.context!);
+    const attributes = this.context!.getInputAttributes();
     if (attributes != undefined) {
       for (const key of Object.keys(attributes)) {
         customElement.setAttribute(key, attributes[key]);
       }
     }
-    ObjectEditorInt.uiinitialized(this.context!);
   }
 
   ngOnDestroy(): void {
-    ObjectEditorInt.uidestroyed(this.context!);
   }
 
   getLabel(subContext: ObjectEditor.Context) {
-    return ObjectEditorInt.getLabel(subContext);
+    return subContext.getLabel();
   }
 
   onclick() {
-    this._context?.onClick?.(this.context!);
+    // this._context?.onClick?.(this.context!);
   }
 
   initContext() {
@@ -98,12 +96,12 @@ export class OEDefaultComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getStyle(context: ObjectEditor.Context) {
-    const rstyle = ObjectEditorInt.getStyle(context);
+    const rstyle = context.getStyle();
     return rstyle;
   }
 
   getStyleClass(context: ObjectEditor.Context) {
-    return ObjectEditorInt.getStyleClass(context);
+    return context.getStyleClass();
   }
 
 }

@@ -100,21 +100,18 @@ describe('object-editor', () => {
     await sleep(2000);
   });
   it('test1', () => {
-    const context1 = {
-      scheme: scheme1,
-      value: scheme1Value1
-    }
-    ObjectEditorInt.initContext(context1);
-    expectSubSet(context1.scheme.properties?.['p1'], scheme1.properties?.['p1']);
-    expectSubSet(context1.scheme.properties?.['p2'], scheme1.properties?.['p2']);
-    expectSubSet(context1.scheme.properties?.['p3'], scheme1.properties?.['p3']);
-    expect(context1.scheme.properties?.['pInt']).toBeDefined();
-    expect(context1.scheme.properties?.['pInt']).toBeDefined();
-    expect(context1.scheme.properties?.['fifi']).toBeDefined();
-    expect(context1.scheme.properties?.['lala']).toBeDefined();
+    const context1 = ObjectEditor.createContext(scheme1, scheme1Value1);
+    expect(context1.scheme).toBeDefined();
+    expectSubSet(context1.scheme?.properties?.['p1'], scheme1.properties?.['p1']);
+    expectSubSet(context1.scheme?.properties?.['p2'], scheme1.properties?.['p2']);
+    expectSubSet(context1.scheme?.properties?.['p3'], scheme1.properties?.['p3']);
+    expect(context1.scheme?.properties?.['pInt']).toBeDefined();
+    expect(context1.scheme?.properties?.['pBool']).toBeDefined();
+    expect(context1.scheme?.properties?.['fifi']).toBeDefined();
+    expect(context1.scheme?.properties?.['lala']).toBeDefined();
     const chimere1 = toChimere(context1);
-    const context2 = fromChimere(chimere1, context1.scheme);
-    expect(isEqual(context1.value, context2.value)).toBeTruthy();
+    const baseContext2 = fromChimere(chimere1, context1.scheme!);
+    expect(isEqual(context1.value, baseContext2.value)).toBeTruthy();
     for(const action of actionList1) {
       const subContext = getSubContextFromKeys(context1, action.item);
       subContext?.setUIValue?.(action.value);

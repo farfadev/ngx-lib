@@ -14,7 +14,7 @@ export const expTypeofScheme: ObjectEditor.Scheme = {
     },
     value: {
       uibase: 'select',
-      selectionList: (context: ObjectEditor.Context) => {
+      selectionList: (context: ObjectEditor.BaseContext) => {
         return {
           boolean: booleanScheme,
           number: numberScheme,

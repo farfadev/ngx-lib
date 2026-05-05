@@ -11,9 +11,7 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import * as ObjectEditor from '../../object-editor';
-import * as ObjectEditorInt from '../../object-editor-int';
 import { colorNames, getColorHex, getColorName } from '../../color-utils/color-table';
-import { Subscription } from 'rxjs';
 
 
 @Component({
@@ -34,8 +32,8 @@ export class OEColorComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input()
   set context(context: ObjectEditor.Context) {
     this._context = context;
-    this._colorPick = getColorHex(ObjectEditorInt.getUIValue(this.context!)) ?? '#ffffff';
-    this._colorName = getColorName(ObjectEditorInt.getUIValue(this.context!)) ?? '';
+    this._colorPick = getColorHex(context.getUIValue()) ?? '#ffffff';
+    this._colorName = getColorName(context.getUIValue()) ?? '';
     this.initContext();
   }
 
@@ -47,7 +45,7 @@ export class OEColorComponent implements OnInit, OnDestroy, AfterViewInit {
   set colorPick(v: string) {
     this._colorPick = v;
     this._colorName = getColorName(v) ?? '';
-    ObjectEditorInt.setUIValue(this.context!,v);
+    this.context!.setUIValue(v);
   }
   get colorName() {
     return this._colorName;
@@ -55,12 +53,12 @@ export class OEColorComponent implements OnInit, OnDestroy, AfterViewInit {
   set colorName(v: string) {
     this._colorPick = getColorHex(v) ?? '0xffffff';
     this._colorName = v;
-    ObjectEditorInt.setUIValue(this.context!,this.colorPick);
+    this.context!.setUIValue(this.colorPick);
   }
 
   ui_id;
 
-  updateSubscription: Subscription | undefined;
+  updateSubscription: any;
 
   constructor() {
     this.ui_id = window.crypto.randomUUID();
@@ -71,11 +69,11 @@ export class OEColorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   isReadOnly(context: ObjectEditor.Context) {
-    return ObjectEditorInt.isReadOnly(context);
+    return context.isReadOnly();
   }
 
   isHorizontal() {
-    return ObjectEditorInt.getUIEffects(this.context!)?.['horizontal'] ?? false;
+    return this.context?.getUIEffects()?.['horizontal'] ?? false;
   }
 
   ngOnInit(): void {
@@ -84,34 +82,32 @@ export class OEColorComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
 
     const customElement = document.getElementById(this.getId()) as HTMLInputElement;
-    const attributes = ObjectEditorInt.getInputAttributes(this.context!);
+    const attributes = this.context?.getInputAttributes();
     if(attributes != undefined) {
       for (const key of Object.keys(attributes)) {
         customElement.setAttribute(key,attributes[key]);
       }
     }
-    ObjectEditorInt.uiinitialized(this.context!);
   }
 
   ngOnDestroy(): void {
-    this.updateSubscription?.unsubscribe();
-    ObjectEditorInt.uidestroyed(this.context!);
+    this.context?.unsubscribe(this.updateSubscription);
   }
 
   getLabel(subContext: ObjectEditor.Context) {
-    return ObjectEditorInt.getLabel(subContext);
+    return subContext.getLabel();
   }
 
   onclick() {
-    this._context?.onClick?.(this.context!);
+//    this._context?.onClick?.(this.context!);
   }
 
   initContext() {
     if (!this.context) return;
     this.updateSubscription?.unsubscribe();
-    this.updateSubscription = this.context.updateObservable?.subscribe((o: object) => {
-      this._colorPick = getColorHex(ObjectEditorInt.getUIValue(this.context!)) ?? '#ffffff';
-      this._colorName = getColorName(ObjectEditorInt.getUIValue(this.context!)) ?? '';  
+    this.updateSubscription = this.context.subscribe((o: object) => {
+      this._colorPick = getColorHex(this.context?.getUIValue()) ?? '#ffffff';
+      this._colorName = getColorName(this.context?.getUIValue()) ?? '';  
     })
   }
 
@@ -120,12 +116,12 @@ export class OEColorComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getStyle(context: ObjectEditor.Context) {
-    const rstyle = ObjectEditorInt.getStyle(context);
+    const rstyle = context.getStyle();
     return rstyle;
   }
 
   getStyleClass(context: ObjectEditor.Context) {
-    return ObjectEditorInt.getStyleClass(context);
+    return context.getStyleClass();
   }
 
   getColorNames() {

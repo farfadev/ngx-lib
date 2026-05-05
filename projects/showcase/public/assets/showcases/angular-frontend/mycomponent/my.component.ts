@@ -42,16 +42,16 @@ export class ShowcasesAngularComponentCoords implements OnInit, AfterViewInit, O
 
   ngAfterViewInit(): void {
     this.subscription?.unsubscribe();
-    this.subscription = this.context?.updateObservable?.subscribe((o: object) => {
+    this.subscription = this.context?.subscribe((o: object) => {
       // some stuff when the context is updated
     });
-    const subContextLat = ObjectEditor.getSubContext(this.context!, 'lat');
+    const subContextLat = this.context!.getSubContext('lat');
     if (subContextLat && this.latEl) {
       new ObjectEditor.InputSocket(this.latEl.nativeElement, ObjectEditor.adjustDMS({}), subContextLat, (context: ObjectEditor.Context, err_msg: string) => {
         this.err_msg_lat = err_msg;
       });
     }
-    const subContextLon = ObjectEditor.getSubContext(this.context!, 'lon');
+    const subContextLon = this.context!.getSubContext('lon');
     if (subContextLon && this.lonEl) {
       new ObjectEditor.InputSocket(this.lonEl.nativeElement, ObjectEditor.adjustDMS({}), subContextLon, (context: ObjectEditor.Context, err_msg: string) => {
         this.err_msg_lon = err_msg;
@@ -59,7 +59,7 @@ export class ShowcasesAngularComponentCoords implements OnInit, AfterViewInit, O
     }
   }
   ngOnDestroy() {
-    this.subscription?.unsubscribe();
+    this.context!.unsubscribe(this.subscription);
   }
 }
 

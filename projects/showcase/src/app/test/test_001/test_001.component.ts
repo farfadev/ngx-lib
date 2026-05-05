@@ -14,7 +14,7 @@ import { valueScheme } from './schemes/expression/common-scheme';
   styleUrls: [],
   imports: [FormsModule, RouterModule, ObjectEditorModule, FarfaSvgModule],
 })
-export class Test001Component implements OnInit, AfterViewInit {
+export class Test001Component {
 
   err_msg: string = '';
   @Input()
@@ -26,15 +26,9 @@ export class Test001Component implements OnInit, AfterViewInit {
   constructor(@Inject(FarfaSvgService) private svgService: FarfaSvgService) {
   }
 
-  test001Context = {
-    scheme: valueScheme,
-    value: ['let','toto',3,'titi','hello',['var','toto']]
-  };
-
-  ngOnInit() {
-  }
-
-  ngAfterViewInit(): void {
-  }
+  test001Context = ObjectEditor.createContext(
+    valueScheme,
+    ['let', 'toto', 3, 'titi', 'hello', ['var', 'toto']]
+  );
 }
 

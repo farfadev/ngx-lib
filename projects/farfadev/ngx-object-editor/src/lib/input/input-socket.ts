@@ -1,5 +1,4 @@
 import * as ObjectEditor from "../object-editor";
-import { getUIValue, setUIValue } from "../object-editor-int";
 
 export class InputSocket {
   constructor(private inputElement: HTMLInputElement, private adjust: ObjectEditor.Adjust, private context: ObjectEditor.Context, private update: (context: any, err_msg: string) => void) {
@@ -17,37 +16,38 @@ export class InputSocket {
         this._update(true);
       }
       this.inputElement.onclick = () => {
-        context?.onClick?.(context);
+        //context?.onClick?.(context);
       }
       this.updateValue();
     }
   }
   private updateValue() {
     if (this.adjust.adjust) {
-      const adjusted = this.adjust.adjust(this.context, String(getUIValue(this.context) ?? ''));
+      const adjusted = this.adjust.adjust(this.context, String(this.context.getUIValue() ?? ''));
       this.inputElement.value = adjusted?.formattedValue ?? '';
     }
     else {
-      this.inputElement.value = String(getUIValue(this.context) ?? '');
+      this.inputElement.value = String(this.context.getUIValue() ?? '');
     }
+    //this.context.setUIValue?.(this.inputElement.value);
   }
   private _update(uiAdjust: boolean) {
     let cursorPosition: number | null = 0;
     let adjusted;
     if(this.adjust.adjust) {
       adjusted = this.adjust.adjust(this.context, this.inputElement.value, this.inputElement.selectionStart ?? 0);
-      setUIValue(this.context, adjusted?.adjustedValue);
+      this.context.setUIValue?.(adjusted?.adjustedValue);
     }
     else {
-      setUIValue(this.context, this.inputElement.value);
+      this.context.setUIValue?.(this.inputElement.value);
     }
     if (uiAdjust) { // adjust UI value when focus is lost
       if(this.adjust.adjust) {
-        const adjusted = this.adjust.adjust(this.context, getUIValue(this.context), this.inputElement.selectionStart ?? 0);
+        const adjusted = this.adjust.adjust(this.context, this.context.getUIValue(), this.inputElement.selectionStart ?? 0);
         this.inputElement.value = adjusted?.formattedValue ?? '';
       }
       else {
-        this.inputElement.value = getUIValue(this.context);
+        this.inputElement.value = this.context.getUIValue();
       }
       cursorPosition = String(this.inputElement.value).length;
     }

@@ -20,7 +20,7 @@ export const getSubContextFromKeys = (context: ObjectEditor.Context, keys: (stri
   let subContext: ObjectEditor.Context | undefined = context;
   for (const key of keys) {
     if (!subContext) break;
-    subContext = ObjectEditor.getSubContext(subContext, key);
+    subContext = subContext.getSubContext(key);
   }
   return subContext;
 }

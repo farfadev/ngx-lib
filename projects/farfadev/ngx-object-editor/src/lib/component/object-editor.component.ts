@@ -14,7 +14,6 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import * as ObjectEditor from '../object-editor';
-import * as ObjectEditorInt from '../object-editor-int';
 import { _farfa_oe_marker } from './markers';
 import { Subscription } from 'rxjs';
 
@@ -31,8 +30,8 @@ type KeyLabel = {
 })
 export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  _context?: ObjectEditor.Context;
-  get context(): ObjectEditor.Context | undefined {
+  _context: ObjectEditor.Context = {scheme: {uibase: 'none'}} as ObjectEditor.Context;
+  get context(): ObjectEditor.Context {
     return this._context;
   }
   @Input()
@@ -57,7 +56,7 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // for the select uibase
   get selectionKey() {
-    return ObjectEditorInt.getSelectionKey(this.context);
+    return this.context?.getSelectionKey();
   };
 
   set selectionKey(key: string | undefined) {
@@ -65,7 +64,7 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get subContext(): ObjectEditor.Context | undefined {
-    return ObjectEditor.getSubContext(this.context!);
+    return this.context?.getSubContext();
   };
 
   properties: (string | number)[] = [];
@@ -76,26 +75,20 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   };
 
   canAddObjectProperty(): boolean {
-    return (ObjectEditorInt.getUIBase(this.context) == 'object'
+    return (this.context?.getUIBase() == 'object'
       && (this.newProperty.property != '')
       && (this.newProperty.schemeKey != '')
-      && ObjectEditorInt.getUIValue(this.context!)?.[this.newProperty.property] == undefined);
+      && this.context!.getUIValue()?.[this.newProperty.property] == undefined);
   }
 
   canAddArrayElement(): boolean {
-    return (ObjectEditorInt.getUIBase(this.context) == 'array'
+    return (this.context?.getUIBase() == 'array'
       && (this.newProperty.schemeKey != '')
-      && (this.context?.scheme?.length?.max ? ObjectEditorInt.getUIValue(this.context).length < this.context.scheme.length.max : true));
+      && (this.context?.scheme?.length?.max ? this.context!.getUIValue()!.length < this.context.scheme.length.max : true));
   }
 
-  editing?: ObjectEditor.Context;
-  propertyClickEvent = false;
   windowClickListener = (ev: MouseEvent) => {
-    if (!this.propertyClickEvent && this.editing) {
-      //      ObjectEditorInt.editUpdate(this.editing);
-      this.editing = undefined;
-    }
-    this.propertyClickEvent = false;
+    // TODO placeholder
   };
 
   constructor(@Host() elementRef: ElementRef) {
@@ -104,19 +97,19 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   canArrayItemUp(context: ObjectEditor.Context) {
-    return ObjectEditor.canArrayItemUp(context);
+    return context.canArrayItemUp();
   }
 
   arrayItemUp(context: ObjectEditor.Context) {
-    ObjectEditor.arrayItemUp(context);
+    context.arrayItemUp();
   }
 
   canArrayItemDown(context: ObjectEditor.Context) {
-    return ObjectEditor.canArrayItemDown(context);
+    return context.canArrayItemDown();
   }
 
   arrayItemDown(context: ObjectEditor.Context) {
-    ObjectEditor.arrayItemDown(context);
+    context.arrayItemDown();
   }
 
   hasOptionalProperties(): boolean {
@@ -126,9 +119,9 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   getOptionalPropertyKeyLabelList(): KeyLabel[] {
     if (!this.context) return [];
     const keyLabelList: KeyLabel[] = [];
-    const keyList = ObjectEditorInt.getOptionalPropertyList(this.context, 'ui');
+    const keyList = this.context.getOptionalPropertyList('ui');
     for (const key of keyList) {
-      keyLabelList.push({ key, label: ObjectEditorInt.getPropertyScheme(this.context, key)?.label ?? key });
+      keyLabelList.push({ key, label: this.context!.getPropertyScheme(key)?.label ?? key });
     }
     return keyLabelList;
   }
@@ -137,9 +130,9 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   optionalPropertySet() {
     const s = this.optionalPropertySel;
-    if (s && ObjectEditorInt.getPropertyScheme(this.context, s)) {
+    if (s && this.context!.getPropertyScheme(s)) {
       this.newProperty.property = s;
-      this.newProperty.schemeKey = ObjectEditorInt.getPropertyScheme(this.context, s)?.uibase ?? "";
+      this.newProperty.schemeKey = this.context!.getPropertyScheme(s)?.uibase ?? "";
       this.addProperty();
       this.newProperty.property = '';
       this.newProperty.schemeKey = '';
@@ -153,57 +146,48 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getSubContext(p: string | number): ObjectEditor.Context | undefined {
-    const subContext = ObjectEditorInt.getSubContext(this.context!, p);
-    if (subContext?.onClick == undefined) {
-      subContext!.onClick = (subContext: ObjectEditor.Context) => {
-        this.onclick(subContext!);
-      }
-    }
+    const subContext = this.context!.getSubContext(p);
     return subContext;
   }
 
   hasMask(context: ObjectEditor.Context) {
-    return ObjectEditorInt.getMaskOptions(context) != undefined;
+    return context.getMaskOptions() != undefined;
   }
 
   getLabel(subContext: ObjectEditor.Context) {
-    return ObjectEditorInt.getLabel(subContext);
+    return subContext.getLabel();
   }
 
   isArray() {
-    return this.context ? ObjectEditorInt.isArray(this.context) : false;
+    return this.context ? this.context.isArray() : false;
   }
   isObject() {
-    return this.context ? ObjectEditorInt.isObject(this.context) : false;
+    return this.context ? this.context.isObject() : false;
   }
   isSelect() {
-    return this.context ? ObjectEditorInt.isSelect(this.context) : false;
-  }
-  isediting(subContext: ObjectEditor.Context) {
-    return (subContext == this.editing);
-    //    return (this.editing != undefined)&&((context == this.editing) || (this.subContextList?.[this.editing?.key ?? ''] == this.editing));
+    return this.context ? this.context.isSelect() : false;
   }
 
   isReadOnly(context: ObjectEditor.Context): boolean {
-    return ObjectEditorInt.isReadOnly(context);
+    return context.isReadOnly();
   }
 
   isHorizontal(context: ObjectEditor.Context) {
-    return ObjectEditorInt.getUIEffects(context!)?.['horizontal'] ?? false;
+    return context.getUIEffects()?.['horizontal'] ?? false;
   }
 
   isRadio(context: ObjectEditor.Context) {
-    return ObjectEditorInt.getUIEffects(context!)?.['radio'] ?? false;
+    return context.getUIEffects()?.['radio'] ?? false;
   }
 
   schemeSelect(context: ObjectEditor.Context, key?: string) {
-    ObjectEditorInt.select(context, key);
+    context.select(key);
     //    this.selectionKey = ObjectEditorInt.getSelectionKey(this.context) ?? "";
   }
 
   getSelectionKeyLabels(context: ObjectEditor.Context) {
     const result: KeyLabel[] = [];
-    const selList = ObjectEditorInt.getSelectionList(context);
+    const selList = context.getSelectionList() ?? {};
     const keys = Object.keys(selList);
     for (let key of keys) {
       result.push({ key, label: selList[key].label ?? key });
@@ -213,67 +197,51 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getSelectionLabel(context: ObjectEditor.Context) {
-    return ObjectEditorInt.getSelectionLabel(context) ?? '';
+    return context.getSelectionLabel() ?? '';
   }
 
   selectOnclick() {
-    this._context?.onClick?.(this.context!);
+    //this._context?.onClick?.(this.context!);
   }
 
   getUIBase(context: ObjectEditor.Context) {
-    return ObjectEditorInt.getUIBase(context) ?? '';
+    return context.getUIBase() ?? '';
   }
 
   getDescriptionArticle(context: ObjectEditor.Context) {
-    return ObjectEditorInt.getDescription(context);
+    return context.getDescription();
   }
 
   getStyle(context: ObjectEditor.Context, stylePlus?: string) {
-    const style = ObjectEditorInt.getStyle(context);
+    const style = context.getStyle();
     const rStyle = style ? (style + (stylePlus ? ';' + stylePlus : '')) : stylePlus ?? '';
     return rStyle;
   }
 
   getStyleClass(context: ObjectEditor.Context) {
-    return ObjectEditorInt.getStyleClass(context);
+    return context.getStyleClass();
   }
 
   getInnerStyle(context: ObjectEditor.Context, stylePlus?: string) {
-    const style = ObjectEditorInt.getInnerStyle(context);
+    const style = context.getInnerStyle();
     const rStyle = style ? (style + (stylePlus ? ';' + stylePlus : '')) : stylePlus ?? '';
     return rStyle;
   }
 
   getInnerStyleClass(context: ObjectEditor.Context) {
-    return ObjectEditorInt.getInnerStyleClass(context);
+    return context.getInnerStyleClass();
   }
 
   getDesignToken(context: ObjectEditor.Context) {
-    return ObjectEditorInt.getDesignToken(context);
+    return context.getDesignToken();
   }
 
   getUIEffects(): ObjectEditor.UIEffects {
-    return ObjectEditorInt.getUIEffects(this.context!)!;
+    return this._context?.getUIEffects() ?? {};
   }
 
   canToggle(): boolean {
     return this.getUIEffects()?.toggle ?? false;
-  }
-
-  onclick(context: ObjectEditor.Context, event?: MouseEvent) {
-    this.propertyClickEvent = true;
-    if (this.editing != context) {
-      this.edittoggle(context);
-    }
-    this._context?.onClick?.(this.context!);
-  }
-  edittoggle(context: ObjectEditor.Context) {
-    if (this.editing === context) {
-      this.editing = undefined;
-    } else {
-      this.editing = context;
-      this.propertyClickEvent = true;
-    }
   }
 
   updatePropertyList(subContext: ObjectEditor.Context) {
@@ -282,12 +250,12 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   setProperties(): void {
     if (!this.context) return;
-    this.properties = ObjectEditorInt.getProperties(this.context);
+    this.properties = this.context.getProperties();
   }
 
   addProperty() {
     if (!this.context) return;
-    this.editing = ObjectEditorInt.addProperty(this.context, this.newProperty);
+    this.context.addProperty(this.newProperty.property, this.newProperty.schemeKey);
     this.setProperties();
     this.newProperty = {
       property: '',
@@ -297,19 +265,19 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   canReset(context: ObjectEditor.Context) {
-    return ObjectEditorInt.canReset(context);
+    return context.canReset();
   }
 
   reset(context: ObjectEditor.Context) {
-    ObjectEditorInt.reset(context);
+    context.reset();
   }
 
   canDelete(context: ObjectEditor.Context) {
-    return ObjectEditorInt.canDeleteProperty(context);
+    return context.canDeleteProperty();
   }
 
   delete(context: ObjectEditor.Context) {
-    ObjectEditorInt.deleteProperty(context);
+    context.deleteProperty();
     this.propertyListChange.emit(context);
   }
 
@@ -323,37 +291,26 @@ export class ObjectEditorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   initContext() {
     if (!this.context) return;
-    ObjectEditorInt.initContext(this.context);
     this.updateSubscription?.unsubscribe();
-    this.updateSubscription = this.context.updateObservable?.subscribe((o: object) => {
+    this.updateSubscription = this.context.subscribe?.((o: Record<string|number,any>) => {
+      this.setProperties();
       this.updateSignal.update((v: bigint) => ++v);
     });
-    if (ObjectEditorInt.getUIBase(this.context) == 'select') {
+    if (this.context.getUIBase() == 'select') {
       const test = 0;
     }
     else {
-      this.schemeOptions = ObjectEditorInt.getSelectionKeys(this.context);
+      this.schemeOptions = this.context.getSelectionKeys();
       this.setProperties();
-      this.context.contextChange = (context, env?: { [key: string | number]: any }) => {
-        this.context = context;
-        if (env?.['key'] != undefined) {
-          this.propertyClickEvent = true;
-          this.editing = this.getSubContext(env?.['key']);
-        }
-      };
     }
   }
 
   ngAfterViewInit(): void {
-    if (this.isObject() || this.isArray() || this.isSelect())
-      ObjectEditorInt.uiinitialized(this.context!);
   }
 
   ngOnDestroy(): void {
     window.removeEventListener('click', this.windowClickListener);
-    this.updateSubscription?.unsubscribe();
-    ObjectEditorInt.uidestroyed(this.context!);
+    this.context?.unsubscribe(this.updateSubscription);
   }
-
 }
 

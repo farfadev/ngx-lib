@@ -93,7 +93,7 @@ const _adjustDMS = (valueIn: string, options: AdjustDMSOptions, curPos?: number)
   return adjusted;
 }
 
-const _accept = (value: string, key: string, curPos: number) => {
+const _accept = (value: string, key: string ='', curPos: number) => {
   if (['-','.','°','\'','"'].includes(key)) {
     if (value.indexOf(key) >= 0) return false;
   }

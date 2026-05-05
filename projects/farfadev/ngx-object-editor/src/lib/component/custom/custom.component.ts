@@ -28,11 +28,17 @@ export class OECustomComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input()
   set context(value: ObjectEditor.Context) {
     this._context = value;
+    this.updateSubscription = value.subscribe((o: Record<string | number, any>) => {
+      
+    }
+    ) ;
   }
 
   ui_id;
 
   err_msg: string = '';
+
+  updateSubscription: any;
 
   constructor(@Host() private elementRef: ElementRef<any>) {
     this.ui_id = window.crypto.randomUUID();
@@ -107,11 +113,10 @@ export class OECustomComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
     this.fixEmulatedEncapsulation();
-    ObjectEditorInt.uiinitialized(this.context!);
   }
 
   ngOnDestroy(): void {
-    ObjectEditorInt.uidestroyed(this.context!);
+    this.context?.unsubscribe(this.updateSubscription);
   }
 
 }

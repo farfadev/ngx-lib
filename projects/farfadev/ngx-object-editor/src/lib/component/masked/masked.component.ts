@@ -52,7 +52,7 @@ export class OEMaskedComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   isReadOnly(context: ObjectEditor.Context) {
-    return ObjectEditorInt.isReadOnly(context);
+    return context.isReadOnly();
   }
 
   getId() {
@@ -65,31 +65,29 @@ export class OEMaskedComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
     this.inputElement = document.getElementById(this.getId()) as HTMLInputElement;
     this.initMask();
-    ObjectEditorInt.uiinitialized(this.context!);
   }
 
   ngOnDestroy(): void {
     this.mask?.destroy();
-    ObjectEditorInt.uidestroyed(this.context!);
   }
 
   getStyle(context: ObjectEditor.Context) {
     const stylePlus = this.err_msg != '' ? 'color:red' : '';
-    const rstyle = ObjectEditorInt.getStyle(context);
+    const rstyle = context.getStyle();
 
     return rstyle ? rstyle + ';' + stylePlus : stylePlus;
   }
 
   getStyleClass(context: ObjectEditor.Context) {
-    return ObjectEditorInt.getStyleClass(context);
+    return context.getStyleClass();
   }
 
   getLabel(subContext: ObjectEditor.Context) {
-    return ObjectEditorInt.getLabel(subContext);
+    return subContext.getLabel();
   }
 
   onclick() {
-    this._context?.pcontext?.onClick?.(this._context);
+    //this._context?.pcontext?.onClick?.(this._context);
   }
 
   stripFormat(value: string) {
@@ -103,7 +101,7 @@ export class OEMaskedComponent implements OnInit, OnDestroy, AfterViewInit {
 
   initMask() {
     if (this.context !== undefined && this.inputElement !== undefined) {
-      const options = ObjectEditorInt.getMaskOptions(this.context);
+      const options = this.context.getMaskOptions();
       if (options !== undefined) {
         options['commit'] = (value: any, masked: any) => {
           if (this.context) {

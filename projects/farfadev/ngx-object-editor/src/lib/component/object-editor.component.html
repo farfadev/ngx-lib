@@ -236,7 +236,7 @@
               (ngModelChange)="optionalPropertySet()"
             >
               <option selected value="">optional property</option>
-              @for (o of getOptionalPropertyKeyLabelList(); track o) {
+              @for (o of getOptionalPropertyKeyLabelList(); track o.key) {
                 <option value="{{ o.key }}">
                   {{ o.label }}
                 </option>
@@ -348,7 +348,7 @@
             pValue={{
               getTextValue(
                 context.key != undefined
-                  ? context.pcontext?.value?.[context.key]
+                  ? context.parent?.value?.[context.key]
                   : ""
               )
             }}

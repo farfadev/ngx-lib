@@ -53,7 +53,7 @@ export const booleanScheme: ObjectEditor.Scheme = {
 
 export const objectScheme: ObjectEditor.Scheme = {
     uibase: 'object',
-    selectionList: (context: ObjectEditor.Context) => {
+    selectionList: (context: ObjectEditor.BaseContext) => {
         return {
             boolean: booleanScheme,
             number: numberScheme,
@@ -66,7 +66,7 @@ export const objectScheme: ObjectEditor.Scheme = {
 
 export const arrayScheme: ObjectEditor.Scheme = {
     uibase: 'array',
-    selectionList: (context: ObjectEditor.Context) => {
+    selectionList: (context: ObjectEditor.BaseContext) => {
         return {
             boolean: booleanScheme,
             number: numberScheme,
@@ -79,7 +79,7 @@ export const arrayScheme: ObjectEditor.Scheme = {
 
 export const valueScheme: ObjectEditor.Scheme = {
     uibase: 'select',
-    selectionList: (context: ObjectEditor.Context) => {
+    selectionList: (context: ObjectEditor.BaseContext) => {
         return {
             'number': numberScheme,
             'string': stringScheme,
@@ -88,7 +88,7 @@ export const valueScheme: ObjectEditor.Scheme = {
             'object': objectScheme,
         }
     },
-    detectScheme: (context: ObjectEditor.Context) => {
+    detectScheme: (context: ObjectEditor.BaseContext) => {
         if (context.value == undefined || context.value == null) return undefined;
         if (typeof context.value == 'number') return 'number';
         if (typeof context.value == 'string') return 'string';

@@ -1,8 +1,8 @@
 
 import { cloneDeep } from "lodash-es";
-import { Context, Scheme, intS } from "./object-editor-decl"
-import { getProperties, getPropertyScheme, getSelectionList, getSubContext, setSelectedScheme } from "./object-editor-int";
-import { getRunScheme } from "./object-editor-get";
+import { Context, Scheme, intS, BaseContext } from "./object-editor-decl"
+import { setSelectedScheme } from "./object-editor-int";
+import { getPropertyScheme, getRunScheme } from "./object-editor-get";
 import { initContextInternals } from "./object-editor-init";
 
 export const loadContext = (context: Context, stream: ReadableStream) => {
@@ -46,9 +46,9 @@ const _toChimere = (context: Context, forwarded?: boolean): Record<string | numb
   switch (context.scheme?.uibase) {
     case 'object': {
       const sub: any[] = [];
-      const keys = getProperties(context);
+      const keys = context.getProperties();
       for (const key of keys) {
-        const subContext = getSubContext(context, key);
+        const subContext = context.getSubContext(key);
         if (subContext) {
           const rchimere = _toChimere(subContext, nFwd);
           if (rchimere != null) sub.push(rchimere);
@@ -60,7 +60,7 @@ const _toChimere = (context: Context, forwarded?: boolean): Record<string | numb
     case 'array': {
       const sub: any[] = [];
       for (let i = 0; i < context.value.length; i++) {
-        const subContext = getSubContext(context, i);
+        const subContext = context.getSubContext(i);
         if (subContext) {
           const rchimere = _toChimere(subContext, nFwd);
           if (rchimere != null) sub.push(rchimere);
@@ -70,7 +70,7 @@ const _toChimere = (context: Context, forwarded?: boolean): Record<string | numb
     }
       break;
     case 'select':
-      const subContext = getSubContext(context, intS(context.scheme)?.selectedKey);
+      const subContext = context.getSubContext(intS(context.scheme)?.selectedKey);
       if (subContext) {
         const rchimere = _toChimere(subContext, nFwd);
         if (rchimere != null) chimere[cc.selected] = rchimere;
@@ -87,22 +87,22 @@ const _toChimere = (context: Context, forwarded?: boolean): Record<string | numb
   const chimereKeys = Object.keys(chimere);
   return chimere;
 }
-export const fromChimere = (chimere: Record<string | number, any>, refScheme: Scheme): Context => {
-  const context: Context = {
+export const fromChimere = (chimere: Record<string | number, any>, refScheme: Scheme): BaseContext => {
+  const context: BaseContext = {
     scheme: getRunScheme(refScheme)
   }
   _fromChimere(context, chimere);
   return context;
 }
 
-const _fromChimere = (context: Context, chimere: Record<string | number, any>): void => {
+const _fromChimere = (context: BaseContext, chimere: Record<string | number, any>): void => {
   if (chimere['key'] != undefined) context.key = chimere['key'];
   if (chimere['value'] != undefined) context.value = chimere['value'];
-  if ((context.key != undefined) && (context.scheme == undefined)) context.scheme = getPropertyScheme(context.pcontext,context.key);
-  if ((intS(context.pcontext?.scheme)?.selectedScheme) && (context.scheme == undefined)) context.scheme = getRunScheme(intS(context.pcontext?.scheme)?.selectedScheme,context.pcontext);
+  if ((context.key != undefined) && (context.scheme == undefined)) context.scheme = getPropertyScheme(context.parent!,context.key);
+  if ((intS(context.parent?.scheme)?.selectedScheme) && (context.scheme == undefined)) context.scheme = getRunScheme(intS(context.parent?.scheme)?.selectedScheme,context.parent);
   if (chimere['scheme'] != undefined) {
     if ((context.scheme == undefined) && (chimere['scheme']['parentSelectedKey'] != undefined)) {
-      context.scheme = getRunScheme(getSelectionList(context.pcontext)[chimere['scheme']['parentSelectedKey']],context.pcontext);
+      context.scheme = getRunScheme((context.parent as Context|undefined)?.getSelectionList?.()?.[chimere['scheme']['parentSelectedKey']],context.parent);
     }
     if (chimere['scheme']['deletable'] != undefined) intS(context.scheme)!.deletable = chimere['scheme']['deletable'];
     if (chimere['scheme']['ctime'] != undefined) intS(context.scheme)!.ctime = chimere['scheme']['ctime'];
@@ -120,8 +120,8 @@ const _fromChimere = (context: Context, chimere: Record<string | number, any>): 
   }
   const props = chimere['sub'];
   for (const prop of props ?? []) {
-    const nContext: Context = {
-      pcontext: context,
+    const nContext: BaseContext = {
+      parent: context,
     }
     _fromChimere(nContext, prop);
     if (nContext.key != undefined) {
@@ -138,8 +138,8 @@ const _fromChimere = (context: Context, chimere: Record<string | number, any>): 
   }
   const selected = chimere['selected'];
   if (context.scheme!.uibase == 'select' && selected != undefined) {
-    const nContext: Context = {
-      pcontext: context,
+    const nContext: BaseContext = {
+      parent: context,
     }
     _fromChimere(nContext, selected);
     if (context.value == undefined)
@@ -152,7 +152,7 @@ const _fromChimere = (context: Context, chimere: Record<string | number, any>): 
  * @param context1 the initial context
  * @param context2 the context resulting from fromChimere
  */
-export const compare = (context1: Context, context2: Context) => {
+export const compare = (context1: BaseContext, context2: BaseContext) => {
   return deepDiffMapper().map(context1, context2);
 }
 const deepDiffMapper = () => {

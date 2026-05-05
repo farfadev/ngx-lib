@@ -15,7 +15,7 @@ export const expStringScheme: ObjectEditor.Scheme = {
     },
     values: {
       uibase: 'array',
-      selectionList: (context: ObjectEditor.Context) => {
+      selectionList: (context: ObjectEditor.BaseContext) => {
         return {
           string: stringScheme,
           expression: expressionScheme

@@ -15,6 +15,7 @@ import * as ObjectEditor from '../../object-editor';
 import * as ObjectEditorInt from '../../object-editor-int';
 import { adjustNumber } from '../../adjust/adjust-number';
 import { InputSocket } from '../../input/input-socket';
+import { Subscription } from 'rxjs';
 
 @Component({
   standalone: false,
@@ -35,6 +36,10 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
   set context(value: ObjectEditor.Context) {
     this._context = value;
     this.setAdjustSocket();
+    this.subscription?.unsubscribe;
+    this.context?.subscribe?.((o: Record<number|string,any>)=>{
+      this.updateSignal.update((v: bigint)=>++v);
+    });
   }
 
   ui_id;
@@ -47,20 +52,20 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
 
   adjustSocket?: InputSocket;
 
+  subscription: Subscription | undefined;
+
   constructor() {
     this.ui_id = window.crypto.randomUUID();
   }
 
   isReadOnly(context: ObjectEditor.Context) {
-    return ObjectEditorInt.isReadOnly(context);
+    return context.isReadOnly();
   }
 
   setAdjustSocket() {
     if (this.inputElement) {
       this.adjustSocket = new InputSocket(this.inputElement as HTMLInputElement, this.context?.scheme?.adjust ?? adjustNumber({}), this.context!, (context: any, err_msg: string) => {
         this.err_msg.set(err_msg);
-        context.editUpdate(true);
-        this.updateSignal.update((v: bigint)=>++v);
       });
     }
   }
@@ -75,26 +80,24 @@ export class OENumberComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
     this.inputElement = document.getElementById(this.getId()) as HTMLInputElement;
     this.setAdjustSocket();
-    ObjectEditorInt.uiinitialized(this.context!);
   }
 
   ngOnDestroy(): void {
-    ObjectEditorInt.uidestroyed(this.context!);
   }
 
   getStyle(context: ObjectEditor.Context) {
     const stylePlus = this.err_msg() != '' ? 'color:red' : '';
-    const rstyle = ObjectEditorInt.getStyle(context);
+    const rstyle = context.getStyle();
 
     return rstyle ? rstyle + ';' + stylePlus : stylePlus;
   }
 
   getStyleClass(context: ObjectEditor.Context) {
-    return ObjectEditorInt.getStyleClass(context);
+    return context.getStyleClass();
   }
 
   getLabel(subContext: ObjectEditor.Context) {
-    return ObjectEditorInt.getLabel(subContext);
+    return subContext.getLabel();
   }
 }
 

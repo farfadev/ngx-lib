@@ -11,7 +11,6 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import * as ObjectEditor from '../../object-editor';
-import * as ObjectEditorInt from '../../object-editor-int';
 
 @Component({
   standalone: false,
@@ -37,11 +36,11 @@ export class OECheckboxComponent implements OnInit, AfterViewInit, OnDestroy {
   ui_id;
 
   get value(): boolean {
-    return ObjectEditorInt.getUIValue(this.context!);
+    return this.context?.getUIValue() ?? false;
   }
 
   set value(v: boolean) {
-    ObjectEditorInt.setUIValue(this.context!,v);
+    this.context!.setUIValue(v);
   }
 
   constructor() {
@@ -53,29 +52,27 @@ export class OECheckboxComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   isReadOnly(context: ObjectEditor.Context) {
-    return ObjectEditorInt.isReadOnly(context);
+    return context.isReadOnly();
   }
 
   isHorizontal() {
-    return ObjectEditorInt.getUIEffects(this.context!)?.['horizontal'] ?? false;
+    return this.context?.getUIEffects()?.['horizontal'] ?? false;
   }
 
   ngOnInit(): void {
   }
   ngAfterViewInit(): void {
-    ObjectEditorInt.uiinitialized(this.context!);
   }
 
   ngOnDestroy(): void {
-    ObjectEditorInt.uidestroyed(this.context!);
   }
 
   getLabel(subContext: ObjectEditor.Context) {
-    return ObjectEditorInt.getLabel(subContext);
+    return subContext.getLabel();
   }
 
   onclick() {
-    this._context?.onClick?.(this.context!);
+    // this._context?.onClick?.(this.context!);
   }
 
   initContext() {
@@ -83,12 +80,12 @@ export class OECheckboxComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getStyle(context: ObjectEditor.Context) {
-    const rstyle = ObjectEditorInt.getStyle(context);
+    const rstyle = context.getStyle();
     return rstyle;
   }
 
   getStyleClass(context: ObjectEditor.Context) {
-    return ObjectEditorInt.getStyleClass(context);
+    return context.getStyleClass();
   }
 
 }

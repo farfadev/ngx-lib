@@ -18,7 +18,7 @@ export const expArrayScheme: ObjectEditor.Scheme = {
     type: {
       uibase: 'select',
       optional: true,
-      selectionList: (context: ObjectEditor.Context) => {
+      selectionList: (context: ObjectEditor.BaseContext) => {
         return {
           string: value2scheme('text', "string"),
           number: value2scheme('text', "number"),
