@@ -44,7 +44,7 @@ export const getSelectionKeys = (context?: BaseContext, key?: string | number): 
   }
 
 
-export const isSchemeSelectionKey = (context?: BaseContext, key?: string): boolean => {
+export const isSelectionKey = (context?: BaseContext, key?: string): boolean => {
   const keys = getSelectionKeys(context);
   return (keys && key) ? keys.includes(key) : false;
 }

@@ -1,7 +1,7 @@
 //import cloneDeep from "lodash.clonedeep";
 import { Scheme, isScheme, Context, isContext, SelectionList, UIEffects, IntContext, intS, Adjusted, Adjust, BaseContext, isBaseContext } from "./object-editor-decl";
 import { createContext } from "./object-editor-init";
-import { getRunScheme, getSelectionList, isSchemeSelectionKey } from "./object-editor-get";
+import { getRunScheme, getSelectionList, isSelectionKey } from "./object-editor-get";
 
 export type { Scheme, Context, BaseContext, SelectionList, UIEffects, Adjust, Adjusted };
 export { isScheme, isContext, isBaseContext, createContext };
@@ -22,7 +22,7 @@ export const setPropertyScheme = (context: BaseContext, property: string | numbe
   if (context.scheme!.properties == undefined) {
     context.scheme!.properties = {};
   }
-  if (isSchemeSelectionKey(context, schemeKey)) {
+  if (isSelectionKey(context, schemeKey)) {
     context.scheme!.properties[property] = (scheme == undefined) ?
       getRunScheme(getSelectionList(context)?.[schemeKey], context) as Scheme :
       scheme;

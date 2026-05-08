@@ -16,16 +16,7 @@ export const expectSubSet = (received: any, expected: any) => {
   }
 }
 
-export const getSubContextFromKeys = (context: ObjectEditor.Context, keys: (string | number)[]): ObjectEditor.Context | undefined => {
-  let subContext: ObjectEditor.Context | undefined = context;
-  for (const key of keys) {
-    if (!subContext) break;
-    subContext = subContext.getSubContext(key);
-  }
-  return subContext;
-}
-
-export const getSubValueFromKeys = (value: object, keys: (string | number)[]): any => {
+export const getSubValueFromKeys = (value: any, keys: (string | number)[]): any => {
   let subValue: any = value;
   for (const key of keys) {
     if(!subValue) break;

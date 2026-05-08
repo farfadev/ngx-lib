@@ -1,6 +1,6 @@
 import { cloneDeep, get, isEqual, isMatch } from "lodash-es";
 import { Context, intS, Scheme, IntScheme, Signal, IntContext, BaseContext, UIBase, SelectionList, UIEffects } from "./object-editor-decl";
-import { getOptional, getPropertyScheme, getRunScheme, getSelectionKeys, getSelectionList, isArray, isOptional, isSchemeSelectionKey } from './object-editor-get';
+import { getOptional, getPropertyScheme, getRunScheme, getSelectionKeys, getSelectionList, isArray, isOptional, isSelectionKey } from './object-editor-get';
 import { setPropertyScheme, setSelectedScheme } from "./object-editor"
 import { FarfaOEValueCheck } from "./utils/verifyvalues";
 import { fromChimere, toChimere } from "./object-editor-chimere";
@@ -175,6 +175,8 @@ const reCreateContext = (context: Context, value: any, scheme: Scheme): Context 
 const initSchemeAndValue = (context: BaseContext): void => {
 
   const iContext = (context as IntContext);
+  if(iContext.value != undefined) iContext.value = cloneDeep(context.value);
+  if(iContext.scheme != undefined) iContext.scheme = cloneDeep(context.scheme);
 
   if (!context.scheme) {
     context.scheme = { uibase: 'object' };
@@ -512,7 +514,7 @@ export const checkScheme = (value: any, scheme: Scheme, baseScheme: Scheme, sele
           if (baseSubScheme == undefined) {
             check(intS(subScheme)!.parentSelectedKey != undefined);
             if (intS(subScheme)?.parentSelectedKey != undefined) {
-              check(isSchemeSelectionKey({ scheme }, intS(subScheme)!.parentSelectedKey));
+              check(isSelectionKey({ scheme }, intS(subScheme)!.parentSelectedKey));
               baseSubScheme = getSelectionList({ scheme: baseScheme })[intS(subScheme)?.parentSelectedKey!]
               check(intS(subScheme)!.ctime != undefined)
               check(getOptional({ scheme: subScheme }) == true)
@@ -614,22 +616,19 @@ const initUserFunctions = (context: IntContext) => {
     }
   }
   context.setUIValue = (value: any, scheme?: Scheme): Context => {
-    return setUIValue(context, value, scheme);
+    return context.getReadOnly() ? context : setUIValue(context, value, scheme);
   }
   context.getUIValue = () => {
     return getUIValue(context);
   }
   context.setChimere = (chimere: Record<string | number, any>, scheme?: Scheme): Context => {
+    if(context.getReadOnly()) return context;
     const base = fromChimere(chimere, scheme ?? context.scheme!);
     return setUIValue(context, base.value, scheme);
   }
   context.getChimere = (): Record<string | number, any> => {
     const value = getUIValue(context);
     return toChimere(context);
-  }
-
-  context.getOptional = (key?: string | number): boolean | 'signal' | undefined => {
-    return getOptional(context, key);
   }
 
   context.isOptional = (key?: string | number): boolean => {
@@ -758,6 +757,10 @@ const initUserFunctions = (context: IntContext) => {
     return context.scheme?.label ?? context.key ?? intS(context.parent?.scheme)?.selectedKey;
   }
 
+  context.getCustomData = (): any => {
+    return context.scheme?.customData;
+  }
+
   context.getDescription = (): string | undefined => {
     if (typeof context.scheme?.description == 'function') {
       return context.scheme.description(context);
@@ -768,9 +771,7 @@ const initUserFunctions = (context: IntContext) => {
   }
 
   context.getPropertyScheme = (key?: number | string): Scheme | undefined => {
-    getPropertyScheme(context, key);
-    if ((context?.scheme == undefined) || (key == undefined)) return undefined;
-    return getRunScheme(context.scheme.properties?.[key], context);
+    return getPropertyScheme(context, key);
   }
 
 
@@ -831,6 +832,7 @@ const initUserFunctions = (context: IntContext) => {
   }
 
   context.select = (key?: string): BaseContext | undefined => {
+    if(context.getReadOnly()) return undefined;
     if (key === undefined) {
       const keys = context.getSelectionKeys();
       if (context.scheme?.defaultSelectionKey != undefined && keys?.includes(context.scheme?.defaultSelectionKey)) {
@@ -903,6 +905,7 @@ const initUserFunctions = (context: IntContext) => {
   }
 
   context.addProperty = (property: string | number, schemeKey?: string): Context | undefined => {
+    if(context.getReadOnly()) return undefined;
     if (context.scheme === undefined) {
       context.scheme = { uibase: 'object' };
     }
@@ -919,7 +922,7 @@ const initUserFunctions = (context: IntContext) => {
       // cannot replace existing property
       context.value[property] === undefined &&
       // sanity check on newproperty type
-      (isSchemeSelectionKey(context, schemeKey) ||
+      (isSelectionKey(context, schemeKey) ||
         context.getOptionalPropertyList().includes(String(property)))
     ) {
       if (!context.scheme.properties)
@@ -951,8 +954,8 @@ const initUserFunctions = (context: IntContext) => {
    * @returns true if the context can be reset, false otherwise
    */
   context.canReset = (): boolean => {
-    return ((context.scheme?.default != undefined)
-      || ((context.scheme?.defaultSelectionKey != undefined) && (context.scheme?.uibase == 'select')))
+    return (!context.getReadOnly() &&((context.scheme?.default != undefined)
+      || ((context.scheme?.defaultSelectionKey != undefined) && (context.scheme?.uibase == 'select'))))
       ;
   }
   /**
@@ -961,6 +964,7 @@ const initUserFunctions = (context: IntContext) => {
    * @returns void
    */
   context.reset = () => {
+    if(context.getReadOnly()) return;
     if (context.scheme?.default != undefined) {
       context.value = context.scheme?.default;
     }
@@ -971,10 +975,17 @@ const initUserFunctions = (context: IntContext) => {
   }
   /**
    * checks if a property (object) or an item (array) can be deleted
-   * @param context 
+   * @param key the key of the property or item to check. If not specified, the function checks if the context itself can be deleted from its parent (if it is optional or deletable) 
    * @returns true if property can be deleted, false otherwise
    */
-  context.canDeleteProperty = (): boolean => {
+  context.canDeleteProperty = (key?: string | number): boolean => {
+    if(context.getReadOnly()) return false;
+    if (key != undefined) {
+      const subContext = (context as IntContext).subContexts?.[key];
+      if (subContext == undefined) return false;
+      context = subContext;
+    }
+    if(context.getReadOnly()) return false;
     if (context.parent?.scheme?.uibase === 'object') {
       if ((isOptional(context) || intS(context.scheme)?.deletable) && context.key !== undefined) {
         return true;
@@ -992,12 +1003,14 @@ const initUserFunctions = (context: IntContext) => {
    * @returns void
    */
   context.deleteProperty = (key?: string | number) => {
+    if(context.getReadOnly()) return;
     let release;
     if (key != undefined) {
       const subContext = (context as IntContext).subContexts?.[key];
       if (subContext == undefined) return;
       context = subContext;
     }
+    if(context.getReadOnly()) return;
     if (!context.parent || !context.key) return;
     const iparentContext = context.parent as IntContext;
     if (iparentContext?.scheme?.uibase === 'object') {
@@ -1058,10 +1071,12 @@ const initUserFunctions = (context: IntContext) => {
       || !isArray(context.parent)
       || context?.key === undefined
       || context.parent?.scheme?.properties === undefined)
-      && getNumber(context.key) > 0;
+      && getNumber(context.key) > 0
+      && !context.getReadOnly();
   }
 
   context.arrayItemUp = (): boolean => {
+    if(context.getReadOnly()) return false;
     if (!context.parent) return false;
     const i = Number(context.key);
     return swapArrayItems(context.parent as IntContext, i - 1, i);
@@ -1072,11 +1087,13 @@ const initUserFunctions = (context: IntContext) => {
       || !isArray(context.parent)
       || context?.key === undefined
       || context.parent?.scheme?.properties === undefined)
-      && getNumber(context.key) < context.parent.value.length - 1;
+      && getNumber(context.key) < context.parent.value.length - 1
+      && !context.getReadOnly();
     return res;
   }
 
   context.arrayItemDown = (): boolean => {
+    if(context.getReadOnly()) return false;
     if (!context.parent) return false;
     const i = Number(context.key);
     return swapArrayItems(context.parent as IntContext, i, i + 1);

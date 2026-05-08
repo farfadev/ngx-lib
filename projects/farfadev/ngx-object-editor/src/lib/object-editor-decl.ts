@@ -165,6 +165,8 @@ export interface Scheme<ValueType = any, FwdValueType = any>  {
 
   /** for object/array provides the schemes corresponding to the value properties */
   properties?: { [key: number | string]: Scheme | (() => Scheme) }
+
+  customData?: any; // custom data that can be used in the custom front end or in the uiEffects or description callbacks
 }
 
 export const isScheme = (o: any): o is Scheme => {
@@ -245,7 +247,6 @@ export interface Context extends BaseContext {
   getProperties: () => (string | number)[];
   getSelectionKeys: (p?: string | number) => string[];
   getOptionalPropertyList: (mode?: "ui") => string[];
-  getOptional: (key?: string | number) => boolean | "signal" | undefined;
   getPropertyScheme: (key?: number | string) => Scheme | undefined;
   getMaskOptions: () => Record<string, unknown> | undefined;
   getInputAttributes: () => { [key: string]: any; } | undefined;
@@ -260,12 +261,14 @@ export interface Context extends BaseContext {
   canReset: () => boolean;
   reset: () => void;
   addProperty: (property: string | number, schemeKey?: string ) => Context | undefined;
-  canDeleteProperty: () => boolean;
+  canDeleteProperty: (key?: string | number) => boolean;
   deleteProperty: (key?: string | number) => void;
   canArrayItemUp: () => boolean;
   arrayItemUp: () => boolean;
   canArrayItemDown: () => boolean;
   arrayItemDown: () => boolean;
+
+  getCustomData: () => any;
 
 }
 
