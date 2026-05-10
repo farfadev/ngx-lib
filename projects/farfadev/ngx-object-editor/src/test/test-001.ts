@@ -11,13 +11,13 @@ const scheme001: ObjectEditor.Scheme = {
       optional: true,
     },
     p2: {
-      uibase: 'boolean',
-      default: false,
+      uibase: 'text',
+      default: 'hello p2',
       optional: true,
     },
     p3: {
-      uibase: 'boolean',
-      default: true,
+      uibase: 'number',
+      default: 67,
       optional: true,
     },
     p4: {
@@ -102,6 +102,39 @@ export const actionSequence001: ActionSequenceType = {
       action: 'checkOptionalPropertyList',
       item: [],
       value: []
+    },
+    {
+      action: 'deleteProperty',
+      item: [],
+      key: 'p3'
+    },
+    {
+      action: 'checkOptionalPropertyList',
+      item: [],
+      value: ['p3']
+    },
+    {
+      action: 'checkValue',
+      item: [],
+      value: {
+        p1: (scheme001.properties?.['p1'] as ObjectEditor.Scheme).default,
+        p2: (scheme001.properties?.['p2'] as ObjectEditor.Scheme).default,
+        p4: (scheme001.properties?.['p4'] as ObjectEditor.Scheme).default,
+      }
+    },
+    {
+      action: 'setValue',
+      item: ['p2'],
+      value: 'hello new p2'
+    },
+    {
+      action: 'checkValue',
+      item: [],
+      value: {
+        p1: (scheme001.properties?.['p1'] as ObjectEditor.Scheme).default,
+        p2: 'hello new p2',
+        p4: (scheme001.properties?.['p4'] as ObjectEditor.Scheme).default,
+      }
     },
   ]
 };

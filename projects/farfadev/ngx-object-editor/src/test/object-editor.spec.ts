@@ -4,6 +4,8 @@ import { lastAction, testActionSequenceList } from './object-editor-test-util';
 import { actionSequence001 } from './test-001';
 import { actionSequence100, actionSequence101, actionSequence102, actionSequence103 } from './test-100';
 import { actionSequence002 } from './test-002';
+import { actionSequence300 } from './test-300';
+import { actionSequence200 } from './test-200';
 
 const step1 = new Semaphore();
 
@@ -13,7 +15,10 @@ const actionSequenceList = [
   actionSequence100,
   actionSequence101,
   actionSequence102,
-  actionSequence103
+  actionSequence103,
+  actionSequence200,
+  actionSequence300,
+
 ];
 
 describe('object-editor', () => {

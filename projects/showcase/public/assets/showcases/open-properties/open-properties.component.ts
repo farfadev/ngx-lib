@@ -26,7 +26,7 @@ export class ShowcaseOpenPropertiesComponent {
     simpleColor: '#0000ff',
     simpleBoolean: false,
     simpleRadio: undefined,
-    openProp: 'test',
+    openProp1: 'open property 1'
   }
   myscheme: ObjectEditor.Scheme = {
     uibase: 'object',
@@ -76,7 +76,7 @@ export class ShowcaseOpenPropertiesComponent {
       }
     },
   }
-  mycontext: ObjectEditor.Context = ObjectEditor.createContext(this.myscheme);
+  mycontext: ObjectEditor.Context = ObjectEditor.createContext(this.myscheme,this.myvalue);
 }
 
 

@@ -175,8 +175,8 @@ const reCreateContext = (context: Context, value: any, scheme: Scheme): Context 
 const initSchemeAndValue = (context: BaseContext): void => {
 
   const iContext = (context as IntContext);
-  if(iContext.value != undefined) iContext.value = cloneDeep(context.value);
-  if(iContext.scheme != undefined) iContext.scheme = cloneDeep(context.scheme);
+  if (iContext.value != undefined) iContext.value = cloneDeep(context.value);
+  if (iContext.scheme != undefined) iContext.scheme = cloneDeep(context.scheme);
 
   if (!context.scheme) {
     context.scheme = { uibase: 'object' };
@@ -207,7 +207,12 @@ export const initContextInternals = (context: BaseContext) => {
   initUserFunctions(iContext);
   initSignalling(iContext);
 }
-
+/**
+ * create an editor context from a value and a scheme. The value can be undefined, in which case it will be set in accordance with the scheme
+ * @param scheme 
+ * @param value 
+ * @returns 
+ */
 export const createContext = (scheme: Scheme, value?: any): Context => {
   const context: BaseContext = { scheme, value };
   initContext(context);
@@ -284,7 +289,8 @@ const initValue = (value: any, scheme?: Scheme): any => {
       }
       break;
     case 'select': {
-      value = initValue(value, intS(scheme)?.selectedScheme as Scheme | undefined);
+      const defaultScheme = scheme?.defaultSelectionKey != undefined && scheme?.selectionList != undefined ? getSelectionList({scheme})?.[scheme.defaultSelectionKey] : undefined;
+      value = initValue(value, (intS(scheme)?.selectedScheme ?? defaultScheme) as Scheme | undefined);
     }
       break;
     case 'boolean':
@@ -489,7 +495,7 @@ const initScheme = (context: BaseContext): number => {
   return (count != 0 ? match / count : 0);
 }
 
-export const checkScheme = (value: any, scheme: Scheme, baseScheme: Scheme, select?: boolean) => {
+export const checkScheme = (value: any, scheme: Scheme, baseScheme: Scheme) => {
 
   let badcheckcount = 0;
   const check = (test: boolean) => {
@@ -530,6 +536,44 @@ export const checkScheme = (value: any, scheme: Scheme, baseScheme: Scheme, sele
   }
   _checkScheme(value, scheme, baseScheme);
   return badcheckcount;
+}
+
+export const checkContext = (context: Context): number => {
+  if (context.scheme == undefined) return 1;
+  for (const key of Object.keys((context as IntContext).subContexts ?? {})) {
+    const i = checkContext((context as IntContext).subContexts![key]);
+    if(i != 0) return i;
+  }
+  if (context.value == undefined) {
+    if (context.scheme.optional == true || context.scheme.default == undefined) return 0;
+    return 1;
+  };
+  if (context.key != undefined) {
+    if (context.parent == undefined) return 1;
+    if (context.parent && (context.parent.scheme?.uibase == 'array' || context.parent.scheme?.uibase == 'object')) {
+      if (!isEqual(context.parent.value?.[context.key], context.value)) return 1;
+    }
+    if ((context.parent as IntContext).subContext == undefined && (context.parent as IntContext).subContexts == undefined) return 1;
+    if ((context.parent as IntContext).subContext != undefined && (context.parent as IntContext).subContexts != undefined) return 1;
+    if ((context.parent as IntContext).subContext != context && (context.parent as IntContext).subContext != undefined) return 1;
+    if ((context.parent as IntContext).subContexts?.[context.key] != context && (context.parent as IntContext).subContexts != undefined) return 1;
+    if (context.parent.scheme == undefined) return 1;
+    if ((context.parent.scheme.uibase == 'object') || (context.parent.scheme.uibase == 'array')) {
+      if ((context.parent.scheme.uibase == 'array') && !Number.isInteger(Number(context.key))) return 1;
+      if (context.parent.scheme.properties?.[context.key] == undefined) return 1;
+      if (!isMatch(context.scheme, context.parent.scheme.properties?.[context.key])) return 1;
+    }
+    else if (context.parent.scheme.uibase == 'select') {
+      if ((context.parent.scheme as IntScheme).selectedKey != context.key) return 1;
+      const selScheme = (context.parent as IntContext)?.getSelectionList()?.[context.key];
+      if (selScheme == undefined) return 1;
+      if (!isMatch(context.scheme, selScheme)) return 1;
+    }
+    else {
+      return 1;
+    }
+  }
+  return 0;
 }
 
 const getNumber = (arg0: any): number => {
@@ -622,7 +666,7 @@ const initUserFunctions = (context: IntContext) => {
     return getUIValue(context);
   }
   context.setChimere = (chimere: Record<string | number, any>, scheme?: Scheme): Context => {
-    if(context.getReadOnly()) return context;
+    if (context.getReadOnly()) return context;
     const base = fromChimere(chimere, scheme ?? context.scheme!);
     return setUIValue(context, base.value, scheme);
   }
@@ -832,7 +876,7 @@ const initUserFunctions = (context: IntContext) => {
   }
 
   context.select = (key?: string): BaseContext | undefined => {
-    if(context.getReadOnly()) return undefined;
+    if (context.getReadOnly()) return undefined;
     if (key === undefined) {
       const keys = context.getSelectionKeys();
       if (context.scheme?.defaultSelectionKey != undefined && keys?.includes(context.scheme?.defaultSelectionKey)) {
@@ -869,8 +913,8 @@ const initUserFunctions = (context: IntContext) => {
         return undefined;
       }
       let subScheme: Scheme | undefined = getPropertyScheme(context, p);
-      if(! subScheme && ['custom', 'angular'].includes(context.scheme?.uibase ?? '')) {
-         subScheme = { uibase: 'none' };
+      if (!subScheme && ['custom', 'angular'].includes(context.scheme?.uibase ?? '')) {
+        subScheme = { uibase: 'none' };
 
       }
       if (subScheme == undefined) return undefined;
@@ -905,7 +949,7 @@ const initUserFunctions = (context: IntContext) => {
   }
 
   context.addProperty = (property: string | number, schemeKey?: string): Context | undefined => {
-    if(context.getReadOnly()) return undefined;
+    if (context.getReadOnly()) return undefined;
     if (context.scheme === undefined) {
       context.scheme = { uibase: 'object' };
     }
@@ -954,7 +998,7 @@ const initUserFunctions = (context: IntContext) => {
    * @returns true if the context can be reset, false otherwise
    */
   context.canReset = (): boolean => {
-    return (!context.getReadOnly() &&((context.scheme?.default != undefined)
+    return (!context.getReadOnly() && ((context.scheme?.default != undefined)
       || ((context.scheme?.defaultSelectionKey != undefined) && (context.scheme?.uibase == 'select'))))
       ;
   }
@@ -964,7 +1008,7 @@ const initUserFunctions = (context: IntContext) => {
    * @returns void
    */
   context.reset = () => {
-    if(context.getReadOnly()) return;
+    if (context.getReadOnly()) return;
     if (context.scheme?.default != undefined) {
       context.value = context.scheme?.default;
     }
@@ -979,13 +1023,13 @@ const initUserFunctions = (context: IntContext) => {
    * @returns true if property can be deleted, false otherwise
    */
   context.canDeleteProperty = (key?: string | number): boolean => {
-    if(context.getReadOnly()) return false;
+    if (context.getReadOnly()) return false;
     if (key != undefined) {
       const subContext = (context as IntContext).subContexts?.[key];
       if (subContext == undefined) return false;
-      context = subContext;
+      return subContext.canDeleteProperty();
     }
-    if(context.getReadOnly()) return false;
+    if (context.getReadOnly()) return false;
     if (context.parent?.scheme?.uibase === 'object') {
       if ((isOptional(context) || intS(context.scheme)?.deletable) && context.key !== undefined) {
         return true;
@@ -1003,15 +1047,15 @@ const initUserFunctions = (context: IntContext) => {
    * @returns void
    */
   context.deleteProperty = (key?: string | number) => {
-    if(context.getReadOnly()) return;
+    if (context.getReadOnly()) return;
     let release;
     if (key != undefined) {
       const subContext = (context as IntContext).subContexts?.[key];
       if (subContext == undefined) return;
-      context = subContext;
+      return subContext.deleteProperty();
     }
-    if(context.getReadOnly()) return;
-    if (!context.parent || !context.key) return;
+    if (context.getReadOnly()) return;
+    if (!context.parent || (context.key == undefined)) return;
     const iparentContext = context.parent as IntContext;
     if (iparentContext?.scheme?.uibase === 'object') {
       if ((isOptional(context) || intS(context.scheme)?.deletable) && context.key !== undefined) {
@@ -1052,7 +1096,15 @@ const initUserFunctions = (context: IntContext) => {
       for (const i of Object.keys(iparentContext.scheme.properties!)) {
         if ((Number(i) >= Number(context.key)) && (Number(i) < end)) {
           nschemeP[Number(i)] = iparentContext.scheme.properties![Number(i) + 1];
-          if (nSubcontextsP) nSubcontextsP[Number(i)] = nSubcontextsP[Number(i) + 1];
+          if (nSubcontextsP) {
+            nSubcontextsP[Number(i)] = nSubcontextsP[Number(i) + 1];
+            if (nSubcontextsP[Number(i)] == undefined) {
+              delete nSubcontextsP[Number(i)];
+            }
+            else {
+              nSubcontextsP[Number(i)].key = Number(i);
+            }
+          }
         }
       }
       release = context;
@@ -1076,7 +1128,7 @@ const initUserFunctions = (context: IntContext) => {
   }
 
   context.arrayItemUp = (): boolean => {
-    if(context.getReadOnly()) return false;
+    if (context.getReadOnly()) return false;
     if (!context.parent) return false;
     const i = Number(context.key);
     return swapArrayItems(context.parent as IntContext, i - 1, i);
@@ -1093,7 +1145,7 @@ const initUserFunctions = (context: IntContext) => {
   }
 
   context.arrayItemDown = (): boolean => {
-    if(context.getReadOnly()) return false;
+    if (context.getReadOnly()) return false;
     if (!context.parent) return false;
     const i = Number(context.key);
     return swapArrayItems(context.parent as IntContext, i, i + 1);

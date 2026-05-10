@@ -18,13 +18,14 @@ export class InputSocket {
       this.inputElement.onclick = () => {
         //context?.onClick?.(context);
       }
-      this.updateValue();
+      this.initValue();
     }
   }
-  private updateValue() {
+  private initValue() {
     if (this.adjust.adjust) {
       const adjusted = this.adjust.adjust(this.context, String(this.context.getUIValue() ?? ''));
       this.inputElement.value = adjusted?.formattedValue ?? '';
+      if(adjusted?.message != undefined) this.update(this.context, adjusted?.message ?? '');
     }
     else {
       this.inputElement.value = String(this.context.getUIValue() ?? '');

@@ -12,4 +12,4 @@ export * from './lib/imasks/dms-mask';
 export type { UIBase, Scheme, Context, BaseContext, Signal } from './lib/object-editor-decl';
 export  { signal } from './lib/object-editor-decl';
 export * from './lib/object-editor-chimere';
-export { createContext, checkScheme } from './lib/object-editor-init';
+export { createContext, checkScheme, checkContext } from './lib/object-editor-init';
