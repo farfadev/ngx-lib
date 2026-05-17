@@ -251,8 +251,8 @@ const initValue = (value: any, scheme?: Scheme): any => {
   if (!scheme) {
     return value;
   }
-  if (value == undefined && scheme.default != undefined) {
-    value = cloneDeep(scheme.default);
+  if (value == undefined && getDefaultValue(scheme) != undefined) {
+    value = cloneDeep(getDefaultValue(scheme));
     initScheme({ value, scheme });
   }
   if (scheme.transform != undefined) {
@@ -289,7 +289,7 @@ const initValue = (value: any, scheme?: Scheme): any => {
       }
       break;
     case 'select': {
-      const defaultScheme = scheme?.defaultSelectionKey != undefined && scheme?.selectionList != undefined ? getSelectionList({scheme})?.[scheme.defaultSelectionKey] : undefined;
+      const defaultScheme = scheme?.defaultSelectionKey != undefined && scheme?.selectionList != undefined ? getSelectionList({ scheme })?.[scheme.defaultSelectionKey] : undefined;
       value = initValue(value, (intS(scheme)?.selectedScheme ?? defaultScheme) as Scheme | undefined);
     }
       break;
@@ -363,11 +363,20 @@ const initValue = (value: any, scheme?: Scheme): any => {
   return value;
 }
 
+const getDefaultValue = (scheme: Scheme|undefined) => {
+  if(scheme == undefined) return undefined;
+  if(scheme.default != undefined) return scheme.default;
+  if(scheme.uibase == 'select' && scheme.defaultSelectionKey != undefined) {
+    return getDefaultValue(getSelectionList({scheme})?.[scheme.defaultSelectionKey]);
+  }
+  return undefined;
+}
+
 const initScheme = (context: BaseContext): number => {
   let match: number = 0;
   let count = 0;
   const forward = context.scheme?.transform?.forward;
-  const value = (typeof forward == 'function') ? forward(context.value) : context.value;
+  const value = (typeof forward == 'function') ? forward(context.value) : (context.value ?? getDefaultValue(context.scheme));
   context.scheme = getRunScheme(context.scheme, context.parent) ?? { uibase: 'none' };
 
   if (value == undefined) return 0;
@@ -466,7 +475,7 @@ const initScheme = (context: BaseContext): number => {
       }
       break;
     case 'none':
-      match = (context.scheme.default != undefined) ? (isEqual(value, context.scheme.default) ? 1 : 0) : 1;
+      match = (getDefaultValue(context.scheme) != undefined) ? (isEqual(value, getDefaultValue(context.scheme)) ? 1 : 0) : 1;
       count = 1;
       break;
     case 'boolean':
@@ -538,16 +547,21 @@ export const checkScheme = (value: any, scheme: Scheme, baseScheme: Scheme) => {
   return badcheckcount;
 }
 
-export const checkContext = (context: Context): number => {
+export const checkContext = (context: Context, baseScheme?: Scheme): number => {
   if (context.scheme == undefined) return 1;
   for (const key of Object.keys((context as IntContext).subContexts ?? {})) {
     const i = checkContext((context as IntContext).subContexts![key]);
-    if(i != 0) return i;
+    if (i != 0) return i;
   }
   if (context.value == undefined) {
-    if (context.scheme.optional == true || context.scheme.default == undefined) return 0;
+    if (context.scheme.optional == true || getDefaultValue(context.scheme) == undefined) return 0;
     return 1;
   };
+  if (baseScheme) {
+    const ecount = checkScheme(context.value, context.scheme, baseScheme);
+    if (ecount > 0) return ecount;
+  }
+  if(!intS(context.scheme)!.cloned) return 1;
   if (context.key != undefined) {
     if (context.parent == undefined) return 1;
     if (context.parent && (context.parent.scheme?.uibase == 'array' || context.parent.scheme?.uibase == 'object')) {
@@ -561,7 +575,10 @@ export const checkContext = (context: Context): number => {
     if ((context.parent.scheme.uibase == 'object') || (context.parent.scheme.uibase == 'array')) {
       if ((context.parent.scheme.uibase == 'array') && !Number.isInteger(Number(context.key))) return 1;
       if (context.parent.scheme.properties?.[context.key] == undefined) return 1;
-      if (!isMatch(context.scheme, context.parent.scheme.properties?.[context.key])) return 1;
+      if (!(context.scheme === context.parent.scheme.properties?.[context.key])) return 1;
+      const selScheme = (context.parent as IntContext)?.getSelectionList()?.[context.key];
+      if ((selScheme != undefined) && ((context.scheme as IntScheme).ctime) && (!isMatch(context.scheme, selScheme))) return 1;
+      //if (!isMatch(context.scheme, context.parent.scheme.properties?.[context.key])) return 1;
     }
     else if (context.parent.scheme.uibase == 'select') {
       if ((context.parent.scheme as IntScheme).selectedKey != context.key) return 1;
@@ -875,7 +892,7 @@ const initUserFunctions = (context: IntContext) => {
     return properties;
   }
 
-  context.select = (key?: string): BaseContext | undefined => {
+  context.select = (key?: string): Context | undefined => {
     if (context.getReadOnly()) return undefined;
     if (key === undefined) {
       const keys = context.getSelectionKeys();
@@ -887,11 +904,16 @@ const initUserFunctions = (context: IntContext) => {
       }
     }
 
-    if (key) setSelectedScheme(context, key);
+    if (isSelectionKey(context, key)) {
+      if (key) setSelectedScheme(context, key);
 
-    context.value = initValue(undefined, intS(context.scheme)!.selectedScheme!);
+      context.value = initValue(undefined, intS(context.scheme)!.selectedScheme!);
 
-    (context as IntContext).updateObservable?.next({ value: context.value, scheme: context.scheme });
+      (context as IntContext).updateObservable?.next({ value: context.value, scheme: context.scheme });
+    }
+    else {
+      const i = 0; // for breakpoints
+    }
     return context.getSubContext();
   }
 
@@ -927,6 +949,7 @@ const initUserFunctions = (context: IntContext) => {
       if (subContext == undefined) return undefined;
       if ((context as IntContext).subContexts == undefined) (context as IntContext).subContexts = {};
       (context as IntContext).subContexts![p] = subContext;
+      if(context.scheme?.properties) context.scheme.properties[p] = subContext.scheme as IntScheme;
       (subContext as IntContext).updateObservable?.subscribe((o: Record<string | number, any>) => {
         (context as IntContext).updateObservable?.next({ subContext, o });
       });
@@ -998,7 +1021,7 @@ const initUserFunctions = (context: IntContext) => {
    * @returns true if the context can be reset, false otherwise
    */
   context.canReset = (): boolean => {
-    return (!context.getReadOnly() && ((context.scheme?.default != undefined)
+    return (!context.getReadOnly() && ((getDefaultValue(context.scheme) != undefined)
       || ((context.scheme?.defaultSelectionKey != undefined) && (context.scheme?.uibase == 'select'))))
       ;
   }
@@ -1009,8 +1032,8 @@ const initUserFunctions = (context: IntContext) => {
    */
   context.reset = () => {
     if (context.getReadOnly()) return;
-    if (context.scheme?.default != undefined) {
-      context.value = context.scheme?.default;
+    if (getDefaultValue(context.scheme) != undefined) {
+      context.value = cloneDeep(getDefaultValue(context.scheme));
     }
     if (context.scheme?.defaultSelectionKey != undefined) {
       context.select(context.scheme?.defaultSelectionKey);

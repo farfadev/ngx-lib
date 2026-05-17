@@ -1,5 +1,6 @@
 
 import * as ObjectEditor from "../lib/object-editor";
+import { IntScheme } from "../lib/object-editor-decl";
 import { ActionSequenceType } from "./object-editor-test-util";
 
 const value2scheme = (value: any, label?: string) => {
@@ -58,9 +59,32 @@ export const actionSequence300: ActionSequenceType = {
       action: 'checkValue',
       item: [],
       value: (scheme001.selectionList as any)?.['value']['default'],
-      preCallBack: () => {
-        const i = 0;
-      }
+    }
+  ]
+};
+
+const value001 = { a: 1, b: 'zebu' };
+
+export const actionSequence301: ActionSequenceType = {
+  name: 'Action Sequence 301',
+  scheme: scheme001,
+  value: value001,
+  sequence: [
+    {
+      action: 'checkValue',
+      item: [],
+      value: value001,
+    },
+    {
+      action: 'checkSchemeSubSet',
+      item: [],
+      scheme: {
+        selectedKey: 'simpleRadio'
+      } as IntScheme,
+    },
+    {
+      action: 'select',
+      item: [],
     }
   ]
 };

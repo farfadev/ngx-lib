@@ -257,7 +257,7 @@ export interface Context extends BaseContext {
   getStyle: () => string | undefined;
   getSelectionLabel: () => string | undefined;
   getSubContext: (p?: string | number) => Context | undefined;
-  select: (key?: string) => BaseContext | undefined;
+  select: (key?: string) => Context | undefined;
   canReset: () => boolean;
   reset: () => void;
   addProperty: (property: string | number, schemeKey?: string ) => Context | undefined;

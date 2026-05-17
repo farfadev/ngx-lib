@@ -96,7 +96,10 @@ export const actionSequence200: ActionSequenceType = {
     {
       action: 'checkOptionalPropertyList',
       item: [],
-      value: []
+      value: [],
+      preCallBack: () => {
+        const i = 0;
+      }
     },
   ]
 };

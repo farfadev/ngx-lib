@@ -180,14 +180,14 @@ export const actionSequence101: ActionSequenceType = {
       })()
     },
     {
-      action: 'setValue',
+      action: 'select',
       item: ['fifi', 1],
-      value: { amp: 'hello', loop: { q: 12, m: 'bOkp' } }
+      key: 'const1',
     },
     {
       action: 'checkValue',
       item: ['fifi', 1],
-      value: { amp: 'hello', loop: { q: 12, m: 'bOkp' } }
+      value: { toto: true, tila: { z: 12, g: "HhhU" } },
     },
     {
       action: 'setReadOnly',
@@ -200,14 +200,31 @@ export const actionSequence101: ActionSequenceType = {
       value: true
     },
     {
-      action: 'setValue',
+      action: 'select',
       item: ['fifi', 1],
-      value: { amp: 'hello1', loop: { q: 125, m: 'abOkp' } }
+      key: 'const2',
+      preCallBack: () => {
+        const i = 0;
+      }
+    },
+    {
+      action: 'checkSchemeSubSet',
+      item: ['fifi', 1],
+      scheme: {
+        uibase: 'select',
+        parentSelectedKey: 's3scheme1',
+        selectedKey: 'const1',
+        selectedScheme: {
+          cloned: true,
+          uibase: 'none',
+          default: { toto: true, tila: { z: 12, g: "HhhU" } },
+        }
+      } as ObjectEditor.Scheme,
     },
     {
       action: 'checkValue',
       item: ['fifi', 1],
-      value: { amp: 'hello', loop: { q: 12, m: 'bOkp' } }
+      value: { toto: true, tila: { z: 12, g: 'HhhU' } },
     },
     {
       action: 'setReadOnly',
@@ -220,14 +237,22 @@ export const actionSequence101: ActionSequenceType = {
       value: false
     },
     {
+      action: 'select',
+      item: ['fifi', 1],
+      key: 'schemeObj',
+      preCallBack: () => {
+        const i = 0;
+      }
+    },
+    {
       action: 'setValue',
       item: ['fifi', 1],
-      value: { amp: 'hello1', loop: { q: 125, m: 'abOkp' } }
+      value: { toto: false, tila: { z: -34, g: 'y1ip' } }
     },
     {
       action: 'checkValue',
       item: ['fifi', 1],
-      value: { amp: 'hello1', loop: { q: 125, m: 'abOkp' } }
+      value: { toto: false, tila: { z: -34, g: 'y1ip' } }
     },
   ]
 }

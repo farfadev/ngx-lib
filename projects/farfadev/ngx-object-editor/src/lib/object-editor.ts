@@ -1,6 +1,6 @@
 //import cloneDeep from "lodash.clonedeep";
 import { Scheme, isScheme, Context, isContext, SelectionList, UIEffects, IntContext, intS, Adjusted, Adjust, BaseContext, isBaseContext } from "./object-editor-decl";
-import { createContext } from "./object-editor-init";
+import { createContext, releaseContext } from "./object-editor-init";
 import { getRunScheme, getSelectionList, isSelectionKey } from "./object-editor-get";
 
 export type { Scheme, Context, BaseContext, SelectionList, UIEffects, Adjust, Adjusted };
@@ -15,6 +15,7 @@ export const setSelectedScheme = (context: BaseContext, key: string, selectedSch
   else {
     intS(context.scheme)!.selectedScheme = selectedScheme;
   }
+  releaseContext((context as IntContext).subContext);
   (context as IntContext).subContext = undefined;
 }
 

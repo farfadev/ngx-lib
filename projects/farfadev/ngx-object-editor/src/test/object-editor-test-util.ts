@@ -1,6 +1,6 @@
 import { expect } from 'vitest';
 import * as ObjectEditor from "../lib/object-editor";
-import { cloneDeep, isEqual } from "lodash-es";
+import { cloneDeep, isEqual, isMatch } from "lodash-es";
 import { fromChimere, toChimere } from '../lib/object-editor-chimere';
 
 import { expectSubSet, getSubValueFromKeys } from "./tests-utils";
@@ -25,6 +25,9 @@ export type Action =
   | 'arrayItemUp'
   | 'canArrayItemDown'
   | 'arrayItemDown'
+  | 'select'
+  | 'canReset'
+  | 'reset'
   ;
 export type ActionType = {
   action: Action; // the action to perform
@@ -35,8 +38,8 @@ export type ActionType = {
   schemeKey?: string; // an optional scheme key to use for the action (useful for actions like addProperty to specify the scheme of the added property, it will be looked up in the current context scheme properties using the schemeKey)
   scheme?: ObjectEditor.Scheme | ((c: ObjectEditor.Context) => ObjectEditor.Scheme) | undefined;
   id?: string; // a string to identify the action (useful for debugging)
-  preCallBack?: (context: ObjectEditor.Context,actionSeqData: Record<string,any>) => void; // a call back to be called before the action is performed (useful to set dynamic values, scheme or other data for the action)
-  postCallBack?: (context: ObjectEditor.Context,actionSeqData: Record<string,any>) => void; // a call back to be called after the action is performed (useful to set dynamic values, scheme or other data for the next actions)
+  preCallBack?: (context: ObjectEditor.Context, actionSeqData: Record<string, any>) => void; // a call back to be called before the action is performed (useful to set dynamic values, scheme or other data for the action)
+  postCallBack?: (context: ObjectEditor.Context, actionSeqData: Record<string, any>) => void; // a call back to be called after the action is performed (useful to set dynamic values, scheme or other data for the next actions)
 };
 export type ActionSequenceType = {
   name?: string; // a name to identify the action sequence (useful for debugging)
@@ -106,7 +109,7 @@ export const testActionSequenceList = (actionSequenceList: ActionSequenceType[])
     const schemeClone = cloneDeep(actionSequence.scheme);
     const valueClone = cloneDeep(actionSequence.value);
     const context = ObjectEditor.createContext(actionSequence.scheme, actionSequence.value);
-    expect(checkContext(context)).toEqual(0);
+    expect(checkContext(context, schemeClone)).toEqual(0);
     const actionSeqdata: Record<string, any> = {};
     for (const action of actionSequence.sequence) {
       lastAction.sequence = actionSequence;
@@ -125,7 +128,7 @@ export const testActionSequenceList = (actionSequenceList: ActionSequenceType[])
           const subContext = getSubContextFromKeys(context, action.item);
           expect(subValue).toEqual(value);
           expect(subContext?.value).toEqual(value);
-          expect(checkContext(context)).toEqual(0);
+          expect(checkContext(context, schemeClone)).toEqual(0);
           break;
         }
         case 'checkUIValue': {
@@ -179,7 +182,7 @@ export const testActionSequenceList = (actionSequenceList: ActionSequenceType[])
           const chimere = toChimere(subContext!);
           const subContext2 = fromChimere(chimere, subContext!.scheme!);
           expect(isEqual(subContext?.value, subContext2.value)).toBeTruthy();
-          expect(checkContext(context)).toEqual(0);
+          expect(checkContext(context, schemeClone)).toEqual(0);
           break;
         }
         case 'checkOptionalPropertyList': {
@@ -192,7 +195,7 @@ export const testActionSequenceList = (actionSequenceList: ActionSequenceType[])
         case 'addProperty': {
           const subContext = getSubContextFromKeys(context, action.item);
           subContext?.addProperty?.(String(action.key ?? ''), action.schemeKey);
-          expect(checkContext(context)).toEqual(0);
+          expect(checkContext(context, schemeClone)).toEqual(0);
           break;
         }
         case 'canDeleteProperty': {
@@ -204,7 +207,7 @@ export const testActionSequenceList = (actionSequenceList: ActionSequenceType[])
         case 'deleteProperty': {
           const subContext = getSubContextFromKeys(context, action.item);
           subContext?.deleteProperty?.(action.key);
-          expect(checkContext(context)).toEqual(0);
+          expect(checkContext(context, schemeClone)).toEqual(0);
           break;
         }
         case 'canArrayItemUp': {
@@ -216,9 +219,9 @@ export const testActionSequenceList = (actionSequenceList: ActionSequenceType[])
         case 'arrayItemUp': {
           const subContext = getSubContextFromKeys(context, action.item);
           const value = getDynValue(action, context, actionSeqdata);
-          if(value != undefined) expect(subContext?.arrayItemUp?.()).toEqual(value);
+          if (value != undefined) expect(subContext?.arrayItemUp?.()).toEqual(value);
           else subContext?.arrayItemUp?.();
-          expect(checkContext(context)).toEqual(0);
+          expect(checkContext(context, schemeClone)).toEqual(0);
           break;
         }
         case 'canArrayItemDown': {
@@ -230,11 +233,25 @@ export const testActionSequenceList = (actionSequenceList: ActionSequenceType[])
         case 'arrayItemDown': {
           const subContext = getSubContextFromKeys(context, action.item);
           const value = getDynValue(action, context, actionSeqdata);
-          if(value != undefined) expect(subContext?.arrayItemDown?.()).toEqual(value);
+          if (value != undefined) expect(subContext?.arrayItemDown?.()).toEqual(value);
           else subContext?.arrayItemDown?.();
-          expect(checkContext(context)).toEqual(0);
+          expect(checkContext(context, schemeClone)).toEqual(0);
           break;
-        } 
+        }
+        case 'select': {
+          const subContext = getSubContextFromKeys(context, action.item);
+          const newContext = subContext?.select(action.key as string);
+          expect(checkContext(context, schemeClone)).toEqual(0);
+          break;
+        }
+        case 'canReset': {
+          break;
+        }
+
+        case 'reset': {
+          break;
+        }
+
         default: {
           throw new Error(`Unknown action ${action.action}`);
         }
