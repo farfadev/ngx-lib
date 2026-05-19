@@ -6,6 +6,7 @@ import { actionSequence100, actionSequence101, actionSequence102, actionSequence
 import { actionSequence002 } from './test-002';
 import { actionSequence300, actionSequence301 } from './test-300';
 import { actionSequence200 } from './test-200';
+import { actionSequence600 } from './test-600';
 
 const step1 = new Semaphore();
 
@@ -19,7 +20,7 @@ const actionSequenceList = [
   actionSequence200,
   actionSequence300,
   actionSequence301,
-
+  actionSequence600
 ];
 
 describe('object-editor', () => {
@@ -31,6 +32,7 @@ describe('object-editor', () => {
   });
   it('test1', () => {
     try {
+ 
       testActionSequenceList(actionSequenceList);
     }
     catch (error) {
