@@ -24,15 +24,14 @@ const actionSequenceList = [
 ];
 
 describe('object-editor', () => {
-  beforeAll(async () => {
+  beforeAll(() => {
 
   })
   afterEach(async () => {
     await sleep(2000);
   });
-  it('test1', () => {
+  it('test1', async () => {
     try {
- 
       testActionSequenceList(actionSequenceList);
     }
     catch (error) {

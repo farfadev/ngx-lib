@@ -30,7 +30,7 @@ export class ShowcaseTransformComponent {
     properties: {
       simpleCoordinates: {
         uibase: 'object',
-        default: '[12,-45]',
+        default: [12,-45],
         properties: {
           latitude: {
             uibase: 'number',

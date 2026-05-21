@@ -105,6 +105,11 @@ const getSubContextFromKeys = (context: ObjectEditor.Context, keys: (string | nu
 export const lastAction: { sequence?: ActionSequenceType, action?: ActionType } = {};
 
 export const testActionSequenceList = (actionSequenceList: ActionSequenceType[]) => {
+  const coverage: Record<string,number> = {};
+  const increment = (id: string) => {
+    if(coverage[id] == undefined) coverage[id] = 1;
+    else coverage[id]++;
+  }
   for (const actionSequence of actionSequenceList) {
     const schemeClone = cloneDeep(actionSequence.scheme);
     const valueClone = cloneDeep(actionSequence.value);
@@ -257,8 +262,10 @@ export const testActionSequenceList = (actionSequenceList: ActionSequenceType[])
         }
       }
       action.postCallBack?.(context, actionSeqdata);
+      increment(action.action);
     }
     expect(actionSequence.scheme).toEqual(schemeClone);
     expect(actionSequence.value).toEqual(valueClone);
   }
+  console.log(coverage);
 }

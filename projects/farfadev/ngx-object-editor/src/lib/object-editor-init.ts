@@ -53,7 +53,7 @@ const fireSignals = (sourceContext: Context) => {
           if (targetContext.scheme?.onSignals) {
             for (const ssg of targetContext.scheme?.onSignals) {
               if (ssg.signals.includes(signal.signal)) {
-                const actions = ssg.call(targetContext, sourceContext, signal);
+                ssg.call(targetContext, sourceContext, signal);
               }
             }
           }
@@ -252,6 +252,15 @@ const initContext = (context: BaseContext): void => {
 
   (context as IntContext).init = true;
 
+  createSubContexts(context as IntContext);
+}
+
+const createSubContexts = (context: IntContext | undefined) => {
+  if(context == undefined) return;
+  for(const p of context.getProperties()) {
+    createSubContexts(context.getSubContext(p));
+  }
+  createSubContexts(context.getSubContext());
 }
 
 const initValue = (value: any, scheme?: Scheme): any => {

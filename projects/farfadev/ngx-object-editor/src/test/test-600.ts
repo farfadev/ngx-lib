@@ -206,7 +206,24 @@ export const actionSequence600: ActionSequenceType = {
       action: 'checkValue',
       item: [],
       value: {...value001, simpleSignals: 0},
-    }
+    },
+    {
+      action: 'select',
+      item: ['simpleSignals'],
+      key: 'sel1'
+    },
+    {
+      action: 'checkValueSubSet',
+      item: [],
+      value: {
+        simpleSignals: 'coucou',
+        simpleBoolean: true,
+        simpleColor: 'green',
+        simpleNumber: 12,
+        simpleText: 'Selection 1 selected',
+        optionalText: (scheme001.properties!['optionalText']! as ObjectEditor.Scheme).default
+      },
+    },
   ]
 };
 
